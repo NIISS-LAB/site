@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engineering Software Suite — Neural Industrial Systems</title>
+<link rel="icon" href="../assets/logo/nis-seal.jpeg">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<canvas id="lattice-canvas"></canvas>
+<div class="grain"></div>
+<svg width="0" height="0" style="position:absolute;">
+  <defs>
+    <marker id="arrowHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="context-stroke"></path>
+    </marker>
+  </defs>
+</svg>
+
+<header class="site-header">
+  <a href="../index.html" class="brand">
+    <img src="../assets/logo/nis-seal.jpeg" alt="NIS seal">
+    <span class="brand-text"><strong>NIS</strong><span>Neural Industrial Systems</span></span>
+  </a>
+  <nav>
+    <ul class="nav-links">
+      <li><a href="../index.html#home">Home</a></li>
+      <li><a href="../index.html#services">Services</a></li>
+      <li><a href="../index.html#solutions">Solutions</a></li>
+      <li><a href="../index.html#engineering">Engineering</a></li>
+      <li><a href="../index.html#desarrollos">Desarrollos</a></li>
+      <li><a href="../index.html#team">Equipo</a></li>
+      <li><a href="page1.html">Platform</a></li>
+      <li><a href="../index.html#contact">Contact</a></li>
+    </ul>
+  </nav>
+  <div class="nav-cta">
+    <a href="page1.html" class="btn btn-ghost">Platform</a>
+    <a href="page2.html" class="btn btn-primary">Engineering Suite</a>
+  </div>
+  <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+</header>
+
+<main>
+  <div class="page-hero">
+    <div class="eyebrow">// Engineering Software Suite</div>
+    <h1>Cada disciplina de ingeniería, en un solo entorno.</h1>
+    <p>CAD, CAE, CFD, FEM, análisis de tuberías, automatización y gemelos digitales, integrados sobre un mismo modelo de datos.</p>
+  </div>
+
+  <section class="section" style="padding-top:0;">
+    <div class="module-tabs reveal">
+      <button class="module-tab active" data-target="mod-cad">CAD</button>
+      <button class="module-tab" data-target="mod-cae">CAE / FEM</button>
+      <button class="module-tab" data-target="mod-cfd">CFD</button>
+      <button class="module-tab" data-target="mod-piping">Piping Stress</button>
+      <button class="module-tab" data-target="mod-auto">Automation</button>
+      <button class="module-tab" data-target="mod-twin">Digital Twin</button>
+    </div>
+
+    <div id="mod-cad" class="module-panel active reveal">
+      <div>
+        <h3>CAD — Diseño paramétrico</h3>
+        <p>Modelado 3D paramétrico con historial de restricciones, listo para exportar a análisis CAE/CFD sin pérdida de datos.</p>
+        <ul class="spec-list">
+          <li>Formatos soportados <b>STEP, IGES, native</b></li>
+          <li>Restricciones paramétricas <b>Sí</b></li>
+          <li>Colaboración en tiempo real <b>Sí</b></li>
+          <li>Control de versiones <b>Integrado</b></li>
+        </ul>
+      </div>
+      <div class="viz">
+        <svg viewBox="0 0 400 300" width="100%" height="100%">
+          <g transform="translate(200,150)">
+            <!-- centerlines -->
+            <line x1="-175" y1="0" x2="175" y2="0" stroke="#8b98a5" stroke-width="0.7" stroke-dasharray="10 3 2 3" opacity="0.55"></line>
+            <line x1="0" y1="-95" x2="0" y2="95" stroke="#8b98a5" stroke-width="0.7" stroke-dasharray="10 3 2 3" opacity="0.55"></line>
+
+            <!-- teeth (12) -->
+            <g fill="none" stroke="#5fa8e8" stroke-width="1.3" opacity="0.85">
+              <g id="tooth-set">
+                <rect x="-7" y="-82" width="14" height="18"></rect>
+              </g>
+              <use href="#tooth-set" transform="rotate(30)"></use>
+              <use href="#tooth-set" transform="rotate(60)"></use>
+              <use href="#tooth-set" transform="rotate(90)"></use>
+              <use href="#tooth-set" transform="rotate(120)"></use>
+              <use href="#tooth-set" transform="rotate(150)"></use>
+              <use href="#tooth-set" transform="rotate(180)"></use>
+              <use href="#tooth-set" transform="rotate(210)"></use>
+              <use href="#tooth-set" transform="rotate(240)"></use>
+              <use href="#tooth-set" transform="rotate(270)"></use>
+              <use href="#tooth-set" transform="rotate(300)"></use>
+              <use href="#tooth-set" transform="rotate(330)"></use>
+            </g>
+
+            <!-- root circle -->
+            <circle r="64" fill="none" stroke="#5fa8e8" stroke-width="1.3" opacity="0.85"></circle>
+            <!-- pitch circle -->
+            <circle r="73" fill="none" stroke="#e0b04a" stroke-width="0.8" stroke-dasharray="6 4" opacity="0.65"></circle>
+            <!-- bore -->
+            <circle r="20" fill="none" stroke="#5fa8e8" stroke-width="1.3" opacity="0.85"></circle>
+            <!-- keyway -->
+            <rect x="-4" y="-28" width="8" height="8" fill="none" stroke="#5fa8e8" stroke-width="1.3" opacity="0.85"></rect>
+
+            <!-- dimension: overall diameter -->
+            <line x1="-95" y1="115" x2="95" y2="115" stroke="#8b98a5" stroke-width="0.8" marker-start="url(#arrowHead)" marker-end="url(#arrowHead)"></line>
+            <line x1="-95" y1="95" x2="-95" y2="120" stroke="#8b98a5" stroke-width="0.6" opacity="0.6"></line>
+            <line x1="95" y1="95" x2="95" y2="120" stroke="#8b98a5" stroke-width="0.6" opacity="0.6"></line>
+            <text x="0" y="132" text-anchor="middle" fill="#c9d3db" font-size="11" font-family="IBM Plex Mono, monospace">⌀164</text>
+
+            <!-- callouts -->
+            <text x="-150" y="-108" fill="#8b98a5" font-size="10" font-family="IBM Plex Mono, monospace">z = 12</text>
+            <text x="-150" y="-94" fill="#8b98a5" font-size="10" font-family="IBM Plex Mono, monospace">m = 6</text>
+            <text x="90" y="-108" fill="#8b98a5" font-size="10" font-family="IBM Plex Mono, monospace">α = 20°</text>
+            <text x="90" y="-94" fill="#8b98a5" font-size="10" font-family="IBM Plex Mono, monospace">DETALLE B</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div id="mod-cae" class="module-panel reveal">
+      <div>
+        <h3>CAE / FEM — Análisis por elementos finitos</h3>
+        <p>Simulación estructural, térmica y de fatiga sobre geometrías reales, con mallado adaptativo automático.</p>
+        <ul class="spec-list">
+          <li>Tipos de análisis <b>Estático, modal, térmico, fatiga</b></li>
+          <li>Elementos de malla <b>Hasta 40M</b></li>
+          <li>Solvers <b>Directo / iterativo</b></li>
+          <li>Reportes normativos <b>ASME, API, Eurocódigo</b></li>
+        </ul>
+      </div>
+      <div class="viz">
+        <svg viewBox="0 0 400 300" width="100%" height="100%">
+          <defs>
+            <linearGradient id="shaftStress" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%"  stop-color="#2f6fb0"></stop>
+              <stop offset="12%" stop-color="#5fa8e8"></stop>
+              <stop offset="20%" stop-color="#e0766b"></stop>
+              <stop offset="30%" stop-color="#5fd6a0"></stop>
+              <stop offset="47%" stop-color="#e0b04a"></stop>
+              <stop offset="55%" stop-color="#5fd6a0"></stop>
+              <stop offset="72%" stop-color="#e0766b"></stop>
+              <stop offset="82%" stop-color="#5fa8e8"></stop>
+              <stop offset="100%" stop-color="#2f6fb0"></stop>
+            </linearGradient>
+          </defs>
+
+          <!-- centerline -->
+          <line x1="40" y1="150" x2="360" y2="150" stroke="#8b98a5" stroke-width="0.7" stroke-dasharray="10 3 2 3" opacity="0.5"></line>
+
+          <!-- stepped shaft profile (symmetric top/bottom) -->
+          <path d="M50,138 L50,162 L120,162 L120,175 L200,175 L200,188 L260,188 L260,197 L340,197
+                   L340,103 L260,103 L260,112 L200,112 L200,125 L120,125 L120,138 Z"
+                fill="url(#shaftStress)" stroke="#0f2138" stroke-width="1" opacity="0.92"></path>
+
+          <!-- fillet highlight rings at shoulders (critical zones) -->
+          <circle cx="120" cy="150" r="3" fill="#e0766b"></circle>
+          <circle cx="260" cy="150" r="3" fill="#e0766b"></circle>
+
+          <!-- leader to critical zone -->
+          <line x1="120" y1="150" x2="105" y2="70" stroke="#c9d3db" stroke-width="0.7" opacity="0.7"></line>
+          <text x="30" y="62" fill="#e0766b" font-size="11" font-family="Space Grotesk, sans-serif" font-weight="600">Zona crítica</text>
+          <text x="30" y="76" fill="#8b98a5" font-size="9.5" font-family="IBM Plex Mono, monospace">σ = 214 MPa · Kt = 1.8</text>
+
+          <!-- diameter callouts -->
+          <text x="70" y="220" fill="#8b98a5" font-size="9.5" font-family="IBM Plex Mono, monospace">⌀48</text>
+          <text x="150" y="233" fill="#8b98a5" font-size="9.5" font-family="IBM Plex Mono, monospace">⌀70</text>
+          <text x="220" y="246" fill="#8b98a5" font-size="9.5" font-family="IBM Plex Mono, monospace">⌀92</text>
+          <text x="290" y="255" fill="#8b98a5" font-size="9.5" font-family="IBM Plex Mono, monospace">⌀110</text>
+
+          <!-- stress legend -->
+          <rect x="50" y="262" width="290" height="7" rx="3" fill="url(#shaftStress)" opacity="0.95"></rect>
+          <text x="50" y="284" fill="#8b98a5" font-size="9" font-family="IBM Plex Mono, monospace">0 MPa</text>
+          <text x="315" y="284" fill="#8b98a5" font-size="9" font-family="IBM Plex Mono, monospace">220 MPa</text>
+        </svg>
+      </div>
+    </div>
+
+    <div id="mod-cfd" class="module-panel reveal">
+      <div>
+        <h3>CFD — Dinámica de fluidos computacional</h3>
+        <p>Simulación de flujo, transferencia de calor y comportamiento multifásico para equipos y ductos industriales.</p>
+        <ul class="spec-list">
+          <li>Modelos de turbulencia <b>k-ε, k-ω SST, LES</b></li>
+          <li>Celdas de malla típicas <b>10–40M</b></li>
+          <li>Cómputo <b>Distribuido en la nube</b></li>
+          <li>Tiempo típico de convergencia <b>2–6h</b></li>
+        </ul>
+      </div>
+      <div class="viz">
+        <svg viewBox="0 0 400 300" width="100%" height="100%">
+          <!-- duct with 90° bend -->
+          <g fill="none" stroke="#8b98a5" stroke-width="1.3" opacity="0.55">
+            <path d="M30,90 L250,90 L250,270 M30,190 L170,190 L170,270"></path>
+          </g>
+
+          <!-- inlet leg vectors (horizontal, accelerating toward bend) -->
+          <g stroke-linecap="round">
+            <line x1="50"  y1="115" x2="90"  y2="115" stroke="#5fa8e8" stroke-width="2" marker-end="url(#arrowHead)"></line>
+            <line x1="50"  y1="140" x2="95"  y2="140" stroke="#5fa8e8" stroke-width="2" marker-end="url(#arrowHead)"></line>
+            <line x1="50"  y1="165" x2="100" y2="165" stroke="#5fd6a0" stroke-width="2" marker-end="url(#arrowHead)"></line>
+            <line x1="110" y1="115" x2="165" y2="115" stroke="#5fd6a0" stroke-width="2" marker-end="url(#arrowHead)"></line>
+            <line x1="110" y1="140" x2="170" y2="140" stroke="#e0b04a" stroke-width="2.4" marker-end="url(#arrowHead)"></line>
+            <line x1="115" y1="165" x2="175" y2="165" stroke="#e0b04a" stroke-width="2.4" marker-end="url(#arrowHead)"></line>
+            <line x1="185" y1="112" x2="225" y2="112" stroke="#e0766b" stroke-width="2.6" marker-end="url(#arrowHead)"></line>
+            <line x1="185" y1="140" x2="230" y2="140" stroke="#e0766b" stroke-width="2.8" marker-end="url(#arrowHead)"></line>
+          </g>
+
+          <!-- bend: vectors curving downward (core accelerated flow, red) -->
+          <g fill="none" stroke-linecap="round">
+            <path d="M205,120 C 218,150 220,165 218,185" stroke="#e0766b" stroke-width="2.6" marker-end="url(#arrowHead)"></path>
+            <path d="M225,125 C 232,155 232,175 228,205" stroke="#e0b04a" stroke-width="2.2" marker-end="url(#arrowHead)"></path>
+          </g>
+
+          <!-- recirculation eddy in the corner (low speed zone) -->
+          <path d="M75,200 C 60,215 62,238 82,246 C 102,254 118,240 112,222 C 108,210 92,206 84,214"
+                fill="none" stroke="#5fa8e8" stroke-width="1.6" marker-end="url(#arrowHead)" opacity="0.85"></path>
+          <text x="45" y="262" fill="#5fa8e8" font-size="9.5" font-family="IBM Plex Mono, monospace">recirculación</text>
+
+          <!-- outlet leg vectors (vertical, downstream) -->
+          <g stroke-linecap="round">
+            <line x1="190" y1="215" x2="190" y2="250" stroke="#e0b04a" stroke-width="2.2" marker-end="url(#arrowHead)"></line>
+            <line x1="215" y1="215" x2="215" y2="255" stroke="#e0766b" stroke-width="2.4" marker-end="url(#arrowHead)"></line>
+            <line x1="240" y1="220" x2="240" y2="252" stroke="#5fd6a0" stroke-width="2" marker-end="url(#arrowHead)"></line>
+          </g>
+
+          <!-- velocity legend -->
+          <rect x="270" y="90" width="8" height="130" fill="url(#gradVel)" rx="3"></rect>
+          <defs>
+            <linearGradient id="gradVel" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stop-color="#2f6fb0"></stop>
+              <stop offset="35%" stop-color="#5fa8e8"></stop>
+              <stop offset="60%" stop-color="#5fd6a0"></stop>
+              <stop offset="82%" stop-color="#e0b04a"></stop>
+              <stop offset="100%" stop-color="#e0766b"></stop>
+            </linearGradient>
+          </defs>
+          <text x="285" y="98"  fill="#8b98a5" font-size="9" font-family="IBM Plex Mono, monospace">12 m/s</text>
+          <text x="285" y="158" fill="#8b98a5" font-size="9" font-family="IBM Plex Mono, monospace">6 m/s</text>
+          <text x="285" y="222" fill="#8b98a5" font-size="9" font-family="IBM Plex Mono, monospace">0 m/s</text>
+        </svg>
+      </div>
+    </div>
+
+    <div id="mod-piping" class="module-panel reveal">
+      <div>
+        <h3>Pipe Stress Analysis</h3>
+        <p>Verificación de esfuerzos, cargas térmicas y soportería en sistemas de tuberías bajo normativa internacional.</p>
+        <ul class="spec-list">
+          <li>Normativas <b>ASME B31.3, B31.1</b></li>
+          <li>Cargas evaluadas <b>Peso, térmica, sísmica, viento</b></li>
+          <li>Soportería <b>Optimización automática</b></li>
+          <li>Integración <b>Directa desde modelo CAD</b></li>
+        </ul>
+      </div>
+      <div class="viz">
+        <svg viewBox="0 0 400 300" width="100%" height="100%">
+          <path d="M60,220 L140,220 L140,140 L220,140 L220,200 L340,200" fill="none" stroke="#5fa8e8" stroke-width="3" opacity="0.75"></path>
+        </svg>
+      </div>
+    </div>
+
+    <div id="mod-auto" class="module-panel reveal">
+      <div>
+        <h3>Automation · PLC · SCADA</h3>
+        <p>Arquitecturas de control distribuido, lógica de PLC y supervisión SCADA centralizada con redundancia.</p>
+        <ul class="spec-list">
+          <li>Protocolos <b>Modbus, OPC-UA, Profinet</b></li>
+          <li>Redundancia <b>Activa/pasiva</b></li>
+          <li>Latencia de control <b>&lt; 10ms</b></li>
+          <li>Integración IIoT <b>Nativa</b></li>
+        </ul>
+      </div>
+      <div class="viz">
+        <div class="hmi-panel">
+          <div class="hmi-topbar">
+            <span class="hmi-status"><span class="dot"></span> PLC-04 ONLINE</span>
+            <span class="hmi-proto">OPC-UA · Modbus TCP</span>
+          </div>
+          <div class="hmi-grid">
+            <div class="hmi-tile"><span class="hmi-dot ok"></span><span class="hmi-label">Temperatura</span><span class="hmi-val">72°C</span></div>
+            <div class="hmi-tile"><span class="hmi-dot ok"></span><span class="hmi-label">Presión</span><span class="hmi-val">11.8 bar</span></div>
+            <div class="hmi-tile"><span class="hmi-dot warn"></span><span class="hmi-label">Vibración</span><span class="hmi-val">4.6 mm/s</span></div>
+            <div class="hmi-tile"><span class="hmi-dot ok"></span><span class="hmi-label">Flujo</span><span class="hmi-val">340 m³/h</span></div>
+            <div class="hmi-tile"><span class="hmi-dot ok"></span><span class="hmi-label">RPM</span><span class="hmi-val">1780</span></div>
+            <div class="hmi-tile"><span class="hmi-dot crit"></span><span class="hmi-label">Nivel tanque</span><span class="hmi-val">91%</span></div>
+          </div>
+          <div class="hmi-switches">
+            <div class="hmi-switch"><span class="sw on"></span><span>Modo automático</span></div>
+            <div class="hmi-switch"><span class="sw off"></span><span>Bypass manual</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="mod-twin" class="module-panel reveal">
+      <div>
+        <h3>Digital Twin</h3>
+        <p>Réplica computacional sincronizada del activo físico, usada para simular escenarios antes de ejecutarlos en planta.</p>
+        <ul class="spec-list">
+          <li>Latencia de sincronización <b>~8ms</b></li>
+          <li>Fuentes de datos <b>SCADA, IIoT, históricos</b></li>
+          <li>Simulación what-if <b>Sí</b></li>
+          <li>Precisión de modelo <b>99.7%</b></li>
+        </ul>
+      </div>
+      <div class="viz">
+        <svg viewBox="0 0 400 300" width="100%" height="100%">
+          <!-- ghost / virtual twin (offset, dashed) -->
+          <g opacity="0.35" stroke="#5fa8e8" stroke-width="1" fill="none" transform="translate(0,-26)">
+            <circle cx="90" cy="180" r="24" stroke-dasharray="3 3"></circle>
+            <circle cx="310" cy="180" r="24" stroke-dasharray="3 3"></circle>
+            <line x1="90" y1="154" x2="310" y2="154" stroke-dasharray="3 3"></line>
+            <line x1="90" y1="206" x2="310" y2="206" stroke-dasharray="3 3"></line>
+          </g>
+          <text x="200" y="128" text-anchor="middle" fill="#5fa8e8" font-size="9.5" font-family="IBM Plex Mono, monospace" opacity="0.7">GEMELO VIRTUAL</text>
+
+          <!-- sync pulses linking virtual -> real -->
+          <g stroke="#5fd6a0" stroke-width="1" opacity="0.8">
+            <line x1="90" y1="156" x2="90" y2="180" stroke-dasharray="2 2"></line>
+            <line x1="310" y1="156" x2="310" y2="180" stroke-dasharray="2 2"></line>
+          </g>
+          <circle cx="90" cy="168" r="3" fill="#5fd6a0"></circle>
+          <circle cx="310" cy="168" r="3" fill="#5fd6a0"></circle>
+
+          <!-- real conveyor -->
+          <g fill="none" stroke="#5fa8e8" stroke-width="1.6">
+            <circle cx="90" cy="200" r="24"></circle>
+            <circle cx="310" cy="200" r="24"></circle>
+            <line x1="90" y1="176" x2="310" y2="176"></line>
+            <line x1="90" y1="224" x2="310" y2="224"></line>
+          </g>
+          <!-- rollers hub detail -->
+          <circle cx="90" cy="200" r="6" fill="#0f2138" stroke="#5fa8e8" stroke-width="1"></circle>
+          <circle cx="310" cy="200" r="6" fill="#0f2138" stroke="#5fa8e8" stroke-width="1"></circle>
+
+          <!-- motor / gearbox on driven roller -->
+          <rect x="300" y="230" width="34" height="22" rx="2" fill="none" stroke="#8b98a5" stroke-width="1.2"></rect>
+          <line x1="310" y1="224" x2="310" y2="230" stroke="#8b98a5" stroke-width="1.2"></line>
+          <text x="317" y="266" text-anchor="middle" fill="#8b98a5" font-size="8.5" font-family="IBM Plex Mono, monospace">MOTOR</text>
+
+          <!-- packages on belt -->
+          <rect x="130" y="160" width="26" height="16" rx="1.5" fill="#e0b04a" opacity="0.85"></rect>
+          <rect x="195" y="160" width="26" height="16" rx="1.5" fill="#5fd6a0" opacity="0.85"></rect>
+          <rect x="255" y="160" width="26" height="16" rx="1.5" fill="#5fa8e8" opacity="0.85"></rect>
+
+          <!-- direction of travel -->
+          <line x1="150" y1="145" x2="200" y2="145" stroke="#c9d3db" stroke-width="1.2" marker-end="url(#arrowHead)" opacity="0.7"></line>
+          <text x="175" y="138" text-anchor="middle" fill="#c9d3db" font-size="8.5" font-family="IBM Plex Mono, monospace" opacity="0.7">v = 0.8 m/s</text>
+
+          <!-- sensor point on real belt -->
+          <circle cx="200" cy="176" r="3" fill="#5fd6a0"><animate attributeName="opacity" values="1;0.3;1" dur="1.6s" repeatCount="indefinite"></animate></circle>
+        </svg>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="brand" style="margin-bottom:1rem;">
+        <img src="../assets/logo/nis-seal.jpeg" alt="NIS seal" style="width:36px;height:36px;">
+        <span class="brand-text"><strong>NIS</strong><span>AI-Integrated Engineering</span></span>
+      </div>
+      <p style="color:var(--steel-400); font-size:0.85rem; max-width:32ch;">Neural Industrial Systems diseña la infraestructura de ingeniería inteligente del futuro industrial.</p>
+    </div>
+    <div class="footer-col"><h5>Navegación</h5>
+      <a href="../index.html#services">Services</a><a href="../index.html#solutions">Solutions</a><a href="../index.html#desarrollos">Desarrollos</a>
+    </div>
+    <div class="footer-col"><h5>Plataformas</h5>
+      <a href="page1.html">Industrial AI Platform</a><a href="page2.html">Engineering Software Suite</a>
+    </div>
+    <div class="footer-col"><h5>Compañía</h5>
+      <a href="../index.html#about">Quiénes somos</a><a href="../index.html#contact">Contacto</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Neural Industrial Systems. Todos los derechos reservados.</span>
+    <span>AI-Integrated Engineering Solutions</span>
+  </div>
+</footer>
+
+<style>
+  .hmi-panel{ width:100%; height:100%; display:flex; flex-direction:column; padding:1.1rem; gap:0.9rem; }
+  .hmi-topbar{ display:flex; justify-content:space-between; align-items:center; font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.05em; color:var(--steel-400); border-bottom:1px solid var(--glass-border); padding-bottom:0.7rem; }
+  .hmi-status{ display:flex; align-items:center; gap:0.4rem; color:#5fd6a0; }
+  .hmi-status .dot{ width:6px; height:6px; border-radius:50%; background:#5fd6a0; box-shadow:0 0 8px #5fd6a0; animation:pulse-dot 2s ease-in-out infinite; }
+  .hmi-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:0.7rem; flex:1; }
+  .hmi-tile{ background:rgba(15,33,56,0.55); border:1px solid var(--glass-border); border-radius:3px; padding:0.7rem 0.6rem; display:flex; flex-direction:column; gap:0.3rem; position:relative; }
+  .hmi-dot{ width:7px; height:7px; border-radius:50%; position:absolute; top:0.6rem; right:0.6rem; }
+  .hmi-dot.ok{ background:#5fd6a0; box-shadow:0 0 6px rgba(95,214,160,0.6); }
+  .hmi-dot.warn{ background:#e0b04a; box-shadow:0 0 6px rgba(224,176,74,0.6); }
+  .hmi-dot.crit{ background:#e0766b; box-shadow:0 0 6px rgba(224,118,107,0.6); }
+  .hmi-label{ font-family:var(--font-mono); font-size:0.64rem; letter-spacing:0.04em; text-transform:uppercase; color:var(--steel-400); }
+  .hmi-val{ font-family:var(--font-display); font-size:1.15rem; font-weight:600; color:var(--white); }
+  .hmi-switches{ display:flex; gap:1.4rem; border-top:1px solid var(--glass-border); padding-top:0.8rem; }
+  .hmi-switch{ display:flex; align-items:center; gap:0.5rem; font-size:0.78rem; color:var(--steel-200); }
+  .sw{ width:28px; height:15px; border-radius:100px; background:rgba(139,152,165,0.2); position:relative; display:inline-block; flex-shrink:0; }
+  .sw::after{ content:''; position:absolute; top:2px; left:2px; width:11px; height:11px; border-radius:50%; background:var(--steel-400); transition:transform .2s, background .2s; }
+  .sw.on{ background:rgba(95,214,160,0.25); }
+  .sw.on::after{ background:#5fd6a0; transform:translateX(13px); }
+  .sw.off::after{ background:var(--steel-600); }
+</style>
+
+<script src="../js/particles.js"></script>
+<script src="../js/animations.js"></script>
+<script src="../js/main.js"></script>
+</body>
+</html>

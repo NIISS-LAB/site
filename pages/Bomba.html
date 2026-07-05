@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FDMS — Fluid Dynamics Monitoring System</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Exo+2:wght@300;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  /* Paleta Industrial y Corporativa Profesional Mejorada */
+  --bg:#0b1119; /* Antracita profundo industrial */
+  --bg2:rgba(18, 27, 38, 0.92); /* Paneles principales con excelente contraste */
+  --bg3:rgba(22, 34, 48, 0.85); /* Fondos de KPI */
+  --bgl:rgba(52, 140, 212, 0.25); /* Bordes de enfoque azul técnico */
+  --bgs:rgba(52, 140, 212, 0.15); /* Divisores e instrumentación */
+  
+  /* Indicadores de Estado Optimizados (Normas Industriales) */
+  --cy:#3498db; /* Azul Técnico de Información / Instrumentación */
+  --cyg:rgba(52, 152, 219, 0.15);
+  --gn:#2ecc71; /* Verde Operacional Seguro / Normal */
+  --gng:rgba(46, 204, 113, 0.12);
+  --yw:#f1c40f; /* Amarillo de Advertencia / Mantenimiento */
+  --ywg:rgba(241, 196, 15, 0.12);
+  --or:#e67e22; /* Naranja Alerta de Desviación */
+  --rd:#e74c3c; /* Rojo de Parada Crítica / Alarma */
+  --rdg:rgba(231, 76, 60, 0.15);
+  
+  /* Textos de Alta Legibilidad */
+  --t1:#f5f7fa; /* Texto principal brillante */
+  --t2:#aebbc9; /* Texto secundario gris azulado */
+  --t3:#677b93; /* Subtextos y etiquetas descriptivas */
+  
+  /* Tipografías */
+  --fm:'Share Tech Mono', monospace;
+  --fu:'Rajdhani', sans-serif;
+  --fd:'Exo 2', sans-serif;
+  --r:6px;--rl:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* Incremento general del tamaño de fuentes de 13px a 15px */
+html{font-size:15px}
+
+body{background:var(--bg);color:var(--t1);font-family:var(--fu);min-height:100vh;overflow-x:hidden;
+  background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(27, 54, 93, 0.4) 0%,transparent 70%);}
+body::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);
+  pointer-events:none;z-index:9999;}
+body::after{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(52,140,212,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(52,140,212,.02) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0;}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(52,152,219,.3);border-radius:3px}
+
+/* HEADER */
+#hdr{position:sticky;top:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:65px;background:rgba(11,17,25,.96);
+  border-bottom:1px solid var(--bgl);backdrop-filter:blur(20px);
+  box-shadow:0 4px 25px rgba(0,0,0,.5),0 1px 0 rgba(52,152,219,.15);}
+.hl{display:flex;align-items:center;gap:16px}
+.logo{font-family:var(--fd);font-weight:900;font-size:1.5rem;letter-spacing:.08em;
+  background:linear-gradient(90deg, var(--cy), #5dade2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-sub{font-family:var(--fm);font-size:.75rem;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;padding-top:4px}
+.hdiv{width:1px;height:32px;background:var(--bgl)}
+.hbadges{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bdg{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;
+  font-family:var(--fm);font-size:.75rem;letter-spacing:.05em;font-weight:600;border:1px solid}
+.bon{border-color:rgba(46,204,113,.4);color:var(--gn);background:var(--gng)}
+.bai{border-color:rgba(52,152,219,.4);color:var(--cy);background:var(--cyg)}
+.balt{border-color:rgba(241,196,15,.4);color:var(--yw);background:var(--ywg)}
+.bloc{border-color:rgba(103,123,147,.4);color:var(--t2);background:rgba(103,123,147,.1)}
+.dot{width:8px;height:8px;border-radius:50%;animation:pd 1.5s ease-in-out infinite}
+.dot.g{background:var(--gn);box-shadow:0 0 8px var(--gn)}
+.dot.c{background:var(--cy);box-shadow:0 0 8px var(--cy)}
+.dot.y{background:var(--yw);box-shadow:0 0 8px var(--yw)}
+@keyframes pd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
+.hr{display:flex;align-items:center;gap:16px}
+#clk{font-family:var(--fm);font-size:1.1rem;color:var(--cy);letter-spacing:.12em;text-shadow:0 0 8px rgba(52,152,219,0.3)}
+.hup{display:flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid rgba(52,152,219,.4);
+  border-radius:var(--r);background:rgba(52,152,219,.1);cursor:pointer;
+  font-family:var(--fm);font-size:.75rem;color:var(--cy);letter-spacing:.05em;transition:all .2s;font-weight:600;}
+.hup:hover{background:rgba(52,152,219,.25);border-color:var(--cy);box-shadow:0 0 14px rgba(52,152,219,.3)}
+#fi{display:none}
+
+/* LAYOUT */
+#app{position:relative;z-index:1;padding:16px 20px;max-width:1920px;margin:0 auto}
+.row{display:grid;gap:12px;margin-bottom:12px}
+.rk{grid-template-columns:repeat(8,1fr)}
+.rm{grid-template-columns:1fr 320px}
+.rc{grid-template-columns:repeat(3,1fr)}
+.rb{grid-template-columns:1fr 1fr 350px}
+.rf{grid-template-columns:1fr 1fr}
+@media(max-width:1600px){.rk{grid-template-columns:repeat(4,1fr)}.rc{grid-template-columns:repeat(2,1fr)}.rb{grid-template-columns:1fr 1fr}}
+@media(max-width:1100px){.rm,.rb,.rf{grid-template-columns:1fr}}
+
+/* PANEL */
+.pnl{background:var(--bg2);border:1px solid var(--bgs);border-radius:var(--rl);
+  backdrop-filter:blur(16px);box-shadow:0 8px 24px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.02);
+  position:relative;overflow:hidden}
+.pnl::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(52,152,219,.4),transparent)}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid var(--bgs)}
+.pt{display:flex;align-items:center;gap:8px;font-family:var(--fd);font-weight:600;font-size:.85rem;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--t1)}
+.pt i{color:var(--cy);font-size:.95rem}
+.pb{padding:14px 16px}
+.pbdg{font-family:var(--fm);font-size:.7rem;padding:3px 8px;border-radius:3px;letter-spacing:.05em;font-weight:600;}
+
+/* KPI CARD */
+.kc{background:var(--bg3);border:1px solid var(--bgs);border-radius:var(--rl);padding:12px;
+  position:relative;overflow:hidden;cursor:default;transition:transform .2s,box-shadow .2s}
+.kc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--kc,var(--cy));box-shadow:0 0 8px var(--kc,var(--cy))}
+.kc:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.4);border-color:var(--bgl);}
+.ktop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.kico{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.05);font-size:.95rem}
+.klbl{font-family:var(--fm);font-size:.7rem;color:var(--t2);letter-spacing:.05em;text-transform:uppercase;text-align:right;line-height:1.3}
+.kvrow{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
+.kval{font-family:var(--fd);font-weight:700;font-size:1.75rem;line-height:1;
+  color:var(--kc,var(--cy));text-shadow:0 0 12px var(--kc,rgba(52,152,219,.3));transition:all .4s}
+.kunit{font-family:var(--fm);font-size:.75rem;color:var(--t3);font-weight:600}
+.ktrend{display:flex;align-items:center;gap:4px;font-family:var(--fm);font-size:.75rem;margin-bottom:6px}
+.ksw{height:28px;margin-top:4px}
+.kbt{height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:6px}
+.kbf{height:100%;border-radius:2px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.ksev{font-family:var(--fm);font-size:.68rem;letter-spacing:.05em;text-align:right;margin-top:4px;font-weight:600}
+
+/* TICKER */
+#tkr{background:rgba(11,17,25,.6);border-top:1px solid var(--bgs);border-bottom:1px solid var(--bgs);
+  height:28px;display:flex;align-items:center;overflow:hidden;margin-bottom:14px;
+  font-family:var(--fm);font-size:.75rem;color:var(--t2)}
+#tki{white-space:nowrap;animation:tk 45s linear infinite;padding-left:100%}
+@keyframes tk{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+.tsep{color:var(--cy);margin:0 12px}
+
+/* STATUS & INSTRUMENTATION */
+.sb{background:rgba(0,0,0,.2);border:1px solid var(--bgs);border-radius:var(--r);padding:8px 10px;text-align:center}
+.sv{font-family:var(--fd);font-weight:700;font-size:1.35rem;color:var(--cy);text-shadow:0 0 8px rgba(52,152,219,.3)}
+.sl{font-family:var(--fm);font-size:.68rem;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;margin-top:4px;font-weight:600}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+
+/* CRIT / ANALYSIS SLIDERS */
+.clbl{font-family:var(--fm);font-size:.75rem;color:var(--t2);margin-bottom:5px;display:flex;justify-content:space-between}
+.ctrk{height:8px;border-radius:4px;background:rgba(255,255,255,.08);overflow:visible;position:relative}
+.cfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gn),var(--yw),var(--or),var(--rd));width:100%}
+.cptr{position:absolute;top:-4px;width:3px;height:16px;border-radius:1.5px;background:#fff;
+  box-shadow:0 0 6px rgba(255,255,255,0.8);transition:left .8s ease}
+.clevs{display:flex;justify-content:space-between;font-family:var(--fm);font-size:.65rem;color:var(--t3);margin-top:4px}
+
+/* SEMAPHORE */
+.sem{display:flex;align-items:center;gap:12px;margin:12px 0;padding:8px 12px;
+  background:rgba(0,0,0,.15);border-radius:var(--r);border:1px solid var(--bgs)}
+.slights{display:flex;gap:9px}
+.slt{width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,.15);transition:all .3s}
+.ag{background:var(--gn);box-shadow:0 0 10px var(--gn),0 0 18px var(--gn)}
+.ay{background:var(--yw);box-shadow:0 0 10px var(--yw),0 0 18px var(--yw)}
+.ar{background:var(--rd);box-shadow:0 0 10px var(--rd),0 0 18px var(--rd)}
+.inact{background:rgba(255,255,255,.04)}
+.stxt{font-family:var(--fd);font-weight:700;font-size:1rem;letter-spacing:.05em}
+
+/* CHARTS */
+.cw{position:relative;height:155px}
+
+/* AI PREDICTION GRID */
+.rg{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.rb2{background:rgba(0,0,0,.2);border:1px solid var(--bgs);border-radius:var(--r);padding:8px 6px;text-align:center}
+.rh{font-family:var(--fm);font-size:.68rem;color:var(--t3);letter-spacing:.05em;margin-bottom:4px}
+.rp{font-family:var(--fd);font-weight:700;font-size:1.2rem;transition:all .5s}
+.rbar{height:4px;border-radius:2px;margin-top:5px;background:rgba(255,255,255,.06);overflow:hidden}
+.rbf2{height:100%;border-radius:2px;transition:width .6s ease}
+
+/* ALERTS LOG */
+#alst{max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.ali{display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border-radius:var(--r);
+  border-left:4px solid;background:rgba(18, 27, 38, 0.5);border-top:1px solid rgba(255,255,255,.02);
+  border-right:1px solid rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.02);animation:ali .3s ease}
+@keyframes ali{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+.aiico{font-size:1rem;margin-top:2px;flex-shrink:0}
+.aibody{flex:1}
+.aitit{font-family:var(--fu);font-weight:700;font-size:.85rem;margin-bottom:2px}
+.aidesc{font-family:var(--fm);font-size:.7rem;color:var(--t2);line-height:1.4}
+.airec{font-family:var(--fm);font-size:.68rem;color:var(--t3);margin-top:4px;font-style:italic}
+.aits{font-family:var(--fm);font-size:.68rem;color:var(--t3);white-space:nowrap}
+.asev{font-family:var(--fm);font-size:.6rem;letter-spacing:.05em;padding:2px 6px;border-radius:3px;font-weight:600}
+.sc{border:1px solid var(--rd);color:var(--rd);background:var(--rdg)}
+.sw{border:1px solid var(--yw);color:var(--yw);background:var(--ywg)}
+.si{border:1px solid var(--cy);color:var(--cy);background:var(--cyg)}
+
+/* SYSTEM STATS EXECUTIONS */
+.eg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.em{background:rgba(0,0,0,.2);border:1px solid var(--bgs);border-radius:var(--r);padding:8px 10px}
+.eml{font-family:var(--fm);font-size:.65rem;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+.emv{font-family:var(--fd);font-weight:700;font-size:1.1rem}
+.ems{font-family:var(--fm);font-size:.68rem;color:var(--t3);margin-top:2px}
+
+/* SIMULATION CONTROL BUTTONS */
+.cg{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
+.cb{padding:10px 6px;border:1px solid;border-radius:var(--r);background:rgba(22, 34, 48, 0.6);cursor:pointer;
+  font-family:var(--fd);font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .2s;box-shadow:0 2px 5px rgba(0,0,0,.2)}
+.cb i{font-size:1.1rem}
+.cb:hover{transform:translateY(-1px);background:rgba(22, 34, 48, 0.95)}
+.bfa{border-color:rgba(231,76,60,.5);color:var(--rd)}.bfa:hover{background:var(--rdg);box-shadow:0 0 14px rgba(231,76,60,.25)}
+.bre{border-color:rgba(46,204,113,.5);color:var(--gn)}.bre:hover{background:var(--gng);box-shadow:0 0 14px rgba(46,204,113,.25)}
+.bca{border-color:rgba(241,196,15,.5);color:var(--yw)}.bca:hover{background:var(--ywg);box-shadow:0 0 14px rgba(241,196,15,.25)}
+.bvi{border-color:rgba(230,126,34,.5);color:var(--or)}.bvi:hover{background:rgba(230,126,34,.1);box-shadow:0 0 14px rgba(230,126,34,.25)}
+.bde{border-color:rgba(155,89,182,.5);color:#b973e3}.bde:hover{background:rgba(155,89,182,.1);box-shadow:0 0 14px rgba(155,89,182,.25)}
+
+/* SECTION HEADERS */
+.slb{font-family:var(--fm);font-size:.75rem;color:var(--t2);letter-spacing:.15em;text-transform:uppercase;
+  padding:8px 0 4px;display:flex;align-items:center;gap:10px}
+.slb::after{content:'';flex:1;height:1px;background:var(--bgs)}
+
+/* WEIBULL COEFFICIENTS */
+.wb{background:rgba(0,0,0,.15);border:1px solid var(--bgs);border-radius:var(--r);padding:8px 10px;
+  font-family:var(--fm);font-size:.7rem;color:var(--t2);display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.wbr{display:flex;justify-content:space-between}
+.wbk{color:var(--t3)}.wbv{color:var(--cy);font-weight:600}
+
+/* RUL TIMELINE */
+.rtl{position:relative;padding:12px 0 4px}
+.rtlt{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--rd),var(--or),var(--yw),var(--gn));position:relative}
+.rtln{position:absolute;top:-5px;width:3px;height:16px;background:#fff;border-radius:1.5px;
+  box-shadow:0 0 6px #fff;transition:left .8s ease}
+.rtll{display:flex;justify-content:space-between;font-family:var(--fm);font-size:.65rem;color:var(--t3);margin-top:6px;font-weight:600}
+
+/* FEM HEAT LEGEND */
+.fleg{display:flex;gap:10px;flex-wrap:wrap;padding:8px 16px;border-top:1px solid var(--bgs)}
+.fli{display:flex;align-items:center;gap:4px;font-family:var(--fm);font-size:.7rem;color:var(--t2)}
+.flc{width:20px;height:6px;border-radius:2px}
+
+/* GAUGE & STREAMS */
+.gw{display:flex;flex-direction:column;align-items:center;padding:8px}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--cy);box-shadow:0 0 6px var(--cy);
+  animation:sp .5s ease-in-out infinite alternate;display:inline-block}
+@keyframes sp{from{opacity:.3;transform:scale(.8)}to{opacity:1;transform:scale(1.2)}}
+
+/* LOADING OVERLAY */
+#lov{display:none;position:fixed;inset:0;z-index:9998;background:rgba(11,17,25,.96);
+  align-items:center;justify-content:center;flex-direction:column;gap:16px}
+#lov.act{display:flex}
+.spn{width:48px;height:48px;border:3px solid rgba(52,152,219,.2);border-top-color:var(--cy);
+  border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="lov"><div class="spn"></div>
+  <div style="font-family:var(--fm);color:var(--cy);font-size:.85rem;letter-spacing:.2em;font-weight:600">PROCESANDO DATOS...</div>
+</div>
+<header id="hdr">
+  <div class="hl">
+    <div><div class="logo">FDMS</div><div class="logo-sub">Fluid Dynamics Monitoring System</div></div>
+    <div class="hdiv"></div>
+    <div class="hbadges">
+      <div class="bdg bon"><div class="dot g"></div>ONLINE</div>
+      <div class="bdg bai"><div class="dot c"></div>IA ACTIVA</div>
+      <div class="bdg balt"><div class="dot y"></div><span id="acnt">3</span> ALERTAS</div>
+      <div class="bdg bloc"><i class="fa fa-industry" style="font-size:.7rem"></i> PLANTA NORTE</div>
+      <div class="bdg bloc"><i class="fa fa-layer-group" style="font-size:.7rem"></i> LÍNEA 3</div>
+    </div>
+  </div>
+  <div class="hr">
+    <div id="clk">--:--:--</div>
+    <label class="hup" for="fi"><i class="fa fa-file-excel"></i> CARGAR EXCEL</label>
+    <input type="file" id="fi" accept=".xlsx,.xls,.csv">
+  </div>
+</header>
+<div id="app">
+<div id="tkr"><div id="tki">
+  <span class="tsep">◆</span> FDMS v4.2.1 ACTIVO
+  <span class="tsep">|</span> BOMBA B-301 · HX-2200 · SN:JX44192
+  <span class="tsep">|</span> MOTOR: 185 kW · 2970 RPM NOMINAL
+  <span class="tsep">|</span> FLUIDO: AGUA PROCESO · T°: 65°C NOMINAL
+  <span class="tsep">|</span> PRESIÓN DISEÑO: 12 BAR
+  <span class="tsep">|</span> IA: WEIBULL+LSTM HÍBRIDO v2.1
+  <span class="tsep">|</span> CALIBRACIÓN: 15/04/2025
+  <span class="tsep">|</span> PRÓX. MANTENIMIENTO: 38 DÍAS
+  <span class="tsep">◆</span>
+</div></div>
+<div class="cg">
+  <button class="cb bfa" onclick="simulateFault()"><i class="fa fa-bomb"></i>Simular Falla</button>
+  <button class="cb bre" onclick="resetAsset()"><i class="fa fa-rotate-right"></i>Restablecer</button>
+  <button class="cb bca" onclick="activateCav()"><i class="fa fa-water"></i>Cavitación</button>
+  <button class="cb bvi" onclick="incVib()"><i class="fa fa-wave-square"></i>+Vibración</button>
+  <button class="cb bde" onclick="accelDeg()"><i class="fa fa-chart-line"></i>Degradación</button>
+</div>
+<div class="slb"><i class="fa fa-gauge" style="color:var(--cy)"></i> INDICADORES CLAVE DE RENDIMIENTO</div>
+<div class="row rk" id="kgrid"></div>
+<div class="row rm" style="margin-top:11px">
+  <div class="pnl">
+    <div class="ph">
+      <div class="pt"><i class="fa fa-cube"></i> GEMELO DIGITAL — BOMBA B-301 · HX-2200</div>
+      <div style="display:flex;gap:7px;align-items:center">
+        <span class="pbdg" id="tbdg" style="background:var(--gng);color:var(--gn);border:1px solid rgba(46,204,113,.3)">● NORMAL</span>
+        <span class="sdot"></span><span style="font-family:var(--fm);font-size:.7rem;color:var(--t3);font-weight:600;">LIVE</span>
+      </div>
+    </div>
+    <svg id="psvg" viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:700px;height:298px;display:block;margin:0 auto">
+      <defs>
+        <pattern id="pg" width="20" height="20" patternUnits="userSpaceOnUse">
+          <path d="M20 0L0 0 0 20" fill="none" stroke="rgba(52,140,212,.06)" stroke-width=".5"/>
+        </pattern>
+        <radialGradient id="pGl" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="rgba(52,152,219,.12)"/><stop offset="100%" stop-color="transparent"/>
+        </radialGradient>
+        <linearGradient id="hG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1c334e"/><stop offset="100%" stop-color="#0f1f30"/>
+        </linearGradient>
+        <filter id="gf"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="sgf"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <radialGradient id="hg1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#e74c3c" stop-opacity=".8"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+        <radialGradient id="hg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f1c40f" stop-opacity=".6"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+        <radialGradient id="hg3" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#3498db" stop-opacity=".3"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+      </defs>
+      <rect width="720" height="300" fill="url(#pg)"/>
+      <ellipse cx="360" cy="150" rx="140" ry="100" fill="url(#pGl)" opacity=".5"/>
+      <rect x="30" y="122" width="170" height="38" rx="4" fill="#0f1f30" stroke="rgba(52,140,212,.4)" stroke-width="1.5"/>
+      <rect x="30" y="131" width="170" height="20" rx="2" fill="#09131d"/>
+      <circle id="fp1" cx="70" cy="141" r="3" fill="rgba(52,152,219,.75)"/>
+      <circle id="fp2" cx="110" cy="141" r="3" fill="rgba(52,152,219,.75)"/>
+      <circle id="fp3" cx="150" cy="141" r="3" fill="rgba(52,152,219,.75)"/>
+      <circle id="fp4" cx="190" cy="141" r="3" fill="rgba(52,152,219,.75)"/>
+      <rect x="186" y="114" width="11" height="54" rx="3" fill="#1c334e" stroke="rgba(52,140,212,.5)" stroke-width="1"/>
+      <g transform="translate(152,141)">
+        <rect x="-13" y="-15" width="26" height="30" rx="4" fill="#13273d" stroke="rgba(52,152,219,.5)" stroke-width="1.5"/>
+        <line x1="-11" y1="0" x2="11" y2="0" stroke="#3498db" stroke-width="2" opacity=".8"/>
+        <line x1="0" y1="-13" x2="0" y2="13" stroke="#3498db" stroke-width="2" opacity=".8"/>
+        <circle cx="0" cy="0" r="5" fill="none" stroke="#3498db" stroke-width="1.5" opacity=".7"/>
+        <rect x="-3" y="-20" width="6" height="11" rx="2" fill="#1c334e" stroke="rgba(52,152,219,.4)"/>
+      </g>
+      <g filter="url(#gf)">
+        <ellipse id="pbody" cx="360" cy="148" rx="92" ry="86" fill="url(#hG)" stroke="rgba(52,140,212,.5)" stroke-width="2"/>
+        <ellipse cx="360" cy="148" rx="80" ry="74" fill="#0d1b2a" stroke="rgba(52,140,212,.2)" stroke-width="1"/>
+        <path d="M430 148Q440 110 415 85Q390 60 355 65L355 75Q385 72 405 93Q426 116 418 148Z" fill="#13273d" stroke="rgba(52,140,212,.3)" stroke-width="1" opacity=".6"/>
+      </g>
+      <g id="imp" transform-origin="360 148">
+        <circle cx="360" cy="148" r="53" fill="#09131d" stroke="rgba(52,140,212,.3)" stroke-width="1.5"/>
+        <g fill="none" stroke="rgba(52,152,219,.55)" stroke-width="1.8">
+          <path d="M360 148Q380 118 375 95L365 100Q368 120 350 143Z"/>
+          <path d="M360 148Q392 160 408 145L402 136Q386 149 362 138Z"/>
+          <path d="M360 148Q370 178 356 196L348 190Q360 174 351 151Z"/>
+          <path d="M360 148Q330 162 318 149L320 140Q334 153 354 143Z"/>
+          <path d="M360 148Q342 122 352 102L360 107Q352 123 358 143Z"/>
+          <path d="M360 148Q388 132 404 148L400 156Q386 142 363 152Z"/>
+          <path d="M360 148Q350 178 336 182L333 174Q346 170 349 150Z"/>
+          <path d="M360 148Q326 138 320 122L329 120Q334 137 358 143Z"/>
+        </g>
+        <circle cx="360" cy="148" r="13" fill="#13273d" stroke="rgba(52,152,219,.5)" stroke-width="2"/>
+        <circle cx="360" cy="148" r="6" fill="#1c334e" stroke="rgba(52,152,219,.6)" stroke-width="1.5"/>
+        <circle cx="360" cy="148" r="2.5" fill="#3498db" opacity=".85"/>
+      </g>
+      <path d="M360 62L392 63Q450 61 455 72L455 82Q448 73 392 73L360 73Z" fill="#102237" stroke="rgba(52,140,212,.35)" stroke-width="1"/>
+      <rect x="390" y="10" width="50" height="125" rx="4" fill="#0f1f30" stroke="rgba(52,140,212,.4)" stroke-width="1.5"/>
+      <rect x="400" y="10" width="30" height="125" rx="2" fill="#061020"/>
+      <circle id="ft1" cx="415" cy="30" r="3" fill="rgba(52,152,219,.75)"/>
+      <circle id="ft2" cx="415" cy="65" r="3" fill="rgba(52,152,219,.75)"/>
+      <circle id="ft3" cx="415" cy="100" r="3" fill="rgba(52,152,219,.75)"/>
+      <rect x="382" y="118" width="66" height="11" rx="3" fill="#1c334e" stroke="rgba(52,140,212,.5)" stroke-width="1"/>
+      <g transform="translate(415,50)">
+        <rect x="-13" y="-15" width="26" height="30" rx="4" fill="#13273d" stroke="rgba(52,152,219,.5)" stroke-width="1.5"/>
+        <line x1="-11" y1="0" x2="11" y2="0" stroke="#3498db" stroke-width="2" opacity=".8"/>
+        <line x1="0" y1="-13" x2="0" y2="13" stroke="#3498db" stroke-width="2" opacity=".8"/>
+      </g>
+      <rect x="454" y="122" width="180" height="38" rx="4" fill="#0f1f30" stroke="rgba(52,140,212,.4)" stroke-width="1.5"/>
+      <rect x="454" y="131" width="180" height="20" rx="2" fill="#09131d"/>
+      <rect x="453" y="114" width="11" height="54" rx="3" fill="#1c334e" stroke="rgba(52,140,212,.5)" stroke-width="1"/>
+      <circle id="fr1" cx="490" cy="141" r="3" fill="rgba(52,152,219,.75)"/>
+      <circle id="fr2" cx="540" cy="141" r="3" fill="rgba(52,152,219,.75)"/>
+      <circle id="fr3" cx="590" cy="141" r="3" fill="rgba(52,152,219,.75)"/>
+      <circle id="fr4" cx="630" cy="141" r="3" fill="rgba(52,152,219,.75)"/>
+      <g transform="translate(102,112)">
+        <circle cx="0" cy="0" r="13" fill="#0f1f30" stroke="rgba(52,140,212,.4)" stroke-width="1.5"/>
+        <circle cx="0" cy="0" r="9" fill="#09131d"/>
+        <line id="gln" x1="0" y1="0" x2="0" y2="-7" stroke="#2ecc71" stroke-width="1.5" stroke-linecap="round" transform="rotate(-50)"/>
+        <circle cx="0" cy="0" r="2" fill="#3498db"/>
+        <text y="19" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="rgba(52,152,219,.6)">P-IN</text>
+      </g>
+      <g transform="translate(618,112)">
+        <circle cx="0" cy="0" r="13" fill="#0f1f30" stroke="rgba(52,140,212,.4)" stroke-width="1.5"/>
+        <circle cx="0" cy="0" r="9" fill="#09131d"/>
+        <line id="grn" x1="0" y1="0" x2="0" y2="-7" stroke="#f1c40f" stroke-width="1.5" stroke-linecap="round" transform="rotate(25)"/>
+        <circle cx="0" cy="0" r="2" fill="#3498db"/>
+        <text y="19" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="rgba(52,152,219,.6)">P-OUT</text>
+      </g>
+      <g transform="translate(312,87)">
+        <rect x="-11" y="-19" width="22" height="38" rx="4" fill="#13273d" stroke="rgba(241,196,15,.5)" stroke-width="1.5"/>
+        <rect x="-6" y="-7" width="12" height="16" rx="2" fill="rgba(230,126,34,.15)" stroke="rgba(230,126,34,.4)" stroke-width="1"/>
+        <circle cx="0" cy="17" r="6" fill="rgba(230,126,34,.15)" stroke="rgba(230,126,34,.5)" stroke-width="1.5"/>
+        <text y="30" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="rgba(241,196,15,.8)">T-1</text>
+      </g>
+      <g transform="translate(400,215)">
+        <rect x="-17" y="-11" width="34" height="22" rx="4" fill="#13273d" stroke="rgba(155,89,182,.5)" stroke-width="1.5"/>
+        <path d="M-11 0Q-7-8-3 0Q1 8 5 0Q9-8 13 0" fill="none" stroke="rgba(155,89,182,.8)" stroke-width="1.5"/>
+        <text y="20" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="rgba(185,115,227,.8)">VIB-X</text>
+      </g>
+      <g id="hspot" cx="360" cy="148" opacity="0">
+        <circle cx="360" cy="148" r="75" fill="url(#hg1)" filter="url(#sgf)"/>
+        <circle cx="360" cy="148" r="45" fill="url(#hg2)" filter="url(#gf)"/>
+        <circle cx="340" cy="130" r="30" fill="url(#hg3)"/>
+      </g>
+    </svg>
+    <div class="fleg">
+      <div class="fli"><div class="flc" style="background:#13273d;border:1px solid var(--bgs)"></div>Estructura Estática</div>
+      <div class="fli"><div class="flc" style="background:#3498db"></div>Flujo Dinámico Nominal</div>
+      <div class="fli"><div class="flc" style="background:#2ecc71"></div>Sensores Activos</div>
+      <div class="fli"><div class="flc" style="background:#e74c3c"></div>Zonas de Fatiga / Térmica</div>
+    </div>
+  </div>
+  <div class="pnl">
+    <div class="ph"><div class="pt"><i class="fa fa-gauge-high"></i>Instrumentación</div></div>
+    <div class="pb">
+      <div class="sgrid">
+        <div class="sb"><div class="sv" id="v_ef">94.2</div><div class="sl">Eficiencia %</div></div>
+        <div class="sb"><div class="sv" id="v_ca" style="color:var(--gn);text-shadow:0 0 8px rgba(46,204,113,.3)">0.0</div><div class="sl">Cavitación (NPSH)</div></div>
+      </div>
+      <div class="clbl"><span>Análisis de Esfuerzos Hidrodinámicos</span><span id="v_str">22.4 MPa</span></div>
+      <div class="ctrk">
+        <div class="cfill" style="background:var(--bgs);width:100%"></div>
+        <div class="cptr" id="s_ptr" style="left:22.4%"></div>
+      </div>
+      <div class="clevs"><span>0 MPa</span><span>50</span><span>100 (Límite Ssm)</span></div>
+      
+      <div class="sem">
+        <div class="slights">
+          <div id="l_g" class="slt ag"></div>
+          <div id="l_y" class="slt inact"></div>
+          <div id="l_r" class="slt inact"></div>
+        </div>
+        <div class="stxt" id="s_msg" style="color:var(--gn)">SISTEMA ESTABLE</div>
+      </div>
+      <div class="slb">Diagnóstico RUL (Weibull)</div>
+      <div class="wb" style="margin-top:4px">
+        <div class="wbr"><span class="wbk">Factor β:</span><span class="wbv" id="w_b">1.42</span></div>
+        <div class="wbr"><span class="wbk">Eta η:</span><span class="wbv" id="w_e">8500h</span></div>
+        <div class="wbr"><span class="wbk">MTBF:</span><span class="wbv">4200h</span></div>
+        <div class="wbr"><span class="wbk">Conf.:</span><span class="wbv" style="color:var(--gn)">98.4%</span></div>
+      </div>
+      <div class="rtl">
+        <div class="rtlt"></div>
+        <div class="rtln" id="r_ptr" style="left:88%"></div>
+        <div class="rtll"><span>Falla</span><span>20% RUL</span><span>50%</span><span>Excelente</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row rc" style="margin-top:4px">
+  <div class="pnl">
+    <div class="ph"><div class="pt"><i class="fa fa-chart-line"></i>Perfil de Presión y Caudal (Sensores P-1/P-2)</div></div>
+    <div class="pb"><div class="cw"><canvas id="c_pres"></canvas></div></div>
+  </div>
+  <div class="pnl">
+    <div class="ph"><div class="pt"><i class="fa fa-wave-square"></i>Análisis Vibracional Espectral (ISO 10816)</div></div>
+    <div class="pb"><div class="cw"><canvas id="c_vib"></canvas></div></div>
+  </div>
+  <div class="pnl">
+    <div class="ph"><div class="pt"><i class="fa fa-temperature-half"></i>Termografía e Historial de Temperatura</div></div>
+    <div class="pb"><div class="cw"><canvas id="c_temp"></canvas></div></div>
+  </div>
+</div>
+<div class="row rb" style="margin-top:4px">
+  <div class="pnl">
+    <div class="ph"><div class="pt"><i class="fa fa-brain"></i>Predicciones de Redes Neuronales LSTM e IA</div></div>
+    <div class="pb">
+      <div class="rg" id="rgrid"></div>
+      <div class="cw" style="height:140px"><canvas id="c_lstm"></canvas></div>
+    </div>
+  </div>
+  <div class="pnl">
+    <div class="ph"><div class="pt"><i class="fa fa-clock-rotate-left"></i>Historial de Eventos del Activo</div></div>
+    <div class="pb"><div class="cw" style="height:216px"><canvas id="c_hist"></canvas></div></div>
+  </div>
+  <div class="pnl">
+    <div class="ph">
+      <div class="pt"><i class="fa fa-bell"></i>Registro de Alertas en Tiempo Real</div>
+      <span class="pbdg" style="background:rgba(230,126,34,.15);color:var(--or);border:1px solid rgba(230,126,34,.3)" id="acnt2">3 Activas</span>
+    </div>
+    <div class="pb" style="padding-top:10px"><div id="alst"></div></div>
+  </div>
+</div>
+</div>
+<script>
+// El bloque de script Javascript permanece exactamente igual para garantizar el correcto funcionamiento original de las simulaciones y el renderizado de gráficos.
+const S={
+  t:0,fault:false,cav:false,vibHigh:false,deg:0,
+  data:[],
+  kpis:{
+    flow:{val:142.5,u:'m³/h',lbl:'Caudal Principal',tr:'+0.4%',sev:'Normal',c:'#3498db'},
+    p_in:{val:2.1,u:'bar',lbl:'Presión Entrada',tr:'Estable',sev:'Normal',c:'#3498db'},
+    p_out:{val:8.4,u:'bar',lbl:'Presión Salida',tr:'-0.1 bar',sev:'Normal',c:'#3498db'},
+    temp:{val:68.2,u:'°C',lbl:'Temp. Cojinetes',tr:'+0.8°C',sev:'Normal',c:'#2ecc71'},
+    vibracion:{val:2.4,u:'mm/s RMS',lbl:'Vibración Global',tr:'Estable',sev:'Normal',c:'#2ecc71'},
+    power:{val:164.2,u:'kW',lbl:'Potencia Eléctrica',tr:'+1.2 kW',sev:'Normal',c:'#3498db'},
+    rul:{val:88.2,u:'%',lbl:'Vida Útil Remanente',tr:'-0.02%/h',sev:'Excelente',c:'#2ecc71'},
+    prob_falla:{val:1.6,u:'%',lbl:'Probabilidad Falla',tr:'Estable',sev:'Óptimo',c:'#2ecc71'}
+  },
+  ai_rul:[
+    {lbl:'Sello Mec.',p:91.4,c:'#2ecc71'},
+    {lbl:'Rodamientos',p:88.2,c:'#2ecc71'},
+    {lbl:'Impulsor',p:94.0,c:'#2ecc71'},
+    {lbl:'Eje Motor',p:97.1,c:'#2ecc71'},
+    {lbl:'Alineación',p:89.5,c:'#2ecc71'}
+  ]
+};
+const charts={};
+function gd(cnt){
+  let d=[],f=142.5,p=8.4,t=68.2,v=2.4;
+  for(let i=cnt;i>0;i--){
+    f+=Math.sin(i)*0.8+ (Math.random()-0.5)*0.4;
+    p+=Math.cos(i)*0.05+(Math.random()-0.5)*0.03;
+    t+=Math.sin(i*0.1)*0.2+(Math.random()-0.5)*0.1;
+    v+=Math.cos(i*0.5)*0.1+(Math.random()-0.5)*0.08;
+    d.push({flow:f,p_out:p,temp:t,vibracion:v,lstm:p+Math.sin(i)*0.1});
+  }
+  return d;
+}
+function buildKpis(){
+  const g=document.getElementById('kgrid');g.innerHTML='';
+  for(let k in S.kpis){
+    let o=S.kpis[k];
+    g.innerHTML+=`
+      <div class="kc" id="k_${k}" style="--kc:${o.c}">
+        <div class="ktop">
+          <div class="kico"><i class="fa ${gkI(k)}" style="color:${o.c}"></i></div>
+          <div class="klbl">${o.lbl}</div>
+        </div>
+        <div class="kvrow"><span class="kval" id="kv_${k}">${o.val.toFixed(1)}</span><span class="kunit">${o.u}</span></div>
+        <div class="ktrend" id="kt_${k}" style="color:${o.tr.includes('-')&&k!=='rul'?'#e74c3c':'#2ecc71'}">${o.tr} vs h-1</div>
+        <div class="ksw" id="ks_${k}"></div>
+        <div class="kbt"><div class="kbf" id="kb_${k}" style="background:${o.c};width:70%"></div></div>
+        <div class="ksev" id="kvse_${k}" style="color:${o.c}">${o.sev}</div>
+      </div>`;
+  }
+}
+function gkI(k){
+  if(k==='flow')return 'fa-water';if(k==='p_in'||k==='p_out')return 'fa-gauge';
+  if(k==='temp')return 'fa-temperature-high';if(k==='vibracion')return 'fa-bolt';
+  if(k==='power')return 'fa-plug';if(k==='rul')return 'fa-hourglass-half';
+  return 'fa-brain';
+}
+function buildSparks(){
+  for(let k in S.kpis){
+    if(k==='power'||k==='prob_falla')continue;
+    let field=k==='p_in'?'flow':(k==='rul'?'lstm':k);
+    let arr=S.data.map(x=>x[field]);
+    let min=Math.min(...arr),max=Math.max(...arr);
+    let html='<svg style="width:100%;height:100%">';
+    let pts=arr.map((v,idx)=>{
+      let x=(idx/(arr.length-1))*100;
+      let y=24-((v-min)/(max-min||1))*22;
+      return `${x},${y}`;
+    }).join(' ');
+    html+=`<polyline points="${pts}" fill="none" stroke="${S.kpis[k].c}" stroke-width="1.2"/>`;
+    html+='</svg>';
+    let el=document.getElementById('ks_'+k);if(el)el.innerHTML=html;
+  }
+}
+function buildRulGrid(){
+  const g=document.getElementById('rgrid');g.innerHTML='';
+  S.ai_rul.forEach((item,i)=>{
+    g.innerHTML+=`
+      <div class="rb2">
+        <div class="rh">${item.lbl}</div>
+        <div class="rp" id="rp_${i}" style="color:${item.c}">${item.p.toFixed(1)}%</div>
+        <div class="rbar"><div class="rbf2" id="rbf_${i}" style="width:${item.p}%;background:${item.c}"></div></div>
+      </div>`;
+  });
+}
+function buildCharts(){
+  const opt={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#677b93',font:{size:10}}}}};
+  charts.pres=new Chart(document.getElementById('c_pres'),{type:'line',data:{labels:Array(40).fill(''),datasets:[{data:S.data.map(x=>x.p_out),borderColor:'#3498db',borderWidth:1.5,pointRadius:0,fill:true,backgroundColor:'rgba(52,152,219,0.03)'}]},options:opt});
+  charts.vib=new Chart(document.getElementById('c_vib'),{type:'line',data:{labels:Array(40).fill(''),datasets:[{data:S.data.map(x=>x.vibracion),borderColor:'#b973e3',borderWidth:1.5,pointRadius:0}]},options:opt});
+  charts.temp=new Chart(document.getElementById('c_temp'),{type:'line',data:{labels:Array(40).fill(''),datasets:[{data:S.data.map(x=>x.temp),borderColor:'#e67e22',borderWidth:1.5,pointRadius:0}]},options:opt});
+  charts.lstm=new Chart(document.getElementById('c_lstm'),{type:'line',data:{labels:Array(25).fill(''),datasets:[{data:S.data.slice(0,25).map(x=>x.lstm),borderColor:'#2ecc71',borderWidth:1.5,pointStrokeWidth:0,pointRadius:0},{data:Array(20).fill(null).concat(S.data.slice(20,25).map(x=>x.p_out+0.4)),borderColor:'#e74c3c',borderWidth:1.5,borderDash:[4,4],pointRadius:0}]},options:opt});
+  charts.hist=new Chart(document.getElementById('c_hist'),{type:'bar',data:{labels:['Ene','Feb','Mar','Abr','Mayo'],datasets:[{label:'Horas Operación',data:[620,710,680,740,410],backgroundColor:'rgba(52,152,219,0.25)',borderColor:'#3498db',borderWidth:1},{label:'Eventos/Alertas',data:[4,12,7,2,9],backgroundColor:'rgba(231,76,60,0.3)',borderColor:'#e74c3c',borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#aebbc9',font:{size:10}}}},scales:{x:{ticks:{color:'#aebbc9',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#677b93',font:{size:10}},grid:{color:'rgba(255,255,255,0.03)'}}}}});
+}
+function rebuildCharts(){
+  charts.pres.data.datasets[0].data=S.data.map(x=>x.p_out);charts.pres.update();
+  charts.vib.data.datasets[0].data=S.data.map(x=>x.vibracion);charts.vib.update();
+  charts.temp.data.datasets[0].data=S.data.map(x=>x.temp);charts.temp.update();
+  charts.lstm.data.datasets[0].data=S.data.slice(0,25).map(x=>x.lstm);charts.lstm.data.datasets[1].data=Array(18).fill(null).concat(S.data.slice(18,25).map(x=>x.lstm*(1+S.deg*0.1)));charts.lstm.update();
+}
+function aa(sev,tit,desc,rec){
+  const box=document.getElementById('alst');
+  const n=new Date();const ts=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0')+':'+n.getSeconds().toString().padStart(2,'0');
+  let cls=sev==='crit'?'sc':(sev==='warn'?'sw':'si');
+  let s_lbl=sev==='crit'?'CRÍTICO':(sev==='warn'?'ADVERT.':'INFO');
+  let item=document.createElement('div');item.className=`ali ${cls}`;
+  item.innerHTML=`
+    <div class="aiico"><i class="fa ${sev==='crit'?'fa-triangle-exclamation':(sev==='warn'?'fa-circle-exclamation':'fa-info-circle')}"></i></div>
+    <div class="aibody">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="aitit">${tit}</span><span class="asev ${cls}">${s_lbl}</span>
+      </div>
+      <div class="aidesc">${desc}</div>
+      ${rec?`<div class="airec">Sugerencia: ${rec}</div>`:''}
+      <div style="text-align:right" class="aits">${ts}</div>
+    </div>`;
+  box.insertBefore(item,box.firstChild);
+  if(box.children.length>25)box.removeChild(box.lastChild);
+  let c=document.querySelectorAll('.ali.sc, .ali.sw').length;
+  document.getElementById('acnt').textContent=c;
+  document.getElementById('acnt2').textContent=c+' Activas';
+}
+function simulateFault(){
+  S.fault=true;S.kpis.rul.val=14.2;S.kpis.prob_falla.val=94.5;
+  aa('crit','Falla Crítica de Cavitación Violenta','P-OUT cayó por debajo de 4.2 bar de forma abrupta. Altas vibraciones detectadas en cojinetes.','Detener bomba inmediatamente. Inspección de línea de succión necesaria.');
+}
+function resetAsset(){
+  S.fault=false;S.cav=false;S.vibHigh=false;S.deg=0;
+  S.kpis.flow.val=142.5;S.kpis.p_out.val=8.4;S.kpis.temp.val=68.2;S.kpis.vibracion.val=2.4;S.kpis.rul.val=88.2;S.kpis.prob_falla.val=1.6;
+  S.kpis.flow.c='#3498db';S.kpis.p_out.c='#3498db';S.kpis.temp.c='#2ecc71';S.kpis.vibracion.c='#2ecc71';S.kpis.rul.c='#2ecc71';S.kpis.prob_falla.c='#2ecc71';
+  S.ai_rul.forEach(x=>{x.p=85+Math.random()*12;x.c='#2ecc71';});
+  document.getElementById('hspot').setAttribute('opacity','0');
+  buildRulGrid();aa('info','Sistema Restablecido','Parámetros del activo calibrados a valores nominales de fábrica.','Ninguna.');
+}
+function activateCav(){S.cav=true;aa('warn','Principio de Cavitación Detectado','Fluctuación de presión y microburbujas en ojo del impulsor.','Verificar válvula de entrada.');}
+function incVib(){S.vibHigh=true;aa('warn','Vibración Mecánica Elevada','RMS > 4.5 mm/s. Posible desalineación o desbalance angular.','Programar análisis espectral.');}
+function accelDeg(){S.deg+=1;aa('info','Aceleración de Degradación Térmica','Gradiente térmico incrementado artificialmente.','Monitorear curvas LSTM.');}
+
+let tick=0;
+function loop(){
+  requestAnimationFrame(loop);
+  let imp=document.getElementById('imp');
+  if(imp){
+    let speed=S.fault?1:(S.cav?8:25);
+    let r=imp.getAttribute('transform')||'rotate(0)';
+    let deg=parseFloat(r.replace('rotate(',''))||0;
+    imp.setAttribute('transform',`rotate(${(deg+speed)%360})`);
+  }
+  if(tick%15===0){
+    let d=S.kpis;
+    if(S.fault){
+      d.flow.val=Math.max(10,d.flow.val-12);d.p_out.val=Math.max(1,d.p_out.val-0.8);
+      d.vibracion.val=Math.min(18,d.vibracion.val+1.5);d.temp.val=Math.min(102,d.temp.val+2);
+    }else{
+      let n_f=142.5,n_p=8.4,n_t=68.2,n_v=2.4;
+      if(S.cav){n_f=115;n_p=6.1;n_v=5.8;n_t=74;}
+      if(S.vibHigh){n_v=7.8;n_t=79;}
+      if(S.deg>0){n_t+=S.deg*6;n_v+=S.deg*0.5;}
+      d.flow.val+= (n_f-d.flow.val)*0.1 + (Math.random()-0.5)*2;
+      d.p_out.val+= (n_p-d.p_out.val)*0.1 + (Math.random()-0.5)*0.1;
+      d.temp.val+= (n_t-d.temp.val)*0.05 + (Math.random()-0.5)*0.3;
+      d.vibracion.val+= (n_v-d.vibracion.val)*0.1 + (Math.random()-0.5)*0.2;
+      d.rul.val=Math.max(5,88.2 - (S.deg*4) - (S.cav?15:0) - (S.vibHigh?20:0));
+      d.prob_falla.val=Math.min(99,1.6 + (100-d.rul.val)*0.8);
+    }
+    
+    // Alertas de umbrales
+    d.flow.c=d.flow.val<100?'#e74c3c':'#3498db';
+    d.p_out.c=d.p_out.val<5?'#e74c3c':'#3498db';
+    d.vibracion.c=d.vibracion.val>11?'#e74c3c':(d.vibracion.val>4.5?'#f1c40f':'#2ecc71');
+    d.temp.c=d.temp.val>90?'#e74c3c':(d.temp.val>75?'#f1c40f':'#2ecc71');
+    d.rul.c=d.rul.val<30?'#e74c3c':(d.rul.val<60?'#f1c40f':'#2ecc71');
+    d.prob_falla.c=d.prob_falla.val>70?'#e74c3c':(d.prob_falla.val>30?'#f1c40f':'#2ecc71');
+    
+    // Actualización de DOM
+    for(let k in d){
+      let v_el=document.getElementById('kv_'+k);if(v_el)v_el.textContent=d[k].val.toFixed(1);
+      let c_el=document.getElementById('kv_'+k);if(c_el)c_el.style.color=d[k].c;
+      let kb_el=document.getElementById('kb_'+k);if(kb_el){kb_el.style.background=d[k].c;kb_el.style.width=Math.min(100,Math.max(10,d[k].val))+'%';}
+      let kse_el=document.getElementById('kvse_'+k);if(kse_el){kse_el.textContent=d[k].val>90&&k==='prob_falla'?'Peligro':d[k].sev;kse_el.style.color=d[k].c;}
+    }
+    
+    // Instrumentación lateral dinámica
+    document.getElementById('v_ef').textContent=(94.2 - (S.deg*1.5) - (S.cav?8:0)).toFixed(1);
+    document.getElementById('v_ca').textContent=S.cav?(4.2+(Math.random()*0.5)).toFixed(1):'0.0';
+    document.getElementById('v_ca').style.color=S.cav?'#f1c40f':'#2ecc71';
+    let str_val=22.4+(d.vibracion.val*2);document.getElementById('v_str').textContent=str_val.toFixed(1)+' MPa';
+    document.getElementById('s_ptr').style.left=Math.min(100,str_val)+'%';
+    document.getElementById('r_ptr').style.left=d.rul.val+'%';
+    
+    // Semáforo industrial de control
+    let lg=document.getElementById('l_g'),ly=document.getElementById('l_y'),lr=document.getElementById('l_r'),stxt=document.getElementById('s_msg');
+    lg.className='slt inact';ly.className='slt inact';lr.className='slt inact';
+    if(d.vibracion.val>11||d.temp.val>92||S.fault){lr.className='slt ar';stxt.textContent='PARADA PREVENTIVA';stxt.style.color='#e74c3c';}
+    else if(d.vibracion.val>4.5||d.temp.val>75||S.cav){ly.className='slt ay';stxt.textContent='DESVIACIÓN APRECIABLE';stxt.style.color='#f1c40f';}
+    else{lg.className='slt ag';stxt.textContent='SISTEMA ESTABLE';stxt.style.color='#2ecc71';}
+    
+    // Actualización de gemelo digital SVG
+    let hspot=document.getElementById('hspot');
+    if(d.temp.val>75){hspot.setAttribute('opacity',Math.min(1,((d.temp.val-75)/20)));}else{hspot.setAttribute('opacity','0');}
+    
+    // Desplazamiento de arrays de gráficos
+    S.data.push({flow:d.flow.val,p_out:d.p_out.val,temp:d.temp.val,vibracion:d.vibracion.val,lstm:d.p_out.val+0.2});
+    S.data.shift();
+    rebuildCharts();
+    buildSparks();
+    
+    // Actualización del grid RUL de la IA
+    S.ai_rul.forEach((item,i)=>{
+      let d_fact=0.2;if(i===1&&S.vibHigh)d_fact=4.5;if(i===2&&S.cav)d_fact=5;
+      item.p=Math.max(5,item.p - (S.deg*0.4) - d_fact);
+      item.c=item.p<40?'#e74c3c':(item.p<70?'#f1c40f':'#2ecc71');
+      let rp_el=document.getElementById('rp_'+i);if(rp_el){rp_el.textContent=item.p.toFixed(1)+'%';rp_el.style.color=item.c;}
+      let rbf_el=document.getElementById('rbf_'+i);if(rbf_el){rbf_el.style.width=item.p+'%';rbf_el.style.background=item.c;}
+    });
+    
+    // Lógica programada de alertas automáticas
+    if(d.vibracion.val>11)aa('crit','Vibración Excesiva','RMS: '+d.vibracion.val.toFixed(2)+' mm/s > 11 mm/s (ISO 10816)','Parada preventiva recomendada.');
+    else if(d.vibracion.val>7.1&&tick%60===0)aa('warn','Vibración Elevada','RMS: '+d.vibracion.val.toFixed(2)+' mm/s','Monitoreo intensificado.');
+    if(d.temperatura>95)aa('crit','Sobretemperatura','T: '+d.temperatura.toFixed(1)+'°C > 95°C límite','Detener equipo. Verificar enfriamiento.');
+    if(d.prob_falla.val>60&&tick%40===0)aa('crit','Alta Prob. Falla','IA: '+d.prob_falla.val.toFixed(1)+'% prob. falla próx. 30h','Planificar parada de emergencia.');
+  }
+  tick++;
+}
+function init(){
+  S.data=gd(300);
+  buildKpis();buildSparks();buildCharts();buildRulGrid();
+  rebuildCharts();
+  setInterval(()=>{const n=new Date();document.getElementById('clk').textContent=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0')+':'+n.getSeconds().toString().padStart(2,'0');},1000);
+  setTimeout(()=>aa('warn','Vibración Elevada','RMS 4.2 mm/s. Monitoreo activo activado.','Programar inspección de alineación en 72h.'),600);
+  requestAnimationFrame(loop);
+}
+window.onload=init;
+</script>
+</body>
+</html>

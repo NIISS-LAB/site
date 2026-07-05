@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIS-MINING 4.0 - NIS Structural Integrity AI & Digital Twin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;600;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #040711;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+        .scada-lcd {
+            font-family: 'Orbitron', sans-serif;
+        }
+        .glass-panel-premium {
+            background: rgba(8, 12, 26, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.65);
+        }
+        .glow-active-critical {
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.55);
+            animation: pulse-border-red 1.8s infinite;
+        }
+        @keyframes pulse-border-red {
+            0%, 100% { border-color: rgba(239, 68, 68, 0.9); }
+            50% { border-color: rgba(239, 68, 68, 0.25); }
+        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #060913; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
+    </style>
+</head>
+<body class="h-screen w-screen p-3 flex flex-col justify-between overflow-hidden select-none">
+
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-20 pointer-events-none z-0"></div>
+
+    <header class="w-full glass-panel-premium rounded-xl p-3 flex flex-wrap justify-between items-center z-10 relative border-b border-sky-500/30">
+        <div class="flex items-center space-x-4">
+            <div class="relative flex items-center justify-center">
+                <span id="status-ping" class="animate-ping absolute inline-flex h-3.5 w-3.5 rounded-full bg-sky-400 opacity-75"></span>
+                <span id="status-dot" class="relative inline-flex rounded-full h-3.5 w-3.5 bg-sky-500"></span>
+            </div>
+            <div>
+                <h1 class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Plataforma de Integridad Estructural - Minería 4.0</h1>
+                <div class="text-xl font-black tracking-tight text-white flex items-center gap-3">
+                    <span>NAVE-MOLIENDA-02B</span>
+                    <span class="text-xs font-semibold bg-slate-900 text-sky-400 px-2 py-0.5 rounded border border-sky-500/20 scada-lcd">NODO_CRÍTICO_S12</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
+            <div>
+                <p class="text-[10px] uppercase text-slate-400 tracking-wider">Estado Operacional</p>
+                <p id="kpi-estado" class="text-xs font-black text-emerald-400 uppercase scada-lcd tracking-wide">ESTABLE / BASE</p>
+            </div>
+            <div>
+                <p class="text-[10px] uppercase text-slate-400 tracking-wider">Criticidad Estructural</p>
+                <p id="kpi-criticidad" class="text-xs font-black text-sky-400 uppercase scada-lcd">18.4 / BAJA</p>
+            </div>
+            <div>
+                <p class="text-[10px] uppercase text-slate-400 tracking-wider">Salud de Nave (SHI)</p>
+                <p id="kpi-shi" class="text-xs font-black text-emerald-400 scada-lcd">98.5%</p>
+            </div>
+            <div>
+                <p class="text-[10px] uppercase text-slate-400 tracking-wider">Carga de Diseño</p>
+                <p id="kpi-carga" class="text-xs font-black text-slate-200 scada-lcd">42.3 Ton</p>
+            </div>
+            <div class="hidden md:block">
+                <p class="text-[10px] uppercase text-slate-400 tracking-wider">Riesgo de Colapso</p>
+                <p id="kpi-riesgo" class="text-xs font-black text-sky-500 scada-lcd">NIVEL_ALTI_0</p>
+            </div>
+        </div>
+
+        <div class="text-right hidden lg:block">
+            <p id="system-clock" class="text-sm font-bold text-sky-400 scada-lcd tracking-widest">2026-05-27 21:11:06</p>
+            <p class="text-[10px] text-slate-400 uppercase tracking-wider">Vigilancia Predictiva: <span class="text-sky-400 font-mono">IGSC-SECURE</span></p>
+        </div>
+    </header>
+
+    <main class="w-full grid grid-cols-1 lg:grid-cols-12 gap-3 my-3 flex-grow z-10 relative overflow-hidden">
+        
+        <section class="lg:col-span-5 flex flex-col gap-3 h-full overflow-hidden">
+            
+            <div class="flex-grow glass-panel-premium rounded-xl p-3 relative flex flex-col min-h-[300px]">
+                <div class="absolute top-3 left-3 z-20 pointer-events-none">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                        Gemelo Digital: Nave Industrial de Acero
+                    </h2>
+                    <p class="text-[10px] text-slate-400">Modelo con acabado metálico de alto contraste y malla de ingeniería</p>
+                </div>
+
+                <div class="absolute bottom-3 left-3 z-20 bg-slate-950/90 px-2 py-1.5 rounded-lg border border-slate-800 text-[9px] space-y-1">
+                    <div class="flex items-center gap-2"><span class="w-2 h-2 bg-cyan-400 rounded-full"></span><span>Z-01: Columnas Base (Normal)</span></div>
+                    <div class="flex items-center gap-2"><span class="w-2 h-2 bg-yellow-400 rounded-full"></span><span>Z-02: Cerchas de Techo (Estrés)</span></div>
+                    <div class="flex items-center gap-2"><span id="legend-z3" class="w-2 h-2 bg-orange-500 rounded-full"></span><span>Z-03: Soporte de Correas (Carga)</span></div>
+                </div>
+                
+                <div id="canvas-twin-container" class="w-full h-full flex-grow rounded-lg bg-gradient-to-b from-slate-950 to-slate-900 cursor-grab active:cursor-grabbing"></div>
+            </div>
+
+            <div class="h-44 glass-panel-premium rounded-xl p-3 flex flex-col">
+                <div class="flex justify-between items-center mb-1">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Distribución Termomecánica Transversal (Heatmap)</h2>
+                    <span class="text-[10px] text-sky-400 font-mono font-bold uppercase">Nodos A1 a G12</span>
+                </div>
+                <div class="flex-grow w-full rounded-lg bg-slate-950/80 p-3 flex items-center justify-center">
+                    <svg class="w-full h-full max-h-[120px]" viewBox="0 0 500 100" preserveAspectRatio="xMidYMid meet">
+                        <g stroke="#334155" stroke-width="1.5" fill="none">
+                            <path d="M 40,90 L 40,20 L 140,20 L 140,90 M 140,90 L 140,20 L 240,20 L 240,90 M 240,90 L 240,20 L 340,20 L 340,90 M 340,90 L 340,20 L 440,20 L 440,90" />
+                            <path d="M 40,20 L 90,5 L 140,20 L 190,5 L 240,20 L 290,5 L 340,20 L 390,5 L 440,20" />
+                            <path d="M 90,5 L 90,20 M 190,5 L 190,20 M 290,5 L 290,20 M 390,5 L 390,20" />
+                        </g>
+                        
+                        <g opacity="0.75">
+                            <circle id="hm-node-1" cx="40" cy="50" r="14" fill="url(#hm-normal)" />
+                            <circle id="hm-node-2" cx="140" cy="20" r="16" fill="url(#hm-normal)" />
+                            <circle id="hm-node-3" cx="240" cy="20" r="16" fill="url(#hm-normal)" />
+                            <circle id="hm-node-4" cx="340" cy="20" r="16" fill="url(#hm-normal)" />
+                            <circle id="hm-node-5" cx="290" cy="5" r="12" fill="url(#hm-normal)" />
+                        </g>
+
+                        <defs>
+                            <radialGradient id="hm-normal"><stop offset="0%" stop-color="#06b6d4" stop-opacity="0.8"/><stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/></radialGradient>
+                            <radialGradient id="hm-warn"><stop offset="0%" stop-color="#eab308" stop-opacity="0.9"/><stop offset="100%" stop-color="#eab308" stop-opacity="0"/></radialGradient>
+                            <radialGradient id="hm-degrad"><stop offset="0%" stop-color="#f97316" stop-opacity="0.9"/><stop offset="100%" stop-color="#f97316" stop-opacity="0"/></radialGradient>
+                            <radialGradient id="hm-crit"><stop offset="0%" stop-color="#ef4444" stop-opacity="1"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></radialGradient>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <section class="lg:col-span-4 flex flex-col gap-3 h-full overflow-hidden">
+            
+            <div class="flex-grow glass-panel-premium rounded-xl p-3 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-2 flex justify-between items-center">
+                        <span>Telemetría de Integridad Mecánica</span>
+                        <span class="text-sky-400 text-[9px] font-mono animate-pulse">● TRANSMISIÓN DIRECTA</span>
+                    </h2>
+
+                    <div class="grid grid-cols-2 gap-2 mb-3 text-xs">
+                        <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block">Corrosión Perfil</span>
+                            <span id="lbl-corrosion" class="font-bold text-sky-400 scada-lcd">2.41 %</span>
+                        </div>
+                        <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block">Deformación (Deflexión)</span>
+                            <span id="lbl-deformacion" class="font-bold text-emerald-400 scada-lcd">0.84 mm</span>
+                        </div>
+                        <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block">Fatiga Acumulada</span>
+                            <span id="lbl-fatiga" class="font-bold text-sky-400 scada-lcd">4.12 %</span>
+                        </div>
+                        <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block">Vibración Estructural</span>
+                            <span id="lbl-vibracion" class="font-bold text-emerald-400 scada-lcd">1.25 mm/s</span>
+                        </div>
+                    </div>
+
+                    <div class="relative h-44 w-full">
+                        <canvas id="chart-structural-trends"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-800 text-[11px]">
+                    <div class="flex justify-between text-slate-400"><span>Temp. Estructura:</span><span id="lbl-temp" class="text-slate-200 font-mono font-semibold">24.2 °C</span></div>
+                    <div class="flex justify-between text-slate-400"><span>Humedad Ambiente:</span><span id="lbl-humedad" class="text-slate-200 font-mono font-semibold">62.8 %</span></div>
+                </div>
+            </div>
+
+            <div class="glass-panel-premium rounded-xl p-3 border-t-2 border-amber-500/40">
+                <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v6a2 2 0 012-2m14-0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    Simulador de Eventos y Fallas Estructurales
+                </h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="activarInyeccion('corrosion')" class="py-1.5 px-2 bg-slate-900 hover:bg-orange-950/40 border border-slate-800 hover:border-orange-500/50 rounded-lg text-left text-[11px] font-medium transition-all text-slate-300 hover:text-orange-400">
+                        ⚠️ Corrosión Acelerada
+                    </button>
+                    <button onclick="activarInyeccion('sobrecarga')" class="py-1.5 px-2 bg-slate-900 hover:bg-amber-950/40 border border-slate-800 hover:border-amber-500/50 rounded-lg text-left text-[11px] font-medium transition-all text-slate-300 hover:text-amber-400">
+                        🏋️ Sobrecarga Mecánica
+                    </button>
+                    <button onclick="activarInyeccion('fatiga')" class="py-1.5 px-2 bg-slate-900 hover:bg-red-950/40 border border-slate-800 hover:border-red-500/50 rounded-lg text-left text-[11px] font-medium transition-all text-slate-300 hover:text-red-400">
+                        📈 Fatiga Crítica
+                    </button>
+                    <button onclick="activarInyeccion('ambiente')" class="py-1.5 px-2 bg-slate-900 hover:bg-sky-950/40 border border-slate-800 hover:border-sky-500/50 rounded-lg text-left text-[11px] font-medium transition-all text-slate-300 hover:text-sky-400">
+                        🌧️ Ambiente Agresivo
+                    </button>
+                    <button onclick="activarInyeccion('colapso')" class="col-span-2 py-1.5 px-2 bg-red-950/30 hover:bg-red-900 border border-red-800/60 text-center text-xs font-bold rounded-lg transition-all text-red-200">
+                        🚨 SIMULAR FALLA SEVERA GENERAL
+                    </button>
+                    <button onclick="reiniciarSimulador()" class="col-span-2 py-1 bg-slate-800 hover:bg-slate-700 text-center text-[10px] uppercase font-bold rounded tracking-widest transition-all text-slate-300">
+                        🔄 Reiniciar Sistema a Línea Base
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="lg:col-span-3 flex flex-col gap-3 h-full overflow-hidden">
+            
+            <div class="flex-grow glass-panel-premium rounded-xl p-3 flex flex-col justify-between">
+                <div class="space-y-4">
+                    <h2 class="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                        Módulo IA Predictivo Estructural
+                    </h2>
+                    
+                    <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800 text-center">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Structural Health Index (SHI)</span>
+                        <div id="shi-display-value" class="text-3xl font-black text-emerald-400 scada-lcd my-0.5">98.5%</div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1">
+                            <div id="shi-display-bar" class="bg-emerald-500 h-full w-[98.5%] transition-all duration-500"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider">Remaining Useful Life (RUL)</span>
+                            <span id="rul-days" class="text-sm font-bold text-white font-mono">1,420 Días</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div id="rul-bar" class="bg-sky-500 h-full w-[95%] transition-all duration-500"></div>
+                        </div>
+                        <span class="text-[8px] text-slate-500 mt-1 block">Pronóstico basado en regresión lineal acumulativa</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Probabilidad Dinámica de Falla</h3>
+                        <div class="text-[11px] space-y-1">
+                            <div class="flex justify-between"><span>Ventana 15 Días</span><span id="wb-15" class="font-bold text-emerald-400 font-mono">0.02%</span></div>
+                            <div class="w-full bg-slate-900 h-1 rounded-full"><div id="wbar-15" class="bg-emerald-500 h-full rounded-full" style="width: 1%"></div></div>
+                            
+                            <div class="flex justify-between"><span>Ventana 30 Días</span><span id="wb-30" class="font-bold text-emerald-400 font-mono">0.15%</span></div>
+                            <div class="w-full bg-slate-900 h-1 rounded-full"><div id="wbar-30" class="bg-emerald-500 h-full rounded-full" style="width: 2%"></div></div>
+
+                            <div class="flex justify-between"><span>Ventana 60 Días</span><span id="wb-60" class="font-bold text-yellow-400 font-mono">1.04%</span></div>
+                            <div class="w-full bg-slate-900 h-1 rounded-full"><div id="wbar-60" class="bg-yellow-500 h-full rounded-full" style="width: 5%"></div></div>
+
+                            <div class="flex justify-between"><span>Ventana 90 Días</span><span id="wb-90" class="font-bold text-slate-400 font-mono">3.45%</span></div>
+                            <div class="w-full bg-slate-900 h-1 rounded-full"><div id="wbar-90" class="bg-slate-700 h-full rounded-full" style="width: 10%"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-2 pt-2 border-t border-slate-900">
+                    <div class="bg-slate-950 p-2 rounded-lg border border-slate-900 flex justify-between items-center text-xs">
+                        <div>
+                            <span class="text-[9px] text-slate-500 uppercase block">Riesgo Integrado</span>
+                            <span id="lbl-criticidad-clase" class="font-bold text-sky-400 uppercase">BAJO_ESTABLE</span>
+                        </div>
+                        <div id="traffic-light" class="w-3.5 h-3.5 rounded-full bg-sky-500 shadow-[0_0_10px_rgba(14,165,233,0.6)]"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="scada-alert-panel" class="h-40 glass-panel-premium rounded-xl p-3 flex flex-col transition-all duration-300">
+                <div class="flex justify-between items-center mb-1.5">
+                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Log de Alertas de Integridad</h2>
+                    <span id="alert-counter" class="text-[10px] font-mono text-slate-500">0 Activas</span>
+                </div>
+                <div id="alert-feed-container" class="flex-grow overflow-y-auto space-y-1.5 pr-0.5 text-[10px]">
+                    <div class="text-slate-500 italic text-center pt-6">Línea de transmisión limpia. No se registran anomalías estructurales.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="w-full glass-panel-premium rounded-xl p-2 flex flex-wrap justify-between items-center text-[10px] text-slate-400 z-10 relative border-t border-slate-800">
+        <div class="flex items-center space-x-4">
+            <span>&copy; 2026 NIS Core Analytics Systems</span>
+            <span class="text-slate-700">|</span>
+            <span>Instalación: <span class="text-slate-200 font-mono">Nave de Molienda - Distrito Minero Sur</span></span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Inferencia Basada en RBI (Risk-Based Inspection)</span>
+            <span class="text-slate-700">|</span>
+            <span class="text-sky-400 font-bold tracking-widest uppercase">IIoT Structural Layer Certified</span>
+        </div>
+    </footer>
+
+    <script>
+        // --- ESTADOS BASE DE LA INFRAESTRUCTURA MÁQUINA ---
+        let ticks = 0;
+        let activeAnomalies = [];
+        
+        // Coeficientes cinéticos alterables por los botones del simulador
+        let modCorrosion = 1.0;
+        let modSobrecarga = 1.0;
+        let modFatiga = 1.0;
+        let modAmbiente = 1.0;
+        let colapsoGeneral = false;
+
+        // Históricos para trazado en Chart.js
+        const historyDepth = 25;
+        const labelsX = Array.from({length: historyDepth}, (_, i) => `-${historyDepth - i}s`);
+        const datasetVibracion = Array(historyDepth).fill(1.2);
+        const datasetDeformacion = Array(historyDepth).fill(0.8);
+
+        // --- ENTORNO THREE.JS: NAVE MINERA ESTRUCTURAL REALISTA DE ALTO CONTRASTE ---
+        const container3D = document.getElementById('canvas-twin-container');
+        const scene = new THREE.Scene();
+        scene.background = null; 
+
+        const camera = new THREE.PerspectiveCamera(40, container3D.clientWidth / container3D.clientHeight, 0.1, 1000);
+        camera.position.set(0, 7, 15);
+        camera.lookAt(0, 2.2, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container3D.clientWidth, container3D.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container3D.appendChild(renderer.domElement);
+
+        // CONFIGURACIÓN DE ILUMINACIÓN DE ALTO CONTRASTE (Look de Laboratorio/Fábrica Premium)
+        const ambient = new THREE.AmbientLight(0x0a0f24, 0.5); // Luz de fondo tenue
+        scene.add(ambient);
+
+        // Luces puntuales e industriales fuertes para generar reflejos metálicos cromados
+        const lightKey1 = new THREE.DirectionalLight(0xffffff, 2.5);
+        lightKey1.position.set(10, 20, 10);
+        scene.add(lightKey1);
+
+        const lightKey2 = new THREE.DirectionalLight(0x38bdf8, 1.8); // Luz cyan para realzar aristas
+        lightKey2.position.set(-10, 10, 5);
+        scene.add(lightKey2);
+
+        const lightFill = new THREE.DirectionalLight(0x1e1b4b, 1.5); // Contraluz azul profundo
+        lightFill.position.set(0, -10, -5);
+        scene.add(lightFill);
+
+        const structuralTwinGroup = new THREE.Group();
+
+        // MATERIAL DE ALTA FIDELIDAD INDUSTRIAL: Acero Galvanizado Reflectivo Pulido
+        const metalMaterialBase = new THREE.MeshStandardMaterial({
+            color: 0x94a3b8,        // Color de base gris metálico claro para alto contraste
+            metalness: 1.0,         // Máxima propiedad metálica
+            roughness: 0.18,        // Superficie pulida para reflejos limpios y definidos
+        });
+
+        // Malla de alambre técnica superpuesta (Wireframe) para un look analítico e ingenieril nítido
+        const wireframeMaterial = new THREE.MeshBasicMaterial({
+            color: 0x06b6d4,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.15
+        });
+
+        // Material base para los Nodos Sensores (Estado normal: Cyan eléctrico brillante)
+        const criticalNodeMaterial = new THREE.MeshStandardMaterial({
+            color: 0x06b6d4,
+            emissive: 0x06b6d4,
+            emissiveIntensity: 0.6,
+            metalness: 0.9,
+            roughness: 0.1
+        });
+
+        // Generador de Elementos Estructurales Completos (Viga física + Malla de Ingeniería)
+        function crearElementoEstructural(geom) {
+            const meshPrincipal = new THREE.Mesh(geom, metalMaterialBase);
+            const meshWireframe = new THREE.Mesh(geom, wireframeMaterial);
+            
+            const grupoElemento = new THREE.Group();
+            grupoElemento.add(meshPrincipal);
+            grupoElemento.add(meshWireframe);
+            
+            return grupoElemento;
+        }
+
+        function crearColumna(x, z, h) {
+            const geom = new THREE.CylinderGeometry(0.12, 0.14, h, 8);
+            const col = crearElementoEstructural(geom);
+            col.position.set(x, h/2, z);
+            structuralTwinGroup.add(col);
+        }
+
+        function crearVigaHorizontal(x1, z1, x2, z2, y) {
+            const dx = x2 - x1;
+            const dz = z2 - z1;
+            const longitud = Math.sqrt(dx*dx + dz*dz);
+            const geom = new THREE.CylinderGeometry(0.08, 0.08, longitud, 6);
+            const viga = crearElementoEstructural(geom);
+            viga.position.set((x1+x2)/2, y, (z1+z2)/2);
+            
+            viga.rotation.z = Math.PI / 2;
+            if (dz !== 0) {
+                viga.rotation.y = Math.atan2(dz, dx);
+            }
+            structuralTwinGroup.add(viga);
+        }
+
+        // Construir Pórticos Estructurales de la Planta (4 Secciones)
+        const marcosZ = [-4, -1.5, 1.5, 4];
+        marcosZ.forEach(z => {
+            crearColumna(-3.5, z, 5);
+            crearColumna(3.5, z, 5);
+            crearVigaHorizontal(-3.5, z, 3.5, z, 5);
+            
+            // Cerchas superiores angulares (Techumbre reticulada de la Nave)
+            const geomCercha = new THREE.CylinderGeometry(0.06, 0.06, 4, 6);
+            
+            const c1 = crearElementoEstructural(geomCercha);
+            c1.position.set(-1.8, 5.8, z);
+            c1.rotation.z = Math.PI / 6;
+            structuralTwinGroup.add(c1);
+
+            const c2 = crearElementoEstructural(geomCercha);
+            c2.position.set(1.8, 5.8, z);
+            c2.rotation.z = -Math.PI / 6;
+            structuralTwinGroup.add(c2);
+        });
+
+        // Amarres longitudinales estructurales (Correas de carga superiores)
+        marcosZ.forEach((z, i) => {
+            if(i < marcosZ.length - 1) {
+                const proxZ = marcosZ[i+1];
+                crearVigaHorizontal(-3.5, z, -3.5, proxZ, 5);
+                crearVigaHorizontal(3.5, z, 3.5, proxZ, 5);
+                crearVigaHorizontal(0, z, 0, proxZ, 6.5);
+            }
+        });
+
+        // Insertar Nodos de Medición Crítica (Esferas de Monitoreo de Alto Contraste)
+        const nodosMonitoreo = [];
+        const coordenadasNodos = [
+            [-3.5, 5, -1.5], [3.5, 5, 1.5], [0, 6.5, -1.5], [-3.5, 2.5, 4]
+        ];
+
+        coordenadasNodos.forEach((coord, i) => {
+            const nodeGeom = new THREE.SphereGeometry(0.28, 32, 32);
+            const nodeMesh = new THREE.Mesh(nodeGeom, criticalNodeMaterial.clone());
+            nodeMesh.position.set(coord[0], coord[1], coord[2]);
+            structuralTwinGroup.add(nodeMesh);
+            nodosMonitoreo.push(nodeMesh);
+        });
+
+        scene.add(structuralTwinGroup);
+
+        // Loop de renderizado y animación
+        function renderLoop() {
+            requestAnimationFrame(renderLoop);
+            
+            // Rotación suave del gemelo digital estructural
+            structuralTwinGroup.rotation.y = Math.sin(ticks * 0.003) * 0.22 - 0.15;
+            
+            // Pulsación lumínica de los nodos analíticos IIoT
+            nodosMonitoreo.forEach((n, idx) => {
+                let baseIntensidad = colapsoGeneral ? 1.5 : 0.6;
+                n.material.emissiveIntensity = baseIntensidad + Math.sin(Date.now() * 0.008 + idx) * 0.4;
+            });
+
+            renderer.render(scene, camera);
+        }
+        renderLoop();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = container3D.clientWidth / container3D.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container3D.clientWidth, container3D.clientHeight);
+        });
+
+        // --- CONFIGURACIÓN DE GRÁFICAS DE TENDENCIA (CHART.JS) ---
+        const ctxChart = document.getElementById('chart-structural-trends').getContext('2d');
+        const analyticsChart = new Chart(ctxChart, {
+            type: 'line',
+            data: {
+                labels: labelsX,
+                datasets: [
+                    {
+                        label: 'Vibración RMS (mm/s)',
+                        data: datasetVibracion,
+                        borderColor: '#06b6d4',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.2,
+                        fill: false
+                    },
+                    {
+                        label: 'Deflexión (mm)',
+                        data: datasetDeformacion,
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.1,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#94a3b8', font: { size: 9 } } } },
+                scales: {
+                    x: { grid: { color: '#0f172a' }, ticks: { color: '#475569', font: { size: 8 } } },
+                    y: { grid: { color: '#0f172a' }, ticks: { color: '#475569', font: { size: 8 } } }
+                }
+            }
+        });
+
+        // --- ENGINE DE INFERENCIA ANALÍTICA E INTERACTIVIDAD ---
+        function activarInyeccion(tipo) {
+            switch(tipo) {
+                case 'corrosion': modCorrosion += 4.5; break;
+                case 'sobrecarga': modSobrecarga += 6.0; break;
+                case 'fatiga': modFatiga += 5.0; break;
+                case 'ambiente': modAmbiente += 3.5; break;
+                case 'colapso': colapsoGeneral = true; break;
+            }
+            registrarAlertaEnLog(`COMANDO INYECTADO: Simulación de contingencia aplicada de tipo [${tipo.toUpperCase()}]`, "WARNING");
+        }
+
+        function reiniciarSimulador() {
+            modCorrosion = 1.0;
+            modSobrecarga = 1.0;
+            modFatiga = 1.0;
+            modAmbiente = 1.0;
+            colapsoGeneral = false;
+            ticks = 0;
+            activeAnomalies = [];
+            
+            // Restaurar propiedades base de alta definición
+            metalMaterialBase.color.setHex(0x94a3b8);
+            nodosMonitoreo.forEach(n => {
+                n.material.color.setHex(0x06b6d4);
+                n.material.emissive.setHex(0x06b6d4);
+            });
+
+            for(let i=1; i<=5; i++) {
+                document.getElementById(`hm-node-${i}`).setAttribute('fill', 'url(#hm-normal)');
+            }
+
+            registrarAlertaEnLog("REINICIO GENERAL: Sistema estructural purgado a parámetros base.", "OK");
+        }
+
+        function evaluarCicloInferencia() {
+            ticks++;
+
+            const ruido = () => (Math.random() - 0.5) * 0.15;
+            
+            let valCorrosion = Math.min(100, 2.41 + (ticks * 0.005 * modCorrosion) + (colapsoGeneral ? 45.2 : 0));
+            let valDeformacion = Math.min(45, 0.84 + (ruido() * modSobrecarga) + (modSobrecarga > 1 ? modSobrecarga * 0.8 : 0) + (colapsoGeneral ? 28.5 : 0));
+            let valFatiga = Math.min(100, 4.12 + (ticks * 0.008 * modFatiga) + (colapsoGeneral ? 72.1 : 0));
+            let valVibracion = Math.max(0.2, 1.25 + (ruido() * 4 * modSobrecarga) + (colapsoGeneral ? 18.2 : 0));
+            
+            let valTemp = (24.2 + (Math.random() - 0.5) * 0.4 + (colapsoGeneral ? 35 : 0)).toFixed(1);
+            let valHumedad = Math.min(100, (62.8 + (Math.random() - 0.5) * 0.5 * modAmbiente + (modAmbiente > 1 ? 25 : 0))).toFixed(1);
+            let valCarga = (42.3 * modSobrecarga + (colapsoGeneral ? 120 : 0)).toFixed(1);
+
+            document.getElementById('lbl-corrosion').innerText = `${valCorrosion.toFixed(2)} %`;
+            document.getElementById('lbl-deformacion').innerText = `${valDeformacion.toFixed(2)} mm`;
+            document.getElementById('lbl-fatiga').innerText = `${valFatiga.toFixed(2)} %`;
+            document.getElementById('lbl-vibracion').innerText = `${valVibracion.toFixed(2)} mm/s`;
+            document.getElementById('lbl-temp').innerText = `${valTemp} °C`;
+            document.getElementById('lbl-humedad').innerText = `${valHumedad} %`;
+            document.getElementById('kpi-carga').innerText = `${valCarga} Ton`;
+
+            datasetVibracion.shift(); datasetVibracion.push(valVibracion);
+            datasetDeformacion.shift(); datasetDeformacion.push(valDeformacion);
+            analyticsChart.update('none');
+
+            let penalizacionDaño = (valCorrosion * 0.3) + (valDeformacion * 1.5) + (valFatiga * 0.4) + (valVibracion * 0.8);
+            let shiCalculado = Math.max(0, Math.min(100, 100 - penalizacionDaño));
+            
+            document.getElementById('kpi-shi').innerText = `${shiCalculado.toFixed(1)}%`;
+            document.getElementById('shi-display-value').innerText = `${shiCalculado.toFixed(1)}%`;
+            document.getElementById('shi-display-bar').style.width = `${shiCalculado}%`;
+
+            let baseDiasRUL = 1420;
+            let diasRULCalculados = Math.max(0, Math.round(baseDiasRUL - (ticks * 2) - (penalizacionDaño * 15)));
+            document.getElementById('rul-days').innerText = `${diasRULCalculados.toLocaleString()} Días`;
+            let porcBarRUL = Math.min(100, (diasRULCalculados / baseDiasRUL) * 100);
+            document.getElementById('rul-bar').style.width = `${porcBarRUL}%`;
+
+            let prob15 = Math.min(100, (100 - shiCalculado) * 0.12).toFixed(2);
+            let prob30 = Math.min(100, (100 - shiCalculado) * 0.35).toFixed(2);
+            let prob60 = Math.min(100, (100 - shiCalculado) * 1.10).toFixed(2);
+            let prob90 = Math.min(100, (100 - shiCalculado) * 2.85).toFixed(2);
+
+            document.getElementById('wb-15').innerText = `${prob15}%`;
+            document.getElementById('wb-30').innerText = `${prob30}%`;
+            document.getElementById('wb-60').innerText = `${prob60}%`;
+            document.getElementById('wb-90').innerText = `${prob90}%`;
+
+            document.getElementById('wbar-15').style.width = `${prob15}%`;
+            document.getElementById('wbar-30').style.width = `${prob30}%`;
+            document.getElementById('wbar-60').style.width = `${prob60}%`;
+            document.getElementById('wbar-90').style.width = `${prob90}%`;
+
+            evaluarMatrizCriticidadYColores(shiCalculado, valCorrosion, valDeformacion, valVibracion);
+
+            const d = new Date();
+            document.getElementById('system-clock').innerText = d.toISOString().replace('T', ' ').substring(0, 19);
+        }
+
+        function evaluarMatrizCriticidadYColores(shi, corr, def, vib) {
+            let criticidadScore = (100 - shi).toFixed(1);
+            let tagClase = "BAJO_ESTABLE";
+            let colorTexto = "text-emerald-400";
+            let fillHeatmap = "url(#hm-normal)";
+            
+            // Asignación de colores de alto contraste para el modelo 3D según nivel de riesgo
+            let hexColorG3D = 0x06b6d4; // Cyan base normal
+
+            let panelAlertas = document.getElementById('scada-alert-panel');
+            let feedContainer = document.getElementById('alert-feed-container');
+            let alertCountText = document.getElementById('alert-counter');
+            
+            let alertasFiltradas = [];
+
+            if (corr > 8.0) { alertasFiltradas.push({t: "CORROSIÓN ACELERADA EN COLUMNA C-12", s: "WARN"}); }
+            if (def > 5.0) { alertasFiltradas.push({t: "DEFLEXIÓN TRASVERSAL FUERA DE TOLERANCIA", s: "CRIT"}); }
+            if (vib > 6.0) { alertasFiltradas.push({t: "VIBRACIÓN DE ALTA ENERGÍA EN SOPORTE DE CORREAS", s: "CRIT"}); }
+            if (shi < 75) { alertasFiltradas.push({t: "PROBABILIDAD DE FALLA SUPERA UMBRAL RBI", s: "CRIT"}); }
+
+            if(shi < 50 || colapsoGeneral) {
+                tagClase = "CRÍTICO_EXTREMO_PELIGRO";
+                colorTexto = "text-red-500";
+                fillHeatmap = "url(#hm-crit)";
+                hexColorG3D = 0xef4444; // Rojo Alarma de alto contraste
+                document.getElementById('kpi-estado').innerText = "CRITICAL / EVAC";
+                document.getElementById('kpi-estado').className = "text-xs font-black text-red-500 scada-lcd tracking-wide";
+                document.getElementById('traffic-light').className = "w-3.5 h-3.5 rounded-full bg-red-500 shadow-[0_0_15px_#ef4444]";
+                panelAlertas.className = "h-40 glass-panel-premium rounded-xl p-3 flex flex-col glow-active-critical border-red-500/50";
+                document.getElementById('status-ping').className = "animate-ping absolute inline-flex h-3.5 w-3.5 rounded-full bg-red-400 opacity-75";
+                document.getElementById('status-dot').className = "relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500";
+                document.getElementById('kpi-riesgo').innerText = "COLAPSO_ALTO";
+                document.getElementById('kpi-riesgo').className = "text-xs font-black text-red-500 scada-lcd";
+            } else if (shi < 80) {
+                tagClase = "ALTA_DEGRADACIÓN";
+                colorTexto = "text-orange-500";
+                fillHeatmap = "url(#hm-degrad)";
+                hexColorG3D = 0xf97316; // Naranja Técnico
+                document.getElementById('kpi-estado').innerText = "ADVERTENCIA / INSPECCIÓN";
+                document.getElementById('kpi-estado').className = "text-xs font-black text-orange-400 scada-lcd tracking-wide";
+                document.getElementById('traffic-light').className = "w-3.5 h-3.5 rounded-full bg-orange-500 shadow-[0_0_12px_#f97316]";
+                panelAlertas.className = "h-40 glass-panel-premium rounded-xl p-3 flex flex-col border-orange-500/30";
+                document.getElementById('kpi-riesgo').innerText = "RIESGO_MOD";
+                document.getElementById('kpi-riesgo').className = "text-xs font-black text-orange-400 scada-lcd";
+            } else if (shi < 92) {
+                tagClase = "MODERADO / ALERTA";
+                colorTexto = "text-yellow-400";
+                fillHeatmap = "url(#hm-warn)";
+                hexColorG3D = 0xeab308; // Amarillo Alta Visibilidad
+                document.getElementById('traffic-light').className = "w-3.5 h-3.5 rounded-full bg-yellow-400 shadow-[0_0_10px_#eab308]";
+            } else {
+                document.getElementById('kpi-estado').innerText = "ESTABLE / BASE";
+                document.getElementById('kpi-estado').className = "text-xs font-black text-emerald-400 scada-lcd tracking-wide";
+                document.getElementById('traffic-light').className = "w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]";
+                panelAlertas.className = "h-40 glass-panel-premium rounded-xl p-3 flex flex-col border-slate-800";
+                document.getElementById('status-ping').className = "animate-ping absolute inline-flex h-3.5 w-3.5 rounded-full bg-sky-400 opacity-75";
+                document.getElementById('status-dot').className = "relative inline-flex rounded-full h-3.5 w-3.5 bg-sky-500";
+                document.getElementById('kpi-riesgo').innerText = "NIVEL_ALTI_0";
+                document.getElementById('kpi-riesgo').className = "text-xs font-black text-sky-500 scada-lcd";
+            }
+
+            document.getElementById('kpi-criticidad').innerText = `${criticidadScore} / ${tagClase}`;
+            document.getElementById('kpi-criticidad').className = `text-xs font-black scada-lcd ${colorTexto}`;
+            document.getElementById('lbl-criticidad-clase').innerText = tagClase;
+            document.getElementById('lbl-criticidad-clase').className = `font-bold uppercase text-[11px] ${colorTexto}`;
+
+            // Inyectar el cambio dinámico de color en los Nodos Sensores 3D
+            nodosMonitoreo.forEach(n => {
+                n.material.color.setHex(hexColorG3D);
+                n.material.emissive.setHex(hexColorG3D);
+            });
+            
+            // Actualizar dinámicamente los mapas de calor vectoriales SVG
+            for(let i = 1; i <= 5; i++) {
+                if(i === 2 || i === 4) {
+                    document.getElementById(`hm-node-${i}`).setAttribute('fill', fillHeatmap);
+                }
+            }
+
+            if (alertasFiltradas.length > 0) {
+                alertCountText.innerText = `${alertasFiltradas.length} Activas`;
+                alertCountText.className = "text-red-400 text-[10px] font-bold font-mono animate-pulse";
+                
+                let htmlLogs = "";
+                alertasFiltradas.forEach(al => {
+                    const ts = new Date().toLocaleTimeString();
+                    const colorBadge = al.s === "CRIT" ? "border-red-500/30 bg-red-950/20 text-red-400" : "border-orange-500/30 bg-orange-950/20 text-orange-400";
+                    htmlLogs += `
+                        <div class="p-1.5 border rounded-md ${colorBadge} flex flex-col gap-0.5">
+                            <span class="font-bold tracking-wide">● [${al.s}] - ${ts}</span>
+                            <span class="text-slate-300 text-[9px] leading-tight">${al.t}</span>
+                        </div>
+                    `;
+                });
+                feedContainer.innerHTML = htmlLogs;
+            } else {
+                alertCountText.innerText = "0 Activas";
+                alertCountText.className = "text-[10px] font-mono text-slate-500";
+                feedContainer.innerHTML = `<div class="text-slate-500 italic text-center pt-6">Línea de transmisión limpia. No se registran anomalías estructurales.</div>`;
+            }
+        }
+
+        function registrarAlertaEnLog(mensaje, severidad) {
+            console.log(`[SCADA LOG] [${severidad}] ${mensaje}`);
+        }
+
+        setInterval(evaluarCicloInferencia, 1000);
+    </script>
+</body>
+</html>

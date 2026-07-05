@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Courier New',monospace}
+body{background:#060c18;color:#c8d8e8;overflow:hidden;width:100%;height:100vh}
+canvas{display:block}
+#ui{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none}
+
+/* Header */
+#header{position:absolute;top:0;left:0;right:0;height:36px;background:rgba(6,12,24,0.95);border-bottom:1px solid #1e3a5f;display:flex;align-items:center;justify-content:space-between;padding:0 16px;pointer-events:all}
+.logo{color:#00ffff;font-size:18px;letter-spacing:2px}
+.htitle{color:#fff;font-size:19px;letter-spacing:3px}
+.hright{display:flex;gap:16px;align-items:center;font-size:16px}
+
+/* Side panels */
+#left-panel{position:absolute;top:36px;left:0;width:190px;bottom:140px;background:rgba(6,12,24,0.92);border-right:1px solid #1e3a5f;padding:8px;overflow-y:auto;pointer-events:all}
+#right-panel{position:absolute;top:36px;right:0;width:190px;bottom:140px;background:rgba(6,12,24,0.92);border-left:1px solid #1e3a5f;padding:8px;overflow-y:auto;pointer-events:all}
+#bottom-panel{position:absolute;bottom:0;left:0;right:0;height:140px;background:rgba(6,12,24,0.95);border-top:1px solid #1e3a5f;padding:8px;display:grid;grid-template-columns:repeat(7,1fr);gap:6px;pointer-events:all}
+
+.ptitle{color:#00ffff;font-size:14px;letter-spacing:2px;border-bottom:1px solid #1e3a5f;padding-bottom:3px;margin-bottom:6px;text-transform:uppercase}
+.prow{display:flex;justify-content:space-between;font-size:14px;margin-bottom:3px;line-height:1.4}
+.plabel{color:#4a6a8a}
+.pval{font-weight:bold}
+.ok{color:#00ff88}.warn{color:#ffcc00}.crit{color:#ff2244}.blue{color:#00aaff}.purple{color:#aa44ff}
+
+/* KPI cards */
+.kpi-card{background:#0a1428;border:1px solid #1e3a5f;border-radius:3px;padding:6px;text-align:center;display:flex;flex-direction:column;justify-content:center}
+.kpi-label{font-size:12px;color:#4a6a8a;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.kpi-val{font-size:31px;font-weight:bold;line-height:1}
+.kpi-sub{font-size:12px;color:#4a6a8a;margin-top:1px}
+
+/* Gauge */
+.gauge-wrap{margin-bottom:8px}
+.gauge-label{font-size:14px;color:#4a6a8a;display:flex;justify-content:space-between;margin-bottom:2px}
+.gauge-track{height:5px;background:#0a1428;border-radius:3px;overflow:hidden}
+.gauge-fill{height:100%;border-radius:3px;transition:width 0.3s}
+
+/* Valve indicator */
+.valve-row{display:flex;gap:4px;margin-bottom:4px}
+.valve-box{flex:1;height:18px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;transition:all 0.1s;border:1px solid #1e3a5f}
+
+/* Scenario buttons */
+#sc-panel{position:absolute;top:40px;left:196px;right:196px;height:28px;display:flex;gap:3px;align-items:center;padding:0 4px;pointer-events:all;z-index:10}
+.sc-btn{background:rgba(6,12,24,0.8);border:1px solid #1e3a5f;color:#4a6a8a;font-size:12px;padding:2px 6px;cursor:pointer;border-radius:2px;font-family:'Courier New',monospace;letter-spacing:1px;transition:all 0.2s;white-space:nowrap}
+.sc-btn:hover,.sc-btn.active{border-color:#00ffff;color:#00ffff;background:rgba(0,255,255,0.05)}
+.sc-btn.crit.active{border-color:#ff2244;color:#ff2244;background:rgba(255,34,68,0.08)}
+
+/* Alert ticker */
+#ticker{position:absolute;bottom:140px;left:0;right:0;height:20px;background:rgba(10,20,40,0.95);border-top:1px solid #1e3a5f;border-bottom:1px solid #1e3a5f;overflow:hidden;display:flex;align-items:center;pointer-events:none}
+#ticker-inner{display:flex;gap:40px;white-space:nowrap;font-size:14px;animation:ticker 30s linear infinite}
+@keyframes ticker{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
+
+/* Canvas area */
+#canvas-wrap{position:absolute;top:64px;left:190px;right:190px;bottom:160px}
+
+/* PV Diagram */
+#pv-canvas{position:absolute;bottom:0;right:0;width:180px;height:100px;border-top:1px solid #1e3a5f;border-left:1px solid #1e3a5f;background:rgba(6,12,24,0.8)}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div id="header">
+  <div class="logo">⬡ DIGITAL TWIN — GP-101</div>
+  <div class="htitle">COMPRESOR RECIPROCANTE INDUSTRIAL | GEMELO DIGITAL v3.0</div>
+  <div class="hright">
+    <span id="clock" style="color:#4a6a8a"></span>
+    <span id="mode-badge" style="color:#00ff88;font-size:16px">● NORMAL</span>
+    <span style="color:#4a6a8a">|</span>
+    <span id="rpm-display" style="color:#00aaff">1780 RPM</span>
+  </div>
+</div>
+
+<!-- Scenario bar -->
+<div id="sc-panel">
+  <span style="font-size:12px;color:#4a6a8a;margin-right:4px">ESCENARIO:</span>
+</div>
+
+<!-- Canvas -->
+<div id="canvas-wrap">
+  <canvas id="main-canvas"></canvas>
+  <canvas id="pv-canvas"></canvas>
+</div>
+
+<!-- Left panel -->
+<div id="left-panel">
+  <div class="ptitle">Sensores IIoT</div>
+  <div id="sensor-rows"></div>
+  <div class="ptitle" style="margin-top:8px">Válvulas</div>
+  <div class="valve-row">
+    <div class="valve-box" id="v-adm1">ADM 1</div>
+    <div class="valve-box" id="v-adm2">ADM 2</div>
+  </div>
+  <div class="valve-row">
+    <div class="valve-box" id="v-desc1">DESC 1</div>
+    <div class="valve-box" id="v-desc2">DESC 2</div>
+  </div>
+  <div class="ptitle" style="margin-top:8px">Ciclo P-V</div>
+  <div style="font-size:12px;color:#4a6a8a;line-height:1.6">
+    <div>Expansión → <span class="blue" id="pv-exp">--</span></div>
+    <div>Compresión → <span class="ok" id="pv-comp">--</span></div>
+    <div>Descarga → <span class="warn" id="pv-disc">--</span></div>
+  </div>
+</div>
+
+<!-- Right panel -->
+<div id="right-panel">
+  <div class="ptitle">RUL Componentes</div>
+  <div id="rul-rows"></div>
+  <div class="ptitle" style="margin-top:8px">Estado Componentes</div>
+  <div id="comp-status"></div>
+  <div class="ptitle" style="margin-top:8px">Weibull</div>
+  <div id="weibull-info"></div>
+  <div class="ptitle" style="margin-top:8px">Alertas IA</div>
+  <div id="alerts-mini"></div>
+</div>
+
+<!-- Ticker -->
+<div id="ticker"><div id="ticker-inner"></div></div>
+
+<!-- Bottom KPIs -->
+<div id="bottom-panel">
+  <div class="kpi-card"><div class="kpi-label">Disponibilidad</div><div class="kpi-val ok" id="k-disp">97.3%</div><div class="kpi-sub">target 95%</div></div>
+  <div class="kpi-card"><div class="kpi-label">MTBF</div><div class="kpi-val blue" id="k-mtbf">4320h</div><div class="kpi-sub">vida media</div></div>
+  <div class="kpi-card"><div class="kpi-label">MTTR</div><div class="kpi-val ok" id="k-mttr">2.4h</div><div class="kpi-sub">reparación</div></div>
+  <div class="kpi-card"><div class="kpi-label">OEE</div><div class="kpi-val blue" id="k-oee">89.1%</div><div class="kpi-sub">efectividad</div></div>
+  <div class="kpi-card"><div class="kpi-label">Criticidad</div><div class="kpi-val" id="k-crit" style="color:#ffcc00">23</div><div class="kpi-sub" id="k-crit-lv">MODERADO</div></div>
+  <div class="kpi-card"><div class="kpi-label">Riesgo API581</div><div class="kpi-val" id="k-risk" style="color:#ffcc00">18</div><div class="kpi-sub">ISO 31000</div></div>
+  <div class="kpi-card"><div class="kpi-label">RUL Global</div><div class="kpi-val" id="k-rul" style="color:#00ff88">78%</div><div class="kpi-sub" id="k-rul-h">~1840h</div></div>
+</div>
+
+<script>
+// ===== CANVAS SETUP =====
+const wrap = document.getElementById('canvas-wrap');
+const canvas = document.getElementById('main-canvas');
+const pvCanvas = document.getElementById('pv-canvas');
+const ctx = canvas.getContext('2d');
+const pvCtx = pvCanvas.getContext('2d');
+
+function resize(){
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ===== SCENARIOS =====
+const scenarios = [
+  {id:0,name:'NORMAL',mode:'ok',speed:1.0,
+   s:{vib:2.1,temp:72,pres:11.8,rpm:1780,curr:85,pow:132,thd:3.1,oil:91,metal:12},
+   rul:{rod:87,piston:92,valve:78,lub:88,motor:94},
+   crit:23,risk:18,beta:1.85,eta:4320,pfail:8.2,
+   alerts:['Sistema en parámetros nominales','PM programado en 720h'],
+   comp:{motor:'OK',rodamiento:'OK',pistones:'OK',valvulas:'OK',lubricacion:'OK'},
+   vibAmp:2,tempColor:'#00aaff',smokeColor:'rgba(100,180,255,0.15)',bearingNoise:0},
+  {id:1,name:'SC1:RODAMIENTO',mode:'warn',speed:0.98,
+   s:{vib:5.8,temp:84,pres:11.5,rpm:1775,curr:91,pow:138,thd:3.4,oil:88,metal:28},
+   rul:{rod:42,piston:88,valve:75,lub:82,motor:90},
+   crit:52,risk:45,beta:2.1,eta:2800,pfail:18.5,
+   alerts:['⚠ VIBRACIÓN: 5.8mm/s > límite 4.5','⚠ Partículas: 28ppm > 20ppm'],
+   comp:{motor:'OK',rodamiento:'WARN',pistones:'OK',valvulas:'OK',lubricacion:'WARN'},
+   vibAmp:7,tempColor:'#ffcc00',smokeColor:'rgba(255,200,50,0.1)',bearingNoise:3},
+  {id:2,name:'SC2:LUBRIC.',mode:'warn',speed:0.99,
+   s:{vib:3.2,temp:89,pres:11.6,rpm:1782,curr:88,pow:135,thd:3.2,oil:61,metal:52},
+   rul:{rod:65,piston:85,valve:72,lub:28,motor:88},
+   crit:58,risk:51,beta:2.4,eta:1800,pfail:32.1,
+   alerts:['⚠ ACEITE degradado: idx 61','⛔ Partículas: 52ppm CRÍTICO'],
+   comp:{motor:'OK',rodamiento:'WARN',pistones:'OK',valvulas:'OK',lubricacion:'CRIT'},
+   vibAmp:4,tempColor:'#ff8800',smokeColor:'rgba(255,140,0,0.15)',bearingNoise:1},
+  {id:3,name:'SC3:VÁLVULAS',mode:'high',speed:0.95,
+   s:{vib:3.8,temp:82,pres:9.1,rpm:1785,curr:98,pow:152,thd:4.1,oil:85,metal:18},
+   rul:{rod:81,piston:79,valve:31,lub:80,motor:85},
+   crit:67,risk:62,beta:1.6,eta:900,pfail:45.8,
+   alerts:['⛔ PRESIÓN BAJA: 9.1bar (-24%)','⛔ VÁLVULA DESCARGA DAÑADA'],
+   comp:{motor:'WARN',rodamiento:'OK',pistones:'WARN',valvulas:'CRIT',lubricacion:'OK'},
+   vibAmp:5,tempColor:'#ffcc00',smokeColor:'rgba(255,100,0,0.12)',bearingNoise:0},
+  {id:4,name:'SC4:DESALIN.',mode:'high',speed:0.97,
+   s:{vib:8.2,temp:79,pres:11.7,rpm:1776,curr:94,pow:145,thd:4.8,oil:84,metal:22},
+   rul:{rod:38,piston:82,valve:74,lub:78,motor:87},
+   crit:71,risk:65,beta:2.8,eta:1200,pfail:38.2,
+   alerts:['⛔ VIBRACIÓN AXIAL: 8.2mm/s','⛔ RIESGO FALLA ACOPLAMIENTO'],
+   comp:{motor:'OK',rodamiento:'CRIT',pistones:'OK',valvulas:'OK',lubricacion:'OK'},
+   vibAmp:12,tempColor:'#ff8800',smokeColor:'rgba(200,100,255,0.1)',bearingNoise:6},
+  {id:5,name:'SC5:MOTOR',mode:'high',speed:0.93,
+   s:{vib:3.1,temp:108,pres:11.9,rpm:1771,curr:115,pow:168,thd:5.2,oil:79,metal:15},
+   rul:{rod:78,piston:80,valve:73,lub:74,motor:22},
+   crit:78,risk:72,beta:3.1,eta:800,pfail:55.3,
+   alerts:['⛔ TEMP MOTOR: 108°C > 85°C MAX','⛔ SOBRECORRIENTE: 115A > 85A nom'],
+   comp:{motor:'CRIT',rodamiento:'OK',pistones:'OK',valvulas:'OK',lubricacion:'WARN'},
+   vibAmp:3,tempColor:'#ff2244',smokeColor:'rgba(255,50,50,0.2)',bearingNoise:0},
+  {id:6,name:'SC6:ENERGÍA',mode:'warn',speed:0.96,
+   s:{vib:3.3,temp:76,pres:11.6,rpm:1758,curr:89,pow:134,thd:12.8,oil:87,metal:14},
+   rul:{rod:82,piston:85,valve:76,lub:84,motor:78},
+   crit:44,risk:38,beta:1.75,eta:3800,pfail:11.4,
+   alerts:['⚠ THD: 12.8% > IEEE519 5%','⚠ VOLTAJE: 368V (-3.2% nominal)'],
+   comp:{motor:'WARN',rodamiento:'OK',pistones:'OK',valvulas:'OK',lubricacion:'OK'},
+   vibAmp:3,tempColor:'#00aaff',smokeColor:'rgba(100,100,255,0.1)',bearingNoise:0},
+  {id:7,name:'SC7:HUMEDAD',mode:'warn',speed:0.99,
+   s:{vib:2.8,temp:78,pres:11.7,rpm:1779,curr:86,pow:133,thd:3.3,oil:58,metal:38},
+   rul:{rod:71,piston:83,valve:74,lub:35,motor:86},
+   crit:55,risk:48,beta:2.2,eta:2200,pfail:22.7,
+   alerts:['⛔ HUMEDAD ACEITE: 8.4%','⚠ Partículas: 38ppm corrosión'],
+   comp:{motor:'OK',rodamiento:'WARN',pistones:'WARN',valvulas:'OK',lubricacion:'CRIT'},
+   vibAmp:3,tempColor:'#00aaff',smokeColor:'rgba(0,200,200,0.1)',bearingNoise:0},
+  {id:8,name:'⚠SC8:CRÍTICO',mode:'crit',speed:0.72,
+   s:{vib:18.5,temp:126,pres:5.2,rpm:1620,curr:142,pow:188,thd:18.2,oil:21,metal:185},
+   rul:{rod:4,piston:8,valve:3,lub:2,motor:7},
+   crit:96,risk:94,beta:4.2,eta:120,pfail:98.1,
+   alerts:['🔴 VIBRACIÓN EXTREMA: 18.5mm/s','🔴 TEMP: 126°C RIESGO INCENDIO','🔴 RUL < 5% — PARAR AHORA'],
+   comp:{motor:'CRIT',rodamiento:'CRIT',pistones:'CRIT',valvulas:'CRIT',lubricacion:'CRIT'},
+   vibAmp:22,tempColor:'#ff2244',smokeColor:'rgba(255,0,0,0.25)',bearingNoise:10}
+];
+
+let sc = scenarios[0];
+let angle = 0;
+let frame = 0;
+let pvHistory = [];
+const N = 2; // cylinders
+
+// ===== KINEMATICS =====
+// Slider-crank mechanism: piston position as function of crank angle
+function pistonPos(theta, R, L) {
+  // R = crank radius, L = connecting rod length
+  return R * Math.cos(theta) + Math.sqrt(L*L - R*R * Math.sin(theta)*Math.sin(theta));
+}
+
+// ===== COLOR HELPERS =====
+function compColor(status){
+  return status==='OK'?'#00ff88':status==='WARN'?'#ffcc00':status==='CRIT'?'#ff2244':'#00aaff';
+}
+function modeColor(m){
+  return m==='ok'?'#00ff88':m==='warn'?'#ffcc00':m==='high'?'#ff8800':'#ff2244';
+}
+
+// ===== DRAW HELPERS =====
+function drawRoundRect(c,x,y,w,h,r,fill,stroke,sw){
+  c.beginPath();c.roundRect(x,y,w,h,r);
+  if(fill){c.fillStyle=fill;c.fill();}
+  if(stroke){c.strokeStyle=stroke;c.lineWidth=sw||1;c.stroke();}
+}
+function glow(c,col,size){c.shadowColor=col;c.shadowBlur=size;}
+function noGlow(c){c.shadowBlur=0;}
+
+// ===== MAIN DRAW =====
+function draw() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  const bgGrad = ctx.createLinearGradient(0,0,0,H);
+  bgGrad.addColorStop(0,'#060c18');
+  bgGrad.addColorStop(1,'#0a1428');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle='rgba(0,100,180,0.08)';ctx.lineWidth=0.5;
+  for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  // ========= COMPRESSOR LAYOUT =========
+  const cx = W/2;
+  const baseY = H * 0.82;
+  const scale = Math.min(W,H) / 700;
+
+  // Crankshaft geometry
+  const R = 60 * scale;   // crank radius
+  const L = 160 * scale;  // connecting rod length
+  const crankX = cx;
+  const crankY = baseY - 100*scale;
+
+  // Vibration noise
+  const vibNoise = sc.vibAmp * (Math.random()-0.5) * 0.4 * scale;
+  const vibX = sc.mode==='crit' ? vibNoise*Math.sin(frame*0.8) : 0;
+
+  // ---- PLATFORM / BASE ----
+  const baseW = W * 0.75;
+  const baseX = cx - baseW/2;
+  drawRoundRect(ctx, baseX, baseY+2, baseW, 14*scale, 2, '#0f1e30','#1e3a5f',1);
+  // Platform bolts
+  for(let i=0;i<6;i++){
+    const bx = baseX + 30*scale + i*(baseW-60*scale)/5;
+    ctx.fillStyle='#1a3a5f';ctx.beginPath();ctx.arc(bx,baseY+9*scale,3*scale,0,Math.PI*2);ctx.fill();
+  }
+
+  // ---- MOTOR ELECTRICO (left) ----
+  const mX = baseX + 10*scale, mY = baseY - 120*scale, mW = 120*scale, mH = 120*scale;
+  const motorColor = compColor(sc.comp.motor);
+  // Motor body
+  const mGrad = ctx.createLinearGradient(mX,mY,mX+mW,mY);
+  mGrad.addColorStop(0,'#0a1828');mGrad.addColorStop(0.5,'#0f2035');mGrad.addColorStop(1,'#0a1828');
+  glow(ctx,motorColor,sc.comp.motor==='CRIT'?20:8);
+  drawRoundRect(ctx,mX,mY,mW,mH,6,mGrad,motorColor,sc.comp.motor==='CRIT'?2:1);
+  noGlow(ctx);
+  // Motor cooling fins
+  ctx.strokeStyle='#1a3a5a';ctx.lineWidth=1;
+  for(let i=0;i<8;i++){
+    const fy = mY+8*scale+i*13*scale;
+    if(fy < mY+mH-8*scale){ctx.beginPath();ctx.moveTo(mX+4,fy);ctx.lineTo(mX+mW-4,fy);ctx.stroke();}
+  }
+  // Motor shaft
+  ctx.fillStyle='#2a4a6a';
+  ctx.fillRect(mX+mW, crankY-5*scale, 30*scale, 10*scale);
+  // Label
+  ctx.fillStyle=motorColor;ctx.font=`bold ${9*scale}px Courier New`;ctx.textAlign='center';
+  ctx.fillText('MOTOR 450kW',mX+mW/2,mY+mH+12*scale);
+  ctx.fillStyle='#4a6a8a';ctx.font=`${8*scale}px Courier New`;
+  ctx.fillText('3Φ 380V 60Hz',mX+mW/2,mY+mH+22*scale);
+  // Status dot
+  glow(ctx,motorColor,15);
+  ctx.fillStyle=motorColor;ctx.beginPath();ctx.arc(mX+mW-8*scale,mY+8*scale,5*scale,0,Math.PI*2);ctx.fill();
+  noGlow(ctx);
+  // Temperature glow on motor if overheating
+  if(sc.comp.motor==='CRIT'){
+    ctx.fillStyle='rgba(255,50,0,0.1)';
+    ctx.beginPath();ctx.roundRect(mX,mY,mW,mH,6);ctx.fill();
+  }
+
+  // ---- CRANKCASE ----
+  const ccX = cx - 100*scale, ccY = crankY - 80*scale, ccW = 200*scale, ccH = 160*scale;
+  const ccGrad = ctx.createLinearGradient(ccX,ccY,ccX,ccY+ccH);
+  ccGrad.addColorStop(0,'#0a1828');ccGrad.addColorStop(1,'#060c18');
+  drawRoundRect(ctx,ccX+vibX,ccY,ccW,ccH,8,ccGrad,'#1a3a5f',1.5);
+  // Crankcase ribbing
+  ctx.strokeStyle='#0f2035';ctx.lineWidth=1;
+  for(let i=1;i<4;i++){ctx.beginPath();ctx.moveTo(ccX+vibX,ccY+i*ccH/4);ctx.lineTo(ccX+vibX+ccW,ccY+i*ccH/4);ctx.stroke();}
+
+  // ---- CRANKSHAFT ----
+  const theta = angle; // crank angle
+  const crankPinX = crankX + vibX + R * Math.cos(theta);
+  const crankPinY = crankY + R * Math.sin(theta);
+
+  // Main bearing (center)
+  glow(ctx,compColor(sc.comp.rodamiento),10);
+  ctx.fillStyle='#1a2a3a';ctx.beginPath();ctx.arc(crankX+vibX,crankY,22*scale,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle=compColor(sc.comp.rodamiento);ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#0a1428';ctx.beginPath();ctx.arc(crankX+vibX,crankY,14*scale,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#2a4a6a';ctx.lineWidth=1.5;ctx.stroke();
+  noGlow(ctx);
+
+  // Crank web (arm)
+  ctx.strokeStyle='#2a4a7a';ctx.lineWidth=12*scale;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(crankX+vibX,crankY);ctx.lineTo(crankPinX,crankPinY);ctx.stroke();
+  // Crank web highlight
+  ctx.strokeStyle='rgba(40,80,140,0.5)';ctx.lineWidth=8*scale;
+  ctx.beginPath();ctx.moveTo(crankX+vibX,crankY);ctx.lineTo(crankPinX,crankPinY);ctx.stroke();
+
+  // Counter weight (opposite)
+  const cwX = crankX + vibX - R*0.6*Math.cos(theta);
+  const cwY = crankY - R*0.6*Math.sin(theta);
+  ctx.fillStyle='#1a3040';ctx.strokeStyle='#2a4a6a';ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(cwX,cwY,18*scale,0,Math.PI*2);ctx.fill();ctx.stroke();
+
+  // Crank pin
+  glow(ctx,'#00aaff',8);
+  ctx.fillStyle='#1a4a7a';ctx.beginPath();ctx.arc(crankPinX,crankPinY,8*scale,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#00aaff';ctx.lineWidth=1.5;ctx.stroke();
+  noGlow(ctx);
+
+  // ---- CYLINDERS (2, horizontal opposed) ----
+  const cylOffsets = [-1, 1]; // left, right
+  const cylY_center = crankY;
+  const cylLen = 200 * scale;
+  const cylH = 70 * scale;
+  const pistonH = 50 * scale;
+  const pistonW = 58 * scale;
+
+  cylOffsets.forEach((side,ci) => {
+    const cylX0 = crankX + vibX + side * (100*scale); // cylinder start from crank center
+    const cylEnd = crankX + vibX + side * (100*scale + cylLen);
+    const cylTop = cylY_center - cylH/2;
+
+    // Connecting rod geometry (for this cylinder)
+    const pistonTheta = ci===0 ? theta : theta + Math.PI; // opposed
+    const pPos = pistonPos(pistonTheta, R, L);
+    const pistonCenter = crankX + vibX + side * (100*scale + R + (L - pPos));
+    const pistonX = pistonCenter - side * pistonW/2;
+
+    // Connecting rod
+    const conRodStartX = crankPinX;
+    const conRodStartY = crankPinY;
+    const conRodEndX = pistonCenter;
+    const conRodEndY = cylY_center;
+    ctx.strokeStyle='#2a5a8a';ctx.lineWidth=8*scale;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(conRodStartX,conRodStartY);ctx.lineTo(conRodEndX,conRodEndY);ctx.stroke();
+    ctx.strokeStyle='rgba(40,100,160,0.4)';ctx.lineWidth=4*scale;
+    ctx.beginPath();ctx.moveTo(conRodStartX,conRodStartY);ctx.lineTo(conRodEndX,conRodEndY);ctx.stroke();
+    // Wrist pin
+    ctx.fillStyle='#3a6a9a';ctx.beginPath();ctx.arc(conRodEndX,conRodEndY,5*scale,0,Math.PI*2);ctx.fill();
+
+    // Cylinder bore (inner)
+    const boreDir = side;
+    const boreX1 = crankX + vibX + side*100*scale;
+    const boreX2 = crankX + vibX + side*(100*scale + cylLen);
+    ctx.fillStyle='#040810';
+    ctx.fillRect(Math.min(boreX1,boreX2), cylTop+5*scale, cylLen, cylH-10*scale);
+
+    // Cylinder walls (outer)
+    const cylColor = compColor(sc.comp.pistones);
+    const cylGrad = ctx.createLinearGradient(0,cylTop,0,cylTop+cylH);
+    cylGrad.addColorStop(0,'#0f1e30');cylGrad.addColorStop(0.5,'#0a1525');cylGrad.addColorStop(1,'#0f1e30');
+    glow(ctx,cylColor,6);
+    drawRoundRect(ctx, Math.min(boreX1,boreX2)-2, cylTop, cylLen+4, cylH, 4, cylGrad, cylColor, 1.5);
+    noGlow(ctx);
+    // Cylinder liner detail
+    ctx.strokeStyle='#1a3050';ctx.lineWidth=0.5;
+    for(let i=1;i<6;i++){
+      const ly = cylTop + i*cylH/6;
+      ctx.beginPath();ctx.moveTo(Math.min(boreX1,boreX2),ly);ctx.lineTo(Math.max(boreX1,boreX2),ly);ctx.stroke();
+    }
+
+    // Determine piston left edge
+    const px = side===1 ? pistonCenter - pistonW : pistonCenter;
+
+    // Piston
+    const pistColor = compColor(sc.comp.pistones);
+    const pGrad = ctx.createLinearGradient(0,cylTop+5*scale,0,cylTop+cylH-5*scale);
+    pGrad.addColorStop(0,'#1a3a5a');pGrad.addColorStop(0.5,'#2a5a8a');pGrad.addColorStop(1,'#1a3a5a');
+    glow(ctx,pistColor,sc.comp.pistones==='CRIT'?15:5);
+    drawRoundRect(ctx, px, cylTop+8*scale, pistonW, pistonH, 4, pGrad, pistColor, 1.5);
+    noGlow(ctx);
+    // Piston rings (3)
+    ctx.strokeStyle='rgba(100,180,255,0.6)';ctx.lineWidth=2.5;
+    for(let r=0;r<3;r++){
+      const ry = cylTop+12*scale + r*14*scale;
+      ctx.beginPath();ctx.moveTo(px+2,ry);ctx.lineTo(px+pistonW-2,ry);ctx.stroke();
+    }
+
+    // Cylinder head
+    const headX = side===1 ? Math.max(boreX1,boreX2) : Math.min(boreX1,boreX2)-20*scale;
+    const headColor = compColor(sc.comp.valvulas);
+    glow(ctx,headColor,8);
+    drawRoundRect(ctx, headX, cylTop-5*scale, 20*scale, cylH+10*scale, 4, '#0f1e30', headColor, 2);
+    noGlow(ctx);
+
+    // --- VALVES (animated) ---
+    // Intake valve opens when piston moves away from head (expansion)
+    const expansion = side===1 ? Math.sin(pistonTheta) > 0 : Math.sin(pistonTheta) < 0;
+    const discharge = side===1 ? Math.sin(pistonTheta) < 0 : Math.sin(pistonTheta) > 0;
+    const valveOpenAdm = expansion && sc.comp.valvulas!=='CRIT';
+    const valveOpenDesc = discharge || (sc.comp.valvulas==='CRIT' && Math.random()>0.5);
+
+    // Intake valve (top)
+    const viy = cylTop - 8*scale;
+    const vic = valveOpenAdm ? '#00ff88' : '#1a3a5a';
+    glow(ctx,vic,valveOpenAdm?12:0);
+    ctx.fillStyle=valveOpenAdm?'rgba(0,255,136,0.3)':'rgba(10,30,60,0.8)';
+    ctx.strokeStyle=vic;ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.roundRect(headX+2,viy,16*scale,8*scale,2);ctx.fill();ctx.stroke();
+    ctx.fillStyle=vic;ctx.font=`${6*scale}px Courier New`;ctx.textAlign='center';
+    ctx.fillText('ADM',headX+10*scale,viy+5*scale);
+    noGlow(ctx);
+
+    // Discharge valve (bottom)
+    const vdy = cylTop + cylH;
+    const vdc = valveOpenDesc ? (sc.comp.valvulas==='CRIT'?'#ff2244':'#ff8800') : '#1a3a5a';
+    glow(ctx,vdc,valveOpenDesc?12:0);
+    ctx.fillStyle=valveOpenDesc?'rgba(255,136,0,0.3)':'rgba(10,30,60,0.8)';
+    ctx.strokeStyle=vdc;ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.roundRect(headX+2,vdy,16*scale,8*scale,2);ctx.fill();ctx.stroke();
+    ctx.fillStyle=vdc;ctx.font=`${6*scale}px Courier New`;ctx.textAlign='center';
+    ctx.fillText('DESC',headX+10*scale,vdy+5*scale);
+    noGlow(ctx);
+
+    // Valve update for UI
+    if(ci===0){
+      updateValveUI(valveOpenAdm,valveOpenDesc,0);
+    } else {
+      updateValveUI(valveOpenAdm,valveOpenDesc,1);
+    }
+
+    // --- COMPRESSED GAS VISUALIZATION ---
+    // Gas in cylinder (between piston and head)
+    const gasX = side===1 ? pistonCenter : headX+20*scale;
+    const gasW = side===1 ? headX - pistonCenter : pistonCenter - headX - 20*scale;
+    if(gasW > 2){
+      const compression = 1 - Math.abs(gasW) / (cylLen*0.8);
+      const alpha = 0.05 + compression*0.2;
+      const gasGrad = ctx.createLinearGradient(gasX,0,gasX+gasW,0);
+      gasGrad.addColorStop(0,`rgba(0,170,255,${alpha})`);
+      gasGrad.addColorStop(1,`rgba(0,255,136,${alpha*1.5})`);
+      ctx.fillStyle=gasGrad;
+      ctx.fillRect(Math.min(gasX,gasX+gasW),cylTop+5*scale,Math.abs(gasW),cylH-10*scale);
+    }
+
+    // --- DISCHARGE PIPE ---
+    if(valveOpenDesc){
+      // Animated flow particles
+      const pipeY = side===1 ? cylTop-12*scale : cylTop+cylH+12*scale;
+      for(let p=0;p<3;p++){
+        const frac = ((frame*2 + p*30) % 60) / 60;
+        const fx = headX + side*frac*40*scale;
+        const fy = pipeY + (Math.random()-0.5)*3;
+        glow(ctx,'#00ff88',6);
+        ctx.fillStyle=`rgba(0,255,136,${0.6-frac*0.5})`;
+        ctx.beginPath();ctx.arc(fx,fy,2*scale,0,Math.PI*2);ctx.fill();
+        noGlow(ctx);
+      }
+    }
+
+    // Cylinder label
+    ctx.fillStyle='#2a5a8a';ctx.font=`${8*scale}px Courier New`;ctx.textAlign='center';
+    ctx.fillText(`CIL.${ci+1}`, crankX+vibX+side*240*scale, baseY+8*scale);
+  });
+
+  // ---- ACOPLAMIENTO (coupling between motor and crankshaft) ----
+  const coupX = mX + 120*scale;
+  const coupY = crankY - 12*scale;
+  const coupColor = compColor(sc.comp.rodamiento);
+  // Flexible coupling elements
+  for(let i=0;i<6;i++){
+    const ca = (i/6)*Math.PI*2 + angle*2;
+    const ex = (crankX+vibX - 50*scale) + Math.cos(ca)*12*scale;
+    const ey = crankY + Math.sin(ca)*12*scale;
+    glow(ctx,coupColor,5);
+    ctx.fillStyle=i%2===0?'#1a4a7a':'#2a6a9a';
+    ctx.beginPath();ctx.arc(ex,ey,4*scale,0,Math.PI*2);ctx.fill();
+    noGlow(ctx);
+  }
+  ctx.fillStyle='#0f1e30';ctx.strokeStyle=coupColor;ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(crankX+vibX-50*scale,crankY,16*scale,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#4a6a8a';ctx.font=`${7*scale}px Courier New`;ctx.textAlign='center';
+  ctx.fillText('ACOPL.',crankX+vibX-50*scale,baseY+8*scale);
+
+  // ---- LUBRICACION (sump below crankcase) ----
+  const lubColor = compColor(sc.comp.lubricacion);
+  const sumpX = ccX+vibX+20*scale, sumpY = crankY+50*scale, sumpW = ccW-40*scale, sumpH = 35*scale;
+  glow(ctx,lubColor,sc.comp.lubricacion==='CRIT'?12:4);
+  drawRoundRect(ctx,sumpX,sumpY,sumpW,sumpH,3,'#040810',lubColor,1.5);
+  noGlow(ctx);
+  // Oil level
+  const oilPct = sc.rul.lub / 100;
+  const oilH = sumpH * 0.7;
+  const oilGrad = ctx.createLinearGradient(0,sumpY+sumpH-oilH,0,sumpY+sumpH);
+  oilGrad.addColorStop(0,`rgba(0,180,80,${oilPct*0.3})`);
+  oilGrad.addColorStop(1,`rgba(0,255,136,${oilPct*0.2})`);
+  ctx.fillStyle=oilGrad;
+  ctx.fillRect(sumpX+2,sumpY+sumpH-oilH*oilPct,sumpW-4,oilH*oilPct);
+  // Oil particles animation
+  if(sc.comp.lubricacion==='CRIT'){
+    for(let p=0;p<4;p++){
+      const px2 = sumpX + Math.random()*sumpW;
+      const py2 = sumpY + Math.random()*sumpH;
+      ctx.fillStyle='rgba(255,80,0,0.4)';
+      ctx.beginPath();ctx.arc(px2,py2,1.5*scale,0,Math.PI*2);ctx.fill();
+    }
+  }
+  ctx.fillStyle=lubColor;ctx.font=`${7*scale}px Courier New`;ctx.textAlign='center';
+  ctx.fillText(`LUBRIC. | Óleo idx:${sc.s.oil}`,sumpX+sumpW/2,sumpY+sumpH/2+3*scale);
+
+  // ---- ENFRIADOR (intercooler, top) ----
+  const icX = ccX+vibX-10*scale, icY = ccY-60*scale, icW = ccW+20*scale, icH = 50*scale;
+  const coolGrad = ctx.createLinearGradient(icX,icY,icX+icW,icY);
+  coolGrad.addColorStop(0,'rgba(0,100,200,0.3)');coolGrad.addColorStop(0.5,'rgba(0,170,255,0.15)');coolGrad.addColorStop(1,'rgba(0,100,200,0.3)');
+  drawRoundRect(ctx,icX,icY,icW,icH,4,'#08121f','#1a4a7a',1);
+  ctx.fillStyle=coolGrad;ctx.beginPath();ctx.roundRect(icX,icY,icW,icH,4);ctx.fill();
+  // Cooling tubes
+  ctx.strokeStyle='#1a3a6a';ctx.lineWidth=1;
+  for(let i=0;i<10;i++){
+    const tx = icX+10*scale + i*(icW-20*scale)/9;
+    ctx.beginPath();ctx.moveTo(tx,icY+5*scale);ctx.lineTo(tx,icY+icH-5*scale);ctx.stroke();
+  }
+  // Hot side indicator
+  ctx.fillStyle='rgba(255,80,0,0.2)';ctx.fillRect(icX+2,icY+2,icW*0.4,icH-4);
+  // Cold side indicator
+  ctx.fillStyle='rgba(0,100,200,0.2)';ctx.fillRect(icX+icW*0.6,icY+2,icW*0.4-2,icH-4);
+  ctx.fillStyle='#2a6a8a';ctx.font=`${8*scale}px Courier New`;ctx.textAlign='center';
+  ctx.fillText('ENFRIADOR / INTERCOOLER',icX+icW/2,icY+icH/2+3*scale);
+
+  // ---- FILTROS ----
+  const fX = ccX+vibX+ccW+10*scale, fY = icY, fW = 40*scale, fH = 50*scale;
+  drawRoundRect(ctx,fX,fY,fW,fH,4,'#08121f','#1a3a5f',1);
+  ctx.strokeStyle='#1a3a5a';ctx.lineWidth=1;
+  for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(fX+4,fY+8*scale+i*8*scale);ctx.lineTo(fX+fW-4,fY+8*scale+i*8*scale);ctx.stroke();}
+  ctx.fillStyle='#2a5a7a';ctx.font=`${7*scale}px Courier New`;ctx.textAlign='center';
+  ctx.fillText('FILTROS',fX+fW/2,fY+fH+10*scale);
+
+  // ---- DISCHARGE MANIFOLD ----
+  const discY = H*0.1;
+  ctx.strokeStyle='rgba(0,255,136,0.5)';ctx.lineWidth=3*scale;
+  ctx.beginPath();ctx.moveTo(ccX+vibX-50*scale,discY);ctx.lineTo(ccX+vibX+ccW+50*scale,discY);ctx.stroke();
+  // Pressure label
+  glow(ctx,'#00ff88',8);
+  ctx.fillStyle='#00ff88';ctx.font=`bold ${9*scale}px Courier New`;ctx.textAlign='center';
+  ctx.fillText(`▲ DESCARGA ${sc.s.pres.toFixed(1)} bar`,cx,discY-8*scale);
+  noGlow(ctx);
+  // Pipe down from cylinders
+  ctx.strokeStyle='rgba(0,255,136,0.3)';ctx.lineWidth=2*scale;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(crankX+vibX-200*scale,discY);ctx.lineTo(crankX+vibX-200*scale,cylY_center-cylH/2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(crankX+vibX+200*scale,discY);ctx.lineTo(crankX+vibX+200*scale,cylY_center-cylH/2);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ---- INTAKE MANIFOLD ----
+  ctx.strokeStyle='rgba(0,170,255,0.4)';ctx.lineWidth=2*scale;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(crankX+vibX-230*scale,cylY_center);ctx.lineTo(crankX+vibX-100*scale-cylLen,cylY_center);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(crankX+vibX+230*scale,cylY_center);ctx.lineTo(crankX+vibX+100*scale+cylLen,cylY_center);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(0,170,255,0.7)';ctx.font=`${8*scale}px Courier New`;ctx.textAlign='left';
+  ctx.fillText('← ADMISIÓN',crankX+vibX-370*scale,cylY_center-8*scale);
+  ctx.textAlign='right';ctx.fillText('ADMISIÓN →',crankX+vibX+370*scale,cylY_center-8*scale);
+
+  // ---- SMOKE / EXHAUST VISUALIZATION ----
+  if(sc.mode==='crit'||sc.mode==='high'){
+    for(let i=0;i<5;i++){
+      const sx = cx + (Math.random()-0.5)*50*scale;
+      const sy = (H*0.05) - ((frame + i*20) % 60)*scale*0.3;
+      const alpha = 0.3 - ((frame+i*20)%60)/200;
+      ctx.fillStyle=sc.smokeColor.replace('0.2',alpha.toFixed(2));
+      ctx.beginPath();ctx.arc(sx,sy,8*scale*(0.5+alpha),0,Math.PI*2);ctx.fill();
+    }
+  }
+
+  // ---- BEARING INDICATORS ----
+  const brgPositions = [
+    {x:crankX+vibX-80*scale, y:crankY},
+    {x:crankX+vibX+80*scale, y:crankY}
+  ];
+  brgPositions.forEach(bp=>{
+    const bc = compColor(sc.comp.rodamiento);
+    glow(ctx,bc,sc.comp.rodamiento==='CRIT'?15:5);
+    ctx.fillStyle='#0a1828';ctx.strokeStyle=bc;ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(bp.x,bp.y,10*scale,0,Math.PI*2);ctx.fill();ctx.stroke();
+    // Inner ring
+    ctx.fillStyle='#050e1a';ctx.strokeStyle=bc;ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.arc(bp.x,bp.y,5*scale,0,Math.PI*2);ctx.fill();ctx.stroke();
+    // Rolling elements
+    for(let b=0;b<6;b++){
+      const ba = (b/6)*Math.PI*2 + angle*3;
+      const bex = bp.x + Math.cos(ba)*7*scale, bey = bp.y + Math.sin(ba)*7*scale;
+      ctx.fillStyle=bc;ctx.beginPath();ctx.arc(bex,bey,2*scale,0,Math.PI*2);ctx.fill();
+    }
+    noGlow(ctx);
+  });
+
+  // ---- RPM INDICATOR ----
+  const rpmArcX = W-50*scale, rpmArcY = H*0.5;
+  const rpmNorm = sc.s.rpm / 1800;
+  const rpmAngle = -Math.PI + rpmNorm * Math.PI;
+  ctx.strokeStyle='#1a3a5f';ctx.lineWidth=4*scale;
+  ctx.beginPath();ctx.arc(rpmArcX,rpmArcY,30*scale,-Math.PI,0);ctx.stroke();
+  glow(ctx,'#00aaff',10);
+  ctx.strokeStyle='#00aaff';ctx.lineWidth=4*scale;
+  ctx.beginPath();ctx.arc(rpmArcX,rpmArcY,30*scale,-Math.PI,rpmAngle);ctx.stroke();
+  noGlow(ctx);
+  ctx.fillStyle='#00aaff';ctx.font=`bold ${10*scale}px Courier New`;ctx.textAlign='center';
+  ctx.fillText(sc.s.rpm,rpmArcX,rpmArcY+4*scale);
+  ctx.fillStyle='#4a6a8a';ctx.font=`${7*scale}px Courier New`;
+  ctx.fillText('RPM',rpmArcX,rpmArcY+13*scale);
+
+  // ---- TEMP GAUGE ----
+  const tempGaugeX = W-50*scale, tempGaugeY = H*0.65;
+  const tempNorm = Math.min(sc.s.temp/130,1);
+  const tempCol = sc.s.temp>100?'#ff2244':sc.s.temp>85?'#ff8800':'#00aaff';
+  ctx.strokeStyle='#1a3a5f';ctx.lineWidth=4*scale;
+  ctx.beginPath();ctx.arc(tempGaugeX,tempGaugeY,30*scale,-Math.PI,0);ctx.stroke();
+  glow(ctx,tempCol,10);
+  ctx.strokeStyle=tempCol;ctx.lineWidth=4*scale;
+  ctx.beginPath();ctx.arc(tempGaugeX,tempGaugeY,30*scale,-Math.PI,-Math.PI+tempNorm*Math.PI);ctx.stroke();
+  noGlow(ctx);
+  ctx.fillStyle=tempCol;ctx.font=`bold ${10*scale}px Courier New`;ctx.textAlign='center';
+  ctx.fillText(sc.s.temp+'°',tempGaugeX,tempGaugeY+4*scale);
+  ctx.fillStyle='#4a6a8a';ctx.font=`${7*scale}px Courier New`;
+  ctx.fillText('TEMP',tempGaugeX,tempGaugeY+13*scale);
+
+  // ---- CRITICALITY BADGE ----
+  const critColor = sc.crit>80?'#ff2244':sc.crit>60?'#ff8800':sc.crit>40?'#ffcc00':'#00ff88';
+  glow(ctx,critColor,12);
+  ctx.strokeStyle=critColor;ctx.lineWidth=1.5;ctx.fillStyle='rgba(6,12,24,0.9)';
+  ctx.beginPath();ctx.roundRect(W-80*scale,H*0.35,70*scale,28*scale,4);ctx.fill();ctx.stroke();
+  ctx.fillStyle=critColor;ctx.font=`bold ${11*scale}px Courier New`;ctx.textAlign='center';
+  ctx.fillText('CRIT: '+sc.crit,W-45*scale,H*0.35+14*scale);
+  ctx.fillStyle='#4a6a8a';ctx.font=`${7*scale}px Courier New`;
+  ctx.fillText(sc.crit>80?'CRÍTICO':sc.crit>60?'MUY ALTO':sc.crit>40?'ALTO':sc.crit>20?'MODERADO':'BAJO',W-45*scale,H*0.35+23*scale);
+  noGlow(ctx);
+
+  // ---- TITLE WATERMARK ----
+  ctx.fillStyle='rgba(30,58,95,0.2)';ctx.font=`bold ${11*scale}px Courier New`;ctx.textAlign='center';
+  ctx.fillText('COMPRESOR RECIPROCANTE | API 618 | CLASE III | ISO 13631',cx,H-12*scale);
+
+  // ---- PV DIAGRAM ----
+  drawPV(pistonPos(angle,R,L), R, L);
+}
+
+// ===== PV DIAGRAM =====
+let pvAngle = 0;
+function drawPV(pos, R, L) {
+  const pw = pvCanvas.width = 180, ph = pvCanvas.height = 100;
+  pvCtx.fillStyle='rgba(6,12,24,0.95)';pvCtx.fillRect(0,0,pw,ph);
+  pvCtx.strokeStyle='#1e3a5f';pvCtx.lineWidth=0.5;
+  pvCtx.beginPath();pvCtx.moveTo(20,10);pvCtx.lineTo(20,ph-15);pvCtx.lineTo(pw-10,ph-15);pvCtx.stroke();
+  pvCtx.fillStyle='#4a6a8a';pvCtx.font='7px Courier New';pvCtx.textAlign='left';
+  pvCtx.fillText('P',2,14);pvCtx.textAlign='center';pvCtx.fillText('V',pw/2,ph-2);
+  pvCtx.fillStyle='#2a5a8a';pvCtx.font='7px Courier New';pvCtx.fillText('DIAGRAMA P-V',pw/2,9);
+
+  // Generate PV cycle
+  const pts = [];
+  for(let a=0;a<Math.PI*2;a+=0.1){
+    const x = pistonPos(a,R,L);
+    const normV = (x - (L-R)) / (2*R);
+    const normP = 0.5 + 0.45*Math.sin(a + 0.3);
+    pts.push({vx: 22 + normV*(pw-34), py: (ph-17) - normP*(ph-30)});
+  }
+  pvCtx.strokeStyle='rgba(0,170,255,0.6)';pvCtx.lineWidth=1.5;pvCtx.beginPath();
+  pts.forEach((p,i)=>i===0?pvCtx.moveTo(p.vx,p.py):pvCtx.lineTo(p.vx,p.py));
+  pvCtx.closePath();pvCtx.stroke();
+  // Fill
+  pvCtx.fillStyle='rgba(0,170,255,0.05)';pvCtx.fill();
+  // Current point
+  const curV = (pos-(L-R))/(2*R);
+  const curP = 0.5 + 0.45*Math.sin(angle+0.3);
+  const cx2 = 22+curV*(pw-34), cy2 = (ph-17)-curP*(ph-30);
+  pvCtx.fillStyle='#00ff88';pvCtx.shadowColor='#00ff88';pvCtx.shadowBlur=8;
+  pvCtx.beginPath();pvCtx.arc(cx2,cy2,3,0,Math.PI*2);pvCtx.fill();
+  pvCtx.shadowBlur=0;
+}
+
+// ===== VALVE UI =====
+let valveStates = [[false,false],[false,false]];
+function updateValveUI(adm,desc,ci){
+  valveStates[ci]=[adm,desc];
+  const admEl = document.getElementById(`v-adm${ci+1}`);
+  const descEl = document.getElementById(`v-desc${ci+1}`);
+  if(admEl){admEl.style.background=adm?'rgba(0,255,136,0.2)':'transparent';admEl.style.borderColor=adm?'#00ff88':'#1e3a5f';admEl.style.color=adm?'#00ff88':'#4a6a8a';}
+  if(descEl){descEl.style.background=desc?'rgba(255,136,0,0.2)':'transparent';descEl.style.borderColor=desc?'#ff8800':'#1e3a5f';descEl.style.color=desc?'#ff8800':'#4a6a8a';}
+}
+
+// ===== RIGHT PANEL =====
+function updateRightPanel(){
+  // RUL
+  const rul = document.getElementById('rul-rows');
+  if(rul){
+    const comps = [{k:'rod',n:'Rodamientos'},{k:'piston',n:'Pistones'},{k:'valve',n:'Válvulas'},{k:'lub',n:'Lubricación'},{k:'motor',n:'Motor'}];
+    rul.innerHTML = comps.map(c=>{
+      const v = sc.rul[c.k];
+      const col = v>60?'#00ff88':v>30?'#ffcc00':'#ff2244';
+      return `<div style="margin-bottom:5px"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:1px"><span style="color:#4a6a8a">${c.n}</span><span style="color:${col};font-weight:bold">${v}%</span></div><div style="height:4px;background:#0a1428;border-radius:2px"><div style="width:${v}%;height:100%;background:${col};border-radius:2px"></div></div></div>`;
+    }).join('');
+  }
+  // Component status
+  const cs = document.getElementById('comp-status');
+  if(cs){
+    const map = {OK:'#00ff88',WARN:'#ffcc00',CRIT:'#ff2244'};
+    cs.innerHTML = Object.entries(sc.comp).map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:2px"><span style="color:#4a6a8a">${k}</span><span style="color:${map[v]||'#00ff88'}">● ${v}</span></div>`).join('');
+  }
+  // Weibull
+  const wb = document.getElementById('weibull-info');
+  if(wb){
+    const col = sc.pfail>50?'#ff2244':sc.pfail>20?'#ff8800':'#ffcc00';
+    wb.innerHTML = `<div style="font-size:14px;line-height:1.8;color:#c8d8e8">β = <span style="color:#00aaff">${sc.beta}</span>&nbsp;&nbsp;η = <span style="color:#00aaff">${sc.eta}h</span><br>MTBF: <span style="color:#00ff88">${Math.round(sc.eta*0.9)}h</span><br>P(falla): <span style="color:${col};font-weight:bold">${sc.pfail}%</span></div>`;
+  }
+  // Alerts
+  const al = document.getElementById('alerts-mini');
+  if(al){
+    al.innerHTML = sc.alerts.map(a=>`<div style="font-size:12px;color:#ff8800;border-left:2px solid #ff4400;padding-left:4px;margin-bottom:3px;line-height:1.3">${a}</div>`).join('');
+  }
+}
+
+// ===== LEFT PANEL =====
+function updateLeftPanel(){
+  const sr = document.getElementById('sensor-rows');
+  const sensors = [
+    {n:'Vibración',v:sc.s.vib,u:'mm/s',warn:4.5,crit:7},
+    {n:'Temperatura',v:sc.s.temp,u:'°C',warn:85,crit:100},
+    {n:'Presión',v:sc.s.pres,u:'bar',warn:10.5,crit:8,rev:true},
+    {n:'RPM',v:sc.s.rpm,u:'rpm',warn:1700,crit:1650,rev:true},
+    {n:'Corriente',v:sc.s.curr,u:'A',warn:100,crit:120},
+    {n:'Potencia',v:sc.s.pow,u:'kW',warn:160,crit:180},
+    {n:'THD',v:sc.s.thd,u:'%',warn:5,crit:10},
+    {n:'Aceite idx',v:sc.s.oil,u:'',warn:75,crit:60,rev:true},
+    {n:'Partículas',v:sc.s.metal,u:'ppm',warn:30,crit:80},
+  ];
+  if(sr){
+    sr.innerHTML = sensors.map(s=>{
+      const v = +(s.v+(Math.random()-0.5)*s.v*0.01).toFixed(1);
+      let cls = 'ok';
+      if(s.rev){cls = v<s.crit?'crit':v<s.warn?'warn':'ok';}
+      else{cls = v>s.crit?'crit':v>s.warn?'warn':'ok';}
+      const colMap = {ok:'#00ff88',warn:'#ffcc00',crit:'#ff2244'};
+      const col = colMap[cls];
+      const norm = s.rev ? Math.max(0,Math.min(1,(v-s.crit)/(s.v*1.5-s.crit))) : Math.max(0,Math.min(1,v/(s.crit*1.2)));
+      return `<div style="margin-bottom:3px"><div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#4a6a8a">${s.n}</span><span style="color:${col};font-weight:bold">${v}${s.u}</span></div><div style="height:3px;background:#0a1428;border-radius:2px"><div style="width:${norm*100}%;height:100%;background:${col};border-radius:2px"></div></div></div>`;
+    }).join('');
+  }
+}
+
+// ===== KPI UPDATE =====
+function updateKPIs(){
+  const rl = Math.round(Object.values(sc.rul).reduce((a,b)=>a+b,0)/5);
+  const rlc = rl<30?'#ff2244':rl<60?'#ffcc00':'#00ff88';
+  const cc = sc.crit>80?'#ff2244':sc.crit>60?'#ff8800':sc.crit>40?'#ffcc00':'#00ff88';
+  document.getElementById('k-crit').textContent=sc.crit;document.getElementById('k-crit').style.color=cc;
+  document.getElementById('k-risk').textContent=sc.risk;document.getElementById('k-risk').style.color=cc;
+  document.getElementById('k-rul').textContent=rl+'%';document.getElementById('k-rul').style.color=rlc;
+  document.getElementById('k-rul-h').textContent='~'+Math.round(rl*22)+'h';
+  const cLvl = sc.crit>80?'CRÍTICO':sc.crit>60?'MUY ALTO':sc.crit>40?'ALTO':sc.crit>20?'MODERADO':'BAJO';
+  document.getElementById('k-crit-lv').textContent=cLvl;
+  const mc = modeColor(sc.mode);
+  document.getElementById('mode-badge').textContent = {ok:'● NORMAL',warn:'⚠ ADVERTENCIA',high:'▲ ALTO RIESGO',crit:'🔴 CRÍTICO'}[sc.mode];
+  document.getElementById('mode-badge').style.color=mc;
+  document.getElementById('rpm-display').textContent=sc.s.rpm+' RPM';
+}
+
+function modeColor(m){return m==='ok'?'#00ff88':m==='warn'?'#ffcc00':m==='high'?'#ff8800':'#ff2244';}
+
+// ===== TICKER =====
+function updateTicker(){
+  const ti = document.getElementById('ticker-inner');
+  if(ti) ti.textContent = sc.alerts.map(a=>`◆ ${a}`).join('     ') + '     ◆ GP-101 | API618 | ISO13631 | RCM-SAE-JA1011 | NORSOK-Z008';
+}
+
+// ===== SCENARIOS BUTTONS =====
+const scPanel = document.getElementById('sc-panel');
+scenarios.forEach((s,i)=>{
+  const btn = document.createElement('button');
+  btn.className='sc-btn'+(s.mode==='crit'?' crit':'')+(i===0?' active':'');
+  btn.textContent=s.name;
+  btn.onclick=()=>{
+    sc=s;angle=0;
+    document.querySelectorAll('.sc-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    updateRightPanel();updateKPIs();updateTicker();
+  };
+  scPanel.appendChild(btn);
+});
+
+// ===== ANIMATION LOOP =====
+let lastTime = 0;
+function loop(ts){
+  const dt = Math.min((ts-lastTime)/1000, 0.05);
+  lastTime = ts;
+  // Angular velocity: rpm to rad/s
+  const omega = (sc.s.rpm / 60) * Math.PI * 2 * sc.speed;
+  angle += omega * dt;
+  frame++;
+
+  draw();
+  if(frame%4===0){updateLeftPanel();}
+  if(frame%30===0){updateRightPanel();updateKPIs();}
+  if(frame%60===0){updateTicker();}
+
+  // Clock
+  if(frame%30===0){
+    const el = document.getElementById('clock');
+    if(el) el.textContent = new Date().toLocaleTimeString('es-EC');
+  }
+
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// Init
+updateRightPanel();updateKPIs();updateTicker();
+</script>
+</body>
+</html>

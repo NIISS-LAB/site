@@ -1,0 +1,2592 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIS-PMA | Predictive Maintenance Intelligence System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@200;300;400;600;800&display=swap');
+
+:root {
+  --bg-primary: #060a0f;
+  --bg-secondary: #0a1018;
+  --bg-panel: #0d1520;
+  --bg-card: #101c2a;
+  --bg-glass: rgba(13,21,32,0.85);
+  --cyan: #00e5ff;
+  --cyan-dim: rgba(0,229,255,0.15);
+  --cyan-glow: rgba(0,229,255,0.4);
+  --blue-neon: #1a6fff;
+  --blue-bright: #3d9bff;
+  --orange: #ff6b1a;
+  --orange-dim: rgba(255,107,26,0.2);
+  --red-alarm: #ff1744;
+  --red-dim: rgba(255,23,68,0.2);
+  --green-ok: #00e676;
+  --green-dim: rgba(0,230,118,0.15);
+  --yellow-warn: #ffd600;
+  --yellow-dim: rgba(255,214,0,0.2);
+  --text-primary: #e8f4f8;
+  --text-secondary: #7aa8c0;
+  --text-dim: #3d6070;
+  --border: rgba(0,229,255,0.12);
+  --border-bright: rgba(0,229,255,0.35);
+  --grid: rgba(0,229,255,0.04);
+  --font-display: 'Exo 2', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-ui: 'Rajdhani', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+}
+
+/* BACKGROUND GRID */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,80,160,0.18) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+#app {
+  position: relative; z-index: 1;
+  width: 100vw; height: 100vh;
+  display: grid;
+  grid-template-rows: 62px 1fr 120px;
+  grid-template-columns: 1fr;
+  gap: 0;
+  overflow: hidden;
+}
+
+/* ========== TOP BAR ========== */
+#topbar {
+  grid-row: 1;
+  display: flex; align-items: center;
+  padding: 0 16px;
+  background: linear-gradient(180deg, rgba(0,15,30,0.98) 0%, rgba(8,18,30,0.95) 100%);
+  border-bottom: 1px solid var(--border-bright);
+  box-shadow: 0 2px 30px rgba(0,229,255,0.08);
+  gap: 8px;
+  overflow: hidden;
+}
+
+.logo-block {
+  display: flex; align-items: center; gap: 10px;
+  margin-right: 24px;
+}
+.logo-icon {
+  width: 36px; height: 36px;
+  position: relative;
+}
+.logo-icon svg { width: 36px; height: 36px; }
+.logo-text { 
+  font-family: var(--font-display);
+  font-weight: 800; font-size: 18px; letter-spacing: 3px;
+  color: var(--cyan);
+  text-shadow: 0 0 20px var(--cyan-glow);
+}
+.logo-sub {
+  font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: 2px;
+  color: var(--text-secondary);
+  margin-top: -2px;
+}
+
+.top-separator {
+  width: 1px; height: 36px;
+  background: var(--border-bright);
+  margin: 0 12px;
+}
+
+.asset-name {
+  font-family: var(--font-display);
+  font-weight: 600; font-size: 15px; letter-spacing: 1px;
+  color: var(--text-primary);
+}
+.asset-id {
+  font-family: var(--font-mono);
+  font-size: 10px; color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+.top-kpis {
+  display: flex; align-items: center; gap: 6px;
+  margin-left: 20px; flex: 1;
+}
+
+.kpi-pill {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 4px 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: 3px;
+  min-width: 80px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-pill::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.4;
+}
+.kpi-label {
+  font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: 1.5px;
+  color: var(--text-dim); text-transform: uppercase;
+}
+.kpi-value {
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 16px;
+  color: var(--cyan);
+  text-shadow: 0 0 10px var(--cyan-glow);
+}
+.kpi-value.green { color: var(--green-ok); text-shadow: 0 0 10px rgba(0,230,118,0.4); }
+.kpi-value.orange { color: var(--orange); text-shadow: 0 0 10px rgba(255,107,26,0.4); }
+.kpi-value.red { color: var(--red-alarm); text-shadow: 0 0 10px rgba(255,23,68,0.4); }
+.kpi-value.yellow { color: var(--yellow-warn); text-shadow: 0 0 10px rgba(255,214,0,0.4); }
+
+.status-indicator {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 16px;
+  border-radius: 3px;
+  border: 1px solid;
+  margin-left: 8px;
+}
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
+}
+.status-operational { border-color: rgba(0,230,118,0.3); background: rgba(0,230,118,0.08); }
+.status-operational .status-dot { background: var(--green-ok); box-shadow: 0 0 8px var(--green-ok); }
+.status-operational .status-text { color: var(--green-ok); }
+.status-warning { border-color: rgba(255,214,0,0.3); background: rgba(255,214,0,0.08); }
+.status-warning .status-dot { background: var(--yellow-warn); box-shadow: 0 0 8px var(--yellow-warn); }
+.status-warning .status-text { color: var(--yellow-warn); }
+.status-critical { border-color: rgba(255,23,68,0.4); background: rgba(255,23,68,0.1); }
+.status-critical .status-dot { background: var(--red-alarm); box-shadow: 0 0 8px var(--red-alarm); animation: pulse-dot-fast 0.6s ease-in-out infinite; }
+.status-critical .status-text { color: var(--red-alarm); }
+@keyframes pulse-dot-fast {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.2; }
+}
+.status-text { font-family: var(--font-display); font-weight: 700; font-size: 12px; letter-spacing: 1px; }
+
+.top-right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 16px;
+}
+.timestamp {
+  font-family: var(--font-mono);
+  font-size: 11px; color: var(--cyan);
+  text-align: right;
+}
+.timestamp .date { color: var(--text-secondary); font-size: 10px; }
+
+/* ========== MAIN CONTENT ========== */
+#main {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 340px 1fr 320px;
+  grid-template-rows: 1fr;
+  gap: 6px;
+  padding: 6px;
+  overflow: hidden;
+}
+
+/* ========== PANELS ========== */
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+.panel::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--cyan) 30%, var(--blue-neon) 70%, transparent 100%);
+  opacity: 0.5;
+}
+.panel-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.2);
+}
+.panel-title {
+  font-family: var(--font-display);
+  font-weight: 600; font-size: 11px; letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+.panel-badge {
+  font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: var(--cyan-dim);
+  border: 1px solid var(--cyan-glow);
+  color: var(--cyan);
+  margin-left: auto;
+}
+.panel-content {
+  padding: 10px;
+  height: calc(100% - 38px);
+  overflow: hidden;
+}
+
+/* ========== LEFT PANEL — DIGITAL TWIN ========== */
+#panel-twin {
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+#twin-canvas-wrap {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  flex-shrink: 0;
+}
+#twin-canvas {
+  width: 100%; height: 100%;
+  display: block;
+}
+
+.sensor-points {
+  position: absolute; inset: 0; pointer-events: none;
+}
+.sensor-pt {
+  position: absolute;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 0 0 var(--cyan-glow);
+  animation: sensor-pulse 2s ease-in-out infinite;
+  cursor: pointer;
+  pointer-events: all;
+}
+.sensor-pt::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 14px; top: -3px;
+  font-family: var(--font-mono);
+  font-size: 9px; color: var(--cyan);
+  white-space: nowrap;
+  background: rgba(0,10,20,0.8);
+  padding: 2px 5px; border-radius: 2px;
+  border: 1px solid var(--border);
+}
+@keyframes sensor-pulse {
+  0% { box-shadow: 0 0 0 0 var(--cyan-glow); }
+  70% { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.sensor-pt.warn { background: var(--yellow-warn); animation: sensor-pulse-warn 1.2s ease-in-out infinite; }
+.sensor-pt.warn::after { color: var(--yellow-warn); }
+@keyframes sensor-pulse-warn {
+  0% { box-shadow: 0 0 0 0 rgba(255,214,0,0.5); }
+  70% { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.sensor-pt.crit { background: var(--red-alarm); animation: sensor-pulse-crit 0.8s ease-in-out infinite; }
+.sensor-pt.crit::after { color: var(--red-alarm); }
+@keyframes sensor-pulse-crit {
+  0% { box-shadow: 0 0 0 0 rgba(255,23,68,0.6); }
+  70% { box-shadow: 0 0 0 12px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+/* Sensor list */
+.sensor-list {
+  flex: 1; overflow-y: auto; padding: 8px;
+}
+.sensor-list::-webkit-scrollbar { width: 4px; }
+.sensor-list::-webkit-scrollbar-track { background: transparent; }
+.sensor-list::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+
+.sensor-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; margin-bottom: 3px;
+  border-radius: 3px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--border);
+  transition: border-color 0.3s;
+}
+.sensor-row:hover { border-color: var(--border-bright); }
+.s-icon {
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px;
+  flex-shrink: 0;
+}
+.s-icon.green { background: var(--green-dim); color: var(--green-ok); border: 1px solid var(--green-ok); }
+.s-icon.yellow { background: var(--yellow-dim); color: var(--yellow-warn); border: 1px solid var(--yellow-warn); }
+.s-icon.red { background: var(--red-dim); color: var(--red-alarm); border: 1px solid var(--red-alarm); }
+.s-icon.cyan { background: var(--cyan-dim); color: var(--cyan); border: 1px solid var(--cyan); }
+.s-name {
+  flex: 1; font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary);
+}
+.s-val {
+  font-family: var(--font-display); font-weight: 700; font-size: 14px;
+}
+.s-unit { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-left: 2px; }
+.s-bar-wrap { width: 50px; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; }
+.s-bar { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+
+/* ========== CENTER PANEL ========== */
+#panel-center {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 6px;
+}
+
+#panel-heatmap {
+  position: relative; overflow: hidden;
+}
+#heatmap-canvas { width: 100%; height: 100%; display: block; }
+
+.heatmap-legend {
+  position: absolute; bottom: 10px; right: 10px;
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  background: rgba(0,0,0,0.7);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+.heatmap-legend-grad {
+  width: 80px; height: 8px; border-radius: 2px;
+  background: linear-gradient(90deg, #1a6fff 0%, #00e5ff 25%, #00e676 50%, #ffd600 75%, #ff1744 100%);
+}
+.legend-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-secondary); }
+
+.heatmap-zones {
+  position: absolute; inset: 0; pointer-events: none;
+}
+
+#panel-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.mini-chart-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px;
+  position: relative; overflow: hidden;
+}
+.mini-chart-panel::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.3;
+}
+.mc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.mc-title { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-secondary); }
+.mc-val { font-family: var(--font-display); font-weight: 700; font-size: 18px; }
+.mc-unit { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); }
+canvas.mini-chart { width: 100% !important; height: 70px !important; }
+
+/* ========== RIGHT PANEL — AI + CRITICALITY ========== */
+#panel-right {
+  display: flex; flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.right-sub {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  position: relative; overflow: hidden;
+  flex-shrink: 0;
+}
+.right-sub::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.4;
+}
+.right-sub .sub-header {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sub-title {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--cyan);
+}
+.sub-badge {
+  font-family: var(--font-mono); font-size: 9px;
+  padding: 2px 6px; border-radius: 2px;
+}
+.sub-content { padding: 10px; }
+
+/* RUL */
+.rul-block {
+  display: flex; align-items: flex-end; gap: 12px;
+  margin-bottom: 10px;
+}
+.rul-days {
+  font-family: var(--font-display); font-weight: 800; font-size: 42px; line-height: 1;
+  color: var(--cyan);
+  text-shadow: 0 0 20px var(--cyan-glow);
+}
+.rul-unit { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; }
+.rul-pct { font-family: var(--font-display); font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+.rul-bar-wrap {
+  height: 8px; width: 100%;
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px; overflow: hidden;
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+}
+.rul-bar {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--green-ok), var(--cyan), var(--yellow-warn));
+  transition: width 1s ease;
+  position: relative;
+}
+.rul-bar::after {
+  content: '';
+  position: absolute; right: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: white;
+  box-shadow: 0 0 6px white;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Failure probability bars */
+.fail-prob-list { display: flex; flex-direction: column; gap: 5px; }
+.fp-row { display: flex; align-items: center; gap: 8px; }
+.fp-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-secondary); width: 36px; flex-shrink: 0; }
+.fp-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); }
+.fp-bar { height: 100%; border-radius: 3px; transition: width 1s ease; }
+.fp-val { font-family: var(--font-display); font-weight: 700; font-size: 11px; width: 34px; text-align: right; }
+
+/* Criticality */
+.crit-display {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 10px;
+}
+.crit-gauge-wrap { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+#crit-gauge-canvas { width: 80px; height: 80px; }
+.crit-gauge-val {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.crit-num { font-family: var(--font-display); font-weight: 800; font-size: 22px; line-height: 1; }
+.crit-max { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); }
+.crit-info { flex: 1; }
+.crit-level {
+  font-family: var(--font-display); font-weight: 700; font-size: 18px;
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.crit-factors { font-family: var(--font-mono); font-size: 9px; color: var(--text-secondary); line-height: 1.6; }
+
+.crit-matrix {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+.cm-item {
+  display: flex; flex-direction: column;
+  padding: 5px 8px;
+  border-radius: 3px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--border);
+}
+.cm-label { font-family: var(--font-mono); font-size: 8px; color: var(--text-dim); letter-spacing: 1px; }
+.cm-bar-wrap { height: 3px; background: rgba(255,255,255,0.05); border-radius: 2px; margin: 4px 0; overflow: hidden; }
+.cm-bar { height: 100%; border-radius: 2px; }
+.cm-val { font-family: var(--font-display); font-weight: 600; font-size: 11px; }
+
+/* AI prediction panel */
+.ai-pred-wrap { position: relative; }
+canvas.pred-chart { width: 100% !important; height: 100px !important; }
+
+/* ========== BOTTOM ALARMS ========== */
+#bottom-bar {
+  grid-row: 3;
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px;
+  border-top: 1px solid var(--border);
+  background: rgba(0,5,10,0.7);
+  overflow: hidden;
+}
+
+.alarms-title {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--cyan); letter-spacing: 2px;
+  white-space: nowrap; padding: 0 8px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  margin-right: 4px;
+}
+
+.alarm-scroll {
+  flex: 1; display: flex; gap: 6px;
+  overflow: hidden;
+}
+
+.alarm-card {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px;
+  border-radius: 3px;
+  border: 1px solid;
+  min-width: 220px; max-width: 280px;
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+.alarm-card.a-warn {
+  background: rgba(255,214,0,0.06);
+  border-color: rgba(255,214,0,0.3);
+}
+.alarm-card.a-crit {
+  background: rgba(255,23,68,0.08);
+  border-color: rgba(255,23,68,0.4);
+  animation: alarm-glow 2s ease-in-out infinite;
+}
+.alarm-card.a-info {
+  background: rgba(0,229,255,0.05);
+  border-color: rgba(0,229,255,0.2);
+}
+.alarm-card.a-ok {
+  background: rgba(0,230,118,0.05);
+  border-color: rgba(0,230,118,0.2);
+}
+@keyframes alarm-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,23,68,0); }
+  50% { box-shadow: 0 0 12px 2px rgba(255,23,68,0.2); }
+}
+.alarm-icon { font-size: 14px; flex-shrink: 0; }
+.alarm-body { flex: 1; overflow: hidden; }
+.alarm-msg { font-family: var(--font-ui); font-weight: 600; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alarm-sub { font-family: var(--font-mono); font-size: 9px; color: var(--text-secondary); }
+.alarm-time { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); flex-shrink: 0; }
+
+/* Bottom KPI strip */
+.bottom-kpis {
+  display: flex; gap: 6px; margin-left: 8px;
+  flex-shrink: 0;
+}
+.bkpi {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-card);
+  min-width: 75px;
+}
+.bkpi-label { font-family: var(--font-mono); font-size: 8px; color: var(--text-dim); letter-spacing: 1px; }
+.bkpi-val { font-family: var(--font-display); font-weight: 700; font-size: 15px; }
+
+/* ========== SCENARIO CONTROL PANEL ========== */
+#scenario-panel {
+  position: fixed;
+  top: 70px; right: 16px;
+  width: 270px;
+  background: rgba(4, 10, 18, 0.97);
+  border: 1px solid rgba(0,229,255,0.3);
+  border-radius: 6px;
+  z-index: 500;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.7), 0 0 30px rgba(0,229,255,0.06);
+  transform: translateX(300px);
+  transition: transform 0.4s cubic-bezier(0.23,1,0.32,1);
+  overflow: hidden;
+}
+#scenario-panel.open { transform: translateX(0); }
+#scenario-panel::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), var(--blue-neon), transparent);
+}
+
+#scenario-toggle {
+  position: fixed;
+  top: 70px; right: 16px;
+  width: 46px; height: 46px;
+  background: rgba(4,10,18,0.95);
+  border: 1px solid rgba(0,229,255,0.4);
+  border-radius: 6px;
+  z-index: 501;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 0 16px rgba(0,229,255,0.1);
+}
+#scenario-toggle:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 20px rgba(0,229,255,0.25);
+  background: rgba(0,229,255,0.08);
+}
+#scenario-toggle svg { width: 22px; height: 22px; transition: transform 0.4s; }
+#scenario-panel.open ~ #scenario-toggle svg { transform: rotate(45deg); }
+
+.sc-header {
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.sc-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--cyan);
+}
+.sc-live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green-ok);
+  box-shadow: 0 0 6px var(--green-ok);
+  animation: pulse-dot 1.5s infinite;
+  margin-left: auto;
+}
+.sc-live-dot.armed {
+  background: var(--red-alarm);
+  box-shadow: 0 0 10px var(--red-alarm);
+  animation: pulse-dot-fast 0.5s infinite;
+}
+
+.sc-body { padding: 10px; }
+
+.sc-section-label {
+  font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: 2px; color: var(--text-dim);
+  text-transform: uppercase;
+  margin: 8px 0 5px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Scenario buttons */
+.sc-btn-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 5px; margin-bottom: 4px;
+}
+.sc-btn {
+  padding: 7px 6px;
+  border-radius: 4px;
+  border: 1px solid;
+  background: transparent;
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  transition: all 0.25s;
+  text-align: left;
+  position: relative; overflow: hidden;
+}
+.sc-btn::after {
+  content: ''; position: absolute; inset: 0;
+  background: currentColor; opacity: 0;
+  transition: opacity 0.2s;
+}
+.sc-btn:hover::after { opacity: 0.06; }
+.sc-btn:active::after { opacity: 0.14; }
+.sc-btn.active { animation: btn-active-pulse 1.5s ease-in-out infinite; }
+
+.sc-btn-icon { font-size: 14px; line-height: 1; }
+.sc-btn-name {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: 10px; line-height: 1.2;
+}
+.sc-btn-desc {
+  font-family: var(--font-mono); font-size: 8px;
+  opacity: 0.7; line-height: 1.2;
+}
+
+/* Button themes */
+.sc-btn.green { border-color: rgba(0,230,118,0.35); color: var(--green-ok); }
+.sc-btn.green:hover { border-color: var(--green-ok); box-shadow: 0 0 12px rgba(0,230,118,0.2); }
+.sc-btn.yellow { border-color: rgba(255,214,0,0.35); color: var(--yellow-warn); }
+.sc-btn.yellow:hover { border-color: var(--yellow-warn); box-shadow: 0 0 12px rgba(255,214,0,0.2); }
+.sc-btn.orange { border-color: rgba(255,107,26,0.35); color: var(--orange); }
+.sc-btn.orange:hover { border-color: var(--orange); box-shadow: 0 0 12px rgba(255,107,26,0.2); }
+.sc-btn.red { border-color: rgba(255,23,68,0.4); color: var(--red-alarm); }
+.sc-btn.red:hover { border-color: var(--red-alarm); box-shadow: 0 0 14px rgba(255,23,68,0.3); }
+.sc-btn.cyan { border-color: rgba(0,229,255,0.35); color: var(--cyan); }
+.sc-btn.cyan:hover { border-color: var(--cyan); box-shadow: 0 0 12px rgba(0,229,255,0.2); }
+
+.sc-btn.active.red { border-color: var(--red-alarm); box-shadow: 0 0 16px rgba(255,23,68,0.35); background: rgba(255,23,68,0.07); }
+.sc-btn.active.orange { border-color: var(--orange); box-shadow: 0 0 14px rgba(255,107,26,0.3); background: rgba(255,107,26,0.06); }
+.sc-btn.active.yellow { border-color: var(--yellow-warn); box-shadow: 0 0 12px rgba(255,214,0,0.25); background: rgba(255,214,0,0.05); }
+
+@keyframes btn-active-pulse {
+  0%,100% { filter: brightness(1); }
+  50% { filter: brightness(1.3); }
+}
+
+/* Sliders */
+.sc-slider-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 5px;
+}
+.sc-slider-label {
+  font-family: var(--font-mono); font-size: 8px; color: var(--text-secondary);
+  width: 68px; flex-shrink: 0;
+}
+.sc-slider {
+  flex: 1;
+  -webkit-appearance: none; appearance: none;
+  height: 3px; border-radius: 2px;
+  background: rgba(255,255,255,0.08);
+  outline: none; cursor: pointer;
+}
+.sc-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 6px var(--cyan-glow);
+  cursor: pointer; transition: box-shadow 0.2s;
+}
+.sc-slider::-webkit-slider-thumb:hover { box-shadow: 0 0 12px var(--cyan); }
+.sc-slider-val {
+  font-family: var(--font-mono); font-size: 9px; color: var(--cyan);
+  width: 32px; text-align: right; flex-shrink: 0;
+}
+
+/* Event log */
+.sc-log {
+  height: 72px; overflow-y: auto;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 4px 6px;
+  margin-top: 4px;
+}
+.sc-log::-webkit-scrollbar { width: 3px; }
+.sc-log::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+.sc-log-entry {
+  font-family: var(--font-mono); font-size: 9px;
+  line-height: 1.6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sc-log-entry.log-ok    { color: var(--green-ok); }
+.sc-log-entry.log-warn  { color: var(--yellow-warn); }
+.sc-log-entry.log-crit  { color: var(--red-alarm); }
+.sc-log-entry.log-info  { color: var(--cyan); }
+
+/* Full-screen failure overlay */
+#failure-overlay {
+  position: fixed; inset: 0; z-index: 900;
+  background: rgba(255,23,68,0.04);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s;
+  box-shadow: inset 0 0 120px rgba(255,23,68,0.15);
+}
+#failure-overlay.active { opacity: 1; animation: failure-flash 0.8s ease-in-out infinite; }
+@keyframes failure-flash {
+  0%,100% { background: rgba(255,23,68,0.04); }
+  50% { background: rgba(255,23,68,0.10); }
+}
+
+/* Scenario active banner */
+#scenario-banner {
+  position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-80px);
+  z-index: 600;
+  padding: 8px 24px;
+  border-radius: 4px;
+  border: 1px solid;
+  display: flex; align-items: center; gap: 10px;
+  transition: transform 0.5s cubic-bezier(0.23,1,0.32,1);
+  white-space: nowrap;
+  pointer-events: none;
+}
+#scenario-banner.show { transform: translateX(-50%) translateY(0); }
+#scenario-banner.b-warn {
+  background: rgba(255,214,0,0.1); border-color: rgba(255,214,0,0.5);
+  box-shadow: 0 4px 20px rgba(255,214,0,0.2);
+}
+#scenario-banner.b-crit {
+  background: rgba(255,23,68,0.12); border-color: rgba(255,23,68,0.6);
+  box-shadow: 0 4px 24px rgba(255,23,68,0.3);
+  animation: banner-pulse 1s ease-in-out infinite;
+}
+#scenario-banner.b-ok {
+  background: rgba(0,230,118,0.08); border-color: rgba(0,230,118,0.4);
+  box-shadow: 0 4px 16px rgba(0,230,118,0.15);
+}
+@keyframes banner-pulse { 0%,100%{box-shadow:0 4px 24px rgba(255,23,68,0.3);} 50%{box-shadow:0 4px 40px rgba(255,23,68,0.5);} }
+.banner-icon { font-size: 18px; }
+.banner-text { font-family: var(--font-display); font-weight: 700; font-size: 14px; letter-spacing: 1px; }
+.banner-sub { font-family: var(--font-mono); font-size: 9px; opacity: 0.8; }
+
+/* Scan line effect */
+.scanline {
+  position: fixed; inset: 0; pointer-events: none; z-index: 100;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0.02) 0px,
+    rgba(0,0,0,0.02) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* Corner decorations */
+.corner-deco {
+  position: absolute; width: 16px; height: 16px;
+  pointer-events: none;
+}
+.corner-deco.tl { top: 0; left: 0; border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
+.corner-deco.tr { top: 0; right: 0; border-top: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
+.corner-deco.bl { bottom: 0; left: 0; border-bottom: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
+.corner-deco.br { bottom: 0; right: 0; border-bottom: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
+
+/* Gauge ring */
+.gauge-ring {
+  position: relative; display: flex; align-items: center; justify-content: center;
+}
+
+/* Loading overlay */
+#loading {
+  position: fixed; inset: 0; z-index: 999;
+  background: var(--bg-primary);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity 0.8s ease;
+}
+#loading.out { opacity: 0; pointer-events: none; }
+.load-logo {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: 36px; letter-spacing: 6px;
+  color: var(--cyan); text-shadow: 0 0 30px var(--cyan-glow);
+  margin-bottom: 6px;
+}
+.load-sub {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--text-secondary); letter-spacing: 3px;
+  margin-bottom: 40px;
+}
+.load-bar-wrap {
+  width: 300px; height: 3px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 2px; overflow: hidden;
+}
+.load-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--blue-neon), var(--cyan));
+  border-radius: 2px;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 10px var(--cyan-glow);
+}
+.load-status {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-dim); margin-top: 10px;
+  letter-spacing: 1px;
+}
+</style>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div id="loading">
+  <div class="load-logo">NIS-PMA</div>
+  <div class="load-sub">PREDICTIVE MAINTENANCE INTELLIGENCE</div>
+  <div class="load-bar-wrap"><div class="load-bar" id="loadBar"></div></div>
+  <div class="load-status" id="loadStatus">INITIALIZING SENSOR ARRAY...</div>
+</div>
+
+<div class="scanline"></div>
+
+<div id="app">
+
+  <!-- TOP BAR -->
+  <header id="topbar">
+    <div class="logo-block">
+      <div class="logo-icon">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="18,2 34,10 34,26 18,34 2,26 2,10" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.6"/>
+          <polygon points="18,7 29,13 29,23 18,29 7,23 7,13" fill="none" stroke="#00e5ff" stroke-width="1" opacity="0.4"/>
+          <circle cx="18" cy="18" r="4" fill="#00e5ff" opacity="0.8"/>
+          <line x1="18" y1="2" x2="18" y2="7" stroke="#00e5ff" stroke-width="1.5"/>
+          <line x1="34" y1="10" x2="29" y2="13" stroke="#00e5ff" stroke-width="1.5"/>
+          <line x1="34" y1="26" x2="29" y2="23" stroke="#00e5ff" stroke-width="1.5"/>
+          <line x1="18" y1="34" x2="18" y2="29" stroke="#00e5ff" stroke-width="1.5"/>
+          <line x1="2" y1="26" x2="7" y2="23" stroke="#00e5ff" stroke-width="1.5"/>
+          <line x1="2" y1="10" x2="7" y2="13" stroke="#00e5ff" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">NIS-PMA</div>
+        <div class="logo-sub">AI PREDICTIVE MAINTENANCE v4.2.1</div>
+      </div>
+    </div>
+
+    <div class="top-separator"></div>
+
+    <div>
+      <div class="asset-name">REACTOR CATALÍTICO — UNIDAD RX-7 OFFSHORE</div>
+      <div class="asset-id">ASSET ID: RX7-OFF-2041 | PLANTA ENERGÉTICA PACÍFICO SUR | ZONA CRÍTICA A-7</div>
+    </div>
+
+    <div class="top-kpis">
+      <div class="kpi-pill">
+        <div class="kpi-label">SALUD SHI</div>
+        <div class="kpi-value" id="kpi-shi">--</div>
+      </div>
+      <div class="kpi-pill">
+        <div class="kpi-label">MTBF</div>
+        <div class="kpi-value cyan" id="kpi-mtbf">--</div>
+      </div>
+      <div class="kpi-pill">
+        <div class="kpi-label">MTTR</div>
+        <div class="kpi-value" id="kpi-mttr">--</div>
+      </div>
+      <div class="kpi-pill">
+        <div class="kpi-label">DISPON.</div>
+        <div class="kpi-value green" id="kpi-disp">--</div>
+      </div>
+      <div class="kpi-pill">
+        <div class="kpi-label">UPTIME</div>
+        <div class="kpi-value cyan" id="kpi-uptime">--</div>
+      </div>
+      <div class="kpi-pill">
+        <div class="kpi-label">TEMP AMB</div>
+        <div class="kpi-value" id="kpi-temp">--</div>
+      </div>
+
+      <div class="status-indicator status-operational" id="status-indicator">
+        <div class="status-dot"></div>
+        <div class="status-text" id="status-text">OPERACIONAL</div>
+      </div>
+    </div>
+
+    <div class="top-right">
+      <div class="timestamp">
+        <div class="date" id="ts-date"></div>
+        <div id="ts-time"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main id="main">
+
+    <!-- LEFT: DIGITAL TWIN -->
+    <div class="panel" id="panel-twin">
+      <div class="corner-deco tl"></div>
+      <div class="corner-deco tr"></div>
+      <div class="corner-deco bl"></div>
+      <div class="corner-deco br"></div>
+      <div class="panel-header">
+        <div class="panel-title">◈ GEMELO DIGITAL — RX-7</div>
+        <div class="panel-badge" id="twin-badge">3D LIVE</div>
+      </div>
+      <div id="twin-canvas-wrap">
+        <canvas id="twin-canvas"></canvas>
+        <div class="sensor-points" id="sensor-points">
+          <div class="sensor-pt" id="sp1" style="left:42%;top:18%" data-label="S-01:TOP"></div>
+          <div class="sensor-pt" id="sp2" style="left:70%;top:32%" data-label="S-02:SHELL"></div>
+          <div class="sensor-pt" id="sp3" style="left:28%;top:50%" data-label="S-03:MID"></div>
+          <div class="sensor-pt" id="sp4" style="left:65%;top:62%" data-label="S-04:BOT"></div>
+          <div class="sensor-pt" id="sp5" style="left:45%;top:78%" data-label="S-05:BASE"></div>
+        </div>
+      </div>
+      <div class="sensor-list" id="sensor-list">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- CENTER: HEATMAP + CHARTS -->
+    <div id="panel-center">
+
+      <!-- HEATMAP -->
+      <div class="panel" id="panel-heatmap">
+        <div class="corner-deco tl"></div>
+        <div class="corner-deco tr"></div>
+        <div class="panel-header">
+          <div class="panel-title">◈ MAPA DE CALOR — DEGRADACIÓN ESTRUCTURAL</div>
+          <div class="panel-badge" id="hm-badge">ACTUALIZ. 3s</div>
+        </div>
+        <canvas id="heatmap-canvas"></canvas>
+        <div class="heatmap-legend">
+          <div class="legend-label">NORMAL</div>
+          <div class="heatmap-legend-grad"></div>
+          <div class="legend-label">CRÍTICO</div>
+        </div>
+      </div>
+
+      <!-- MINI CHARTS -->
+      <div id="panel-charts">
+        <div class="mini-chart-panel">
+          <div class="corner-deco tl"></div>
+          <div class="mc-header">
+            <div class="mc-title">CORROSIÓN</div>
+            <div><span class="mc-val" id="cv-corr" style="color:var(--orange)">--</span><span class="mc-unit">%</span></div>
+          </div>
+          <canvas id="chart-corr" class="mini-chart"></canvas>
+        </div>
+        <div class="mini-chart-panel">
+          <div class="corner-deco tl"></div>
+          <div class="mc-header">
+            <div class="mc-title">DEFORMACIÓN</div>
+            <div><span class="mc-val" id="cv-deform" style="color:var(--yellow-warn)">--</span><span class="mc-unit">mm</span></div>
+          </div>
+          <canvas id="chart-deform" class="mini-chart"></canvas>
+        </div>
+        <div class="mini-chart-panel">
+          <div class="corner-deco tl"></div>
+          <div class="mc-header">
+            <div class="mc-title">VIBRACIÓN RMS</div>
+            <div><span class="mc-val" id="cv-vib" style="color:var(--cyan)">--</span><span class="mc-unit">mm/s</span></div>
+          </div>
+          <canvas id="chart-vib" class="mini-chart"></canvas>
+        </div>
+        <div class="mini-chart-panel">
+          <div class="corner-deco tl"></div>
+          <div class="mc-header">
+            <div class="mc-title">FATIGA ACUM.</div>
+            <div><span class="mc-val" id="cv-fatigue" style="color:var(--red-alarm)">--</span><span class="mc-unit">%</span></div>
+          </div>
+          <canvas id="chart-fatigue" class="mini-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: AI PANEL -->
+    <div id="panel-right">
+
+      <!-- RUL -->
+      <div class="right-sub">
+        <div class="sub-header">
+          <div class="sub-title">◈ VIDA ÚTIL REMANENTE — RUL</div>
+          <div class="sub-badge" id="rul-badge" style="background:var(--green-dim);color:var(--green-ok);border:1px solid var(--green-ok)">NOMINAL</div>
+        </div>
+        <div class="sub-content">
+          <div class="rul-block">
+            <div class="rul-days" id="rul-days">---</div>
+            <div>
+              <div class="rul-unit">DÍAS</div>
+              <div class="rul-pct" id="rul-pct" style="color:var(--cyan)">---% vida restante</div>
+            </div>
+          </div>
+          <div class="rul-bar-wrap">
+            <div class="rul-bar" id="rul-bar" style="width:0%"></div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:4px" id="rul-detail">
+            Vida de diseño: 7300 días | Inicio: 2019-03-12
+          </div>
+        </div>
+      </div>
+
+      <!-- FAILURE PROBABILITY -->
+      <div class="right-sub">
+        <div class="sub-header">
+          <div class="sub-title">◈ PROBABILIDAD DE FALLA — IA</div>
+          <div class="sub-badge" id="fp-badge" style="background:var(--cyan-dim);color:var(--cyan);border:1px solid var(--cyan)">MODELO v2.4</div>
+        </div>
+        <div class="sub-content">
+          <div class="fail-prob-list" id="fail-prob-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- CRITICALITY -->
+      <div class="right-sub">
+        <div class="sub-header">
+          <div class="sub-title">◈ CRITICIDAD DINÁMICA</div>
+          <div class="sub-badge" id="crit-badge" style="background:var(--green-dim);color:var(--green-ok);border:1px solid var(--green-ok)">BAJA</div>
+        </div>
+        <div class="sub-content">
+          <div class="crit-display">
+            <div class="crit-gauge-wrap">
+              <canvas id="crit-gauge-canvas" width="80" height="80"></canvas>
+              <div class="crit-gauge-val">
+                <div class="crit-num" id="crit-num">--</div>
+                <div class="crit-max">/100</div>
+              </div>
+            </div>
+            <div class="crit-info">
+              <div class="crit-level" id="crit-level">--</div>
+              <div class="crit-factors" id="crit-factors">
+                Importancia: --<br>
+                Nivel Daño: --<br>
+                Urgencia: --<br>
+                P(Falla): --
+              </div>
+            </div>
+          </div>
+          <div class="crit-matrix" id="crit-matrix">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PREDICTIVE CURVE -->
+      <div class="right-sub" style="flex:1;min-height:120px">
+        <div class="sub-header">
+          <div class="sub-title">◈ CURVA PREDICTIVA DE DEGRADACIÓN</div>
+        </div>
+        <div class="sub-content" style="height:calc(100% - 38px)">
+          <canvas id="pred-chart" style="width:100%!important;height:100%!important"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- BOTTOM ALARMS -->
+  <div id="bottom-bar">
+    <div class="alarms-title">⚡ ALARMAS</div>
+    <div class="alarm-scroll" id="alarm-scroll">
+      <!-- Populated by JS -->
+    </div>
+    <div class="bottom-kpis">
+      <div class="bkpi">
+        <div class="bkpi-label">RIESGO OP.</div>
+        <div class="bkpi-val" id="bkpi-riesgo" style="color:var(--yellow-warn)">--</div>
+      </div>
+      <div class="bkpi">
+        <div class="bkpi-label">NIVEL DAÑO</div>
+        <div class="bkpi-val" id="bkpi-nd" style="color:var(--orange)">--</div>
+      </div>
+      <div class="bkpi">
+        <div class="bkpi-label">INSPECCIONES</div>
+        <div class="bkpi-val" id="bkpi-insp" style="color:var(--cyan)">--</div>
+      </div>
+      <div class="bkpi">
+        <div class="bkpi-label">ALERTAS HOY</div>
+        <div class="bkpi-val" id="bkpi-alerts" style="color:var(--red-alarm)">--</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- FAILURE OVERLAY -->
+<div id="failure-overlay"></div>
+
+<!-- SCENARIO BANNER -->
+<div id="scenario-banner">
+  <div class="banner-icon" id="banner-icon">⚠</div>
+  <div>
+    <div class="banner-text" id="banner-text">ESCENARIO ACTIVO</div>
+    <div class="banner-sub" id="banner-sub">Simulación en curso</div>
+  </div>
+</div>
+
+<!-- TOGGLE BUTTON -->
+<div id="scenario-toggle" title="Panel de Simulación de Escenarios" onclick="toggleScenarioPanel()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="1.8" stroke-linecap="round">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
+    <line x1="12" y1="12" x2="12" y2="2"/>
+    <line x1="12" y1="12" x2="19" y2="16"/>
+    <line x1="12" y1="12" x2="5" y2="16"/>
+  </svg>
+</div>
+
+<!-- SCENARIO PANEL -->
+<div id="scenario-panel">
+  <div class="sc-header">
+    <div class="sc-title">⚡ SIMULADOR DE ESCENARIOS</div>
+    <div class="sc-live-dot" id="sc-live-dot"></div>
+  </div>
+  <div class="sc-body">
+
+    <div class="sc-section-label">▸ ESCENARIOS DE FALLA RÁPIDA</div>
+    <div class="sc-btn-grid">
+      <button class="sc-btn green" id="btn-normal" onclick="applyScenario('normal')">
+        <div class="sc-btn-icon">✓</div>
+        <div class="sc-btn-name">NOMINAL</div>
+        <div class="sc-btn-desc">Reset operación normal</div>
+      </button>
+      <button class="sc-btn yellow" id="btn-corrosion" onclick="applyScenario('corrosion')">
+        <div class="sc-btn-icon">⚡</div>
+        <div class="sc-btn-name">CORROSIÓN ACELERADA</div>
+        <div class="sc-btn-desc">Zona B degradada</div>
+      </button>
+      <button class="sc-btn orange" id="btn-fatigue" onclick="applyScenario('fatigue')">
+        <div class="sc-btn-icon">◈</div>
+        <div class="sc-btn-name">FATIGA CRÍTICA</div>
+        <div class="sc-btn-desc">Ciclo > umbral diseño</div>
+      </button>
+      <button class="sc-btn orange" id="btn-vibration" onclick="applyScenario('vibration')">
+        <div class="sc-btn-icon">〜</div>
+        <div class="sc-btn-name">VIBRACIÓN ANÓMALA</div>
+        <div class="sc-btn-desc">Resonancia detectada</div>
+      </button>
+      <button class="sc-btn red" id="btn-overpressure" onclick="applyScenario('overpressure')">
+        <div class="sc-btn-icon">⬡</div>
+        <div class="sc-btn-name">SOBREPRESIÓN</div>
+        <div class="sc-btn-desc">Presión > límite diseño</div>
+      </button>
+      <button class="sc-btn red" id="btn-thermal" onclick="applyScenario('thermal')">
+        <div class="sc-btn-icon">🌡</div>
+        <div class="sc-btn-name">EXCURSIÓN TÉRMICA</div>
+        <div class="sc-btn-desc">Temperatura crítica</div>
+      </button>
+      <button class="sc-btn red" id="btn-multifail" onclick="applyScenario('multifail')">
+        <div class="sc-btn-icon">🚨</div>
+        <div class="sc-btn-name">FALLA MÚLTIPLE</div>
+        <div class="sc-btn-desc">Colapso estructural</div>
+      </button>
+      <button class="sc-btn cyan" id="btn-maintenance" onclick="applyScenario('maintenance')">
+        <div class="sc-btn-icon">🔧</div>
+        <div class="sc-btn-name">POST-MANTENIMIENTO</div>
+        <div class="sc-btn-desc">Recuperación sistema</div>
+      </button>
+    </div>
+
+    <div class="sc-section-label">▸ CONTROL MANUAL DE SENSORES</div>
+
+    <div class="sc-slider-row">
+      <div class="sc-slider-label">CORROSIÓN %</div>
+      <input type="range" class="sc-slider" id="sl-corrosion" min="5" max="40" step="0.5" value="12" oninput="manualSensor('corrosion',this.value)">
+      <div class="sc-slider-val" id="slv-corrosion">12.0</div>
+    </div>
+    <div class="sc-slider-row">
+      <div class="sc-slider-label">DEFORM. mm</div>
+      <input type="range" class="sc-slider" id="sl-deformation" min="1" max="8" step="0.1" value="1.8" oninput="manualSensor('deformation',this.value)">
+      <div class="sc-slider-val" id="slv-deformation">1.8</div>
+    </div>
+    <div class="sc-slider-row">
+      <div class="sc-slider-label">FATIGA %</div>
+      <input type="range" class="sc-slider" id="sl-fatigue" min="10" max="90" step="1" value="23" oninput="manualSensor('fatigue',this.value)">
+      <div class="sc-slider-val" id="slv-fatigue">23</div>
+    </div>
+    <div class="sc-slider-row">
+      <div class="sc-slider-label">VIBRACIÓN mm/s</div>
+      <input type="range" class="sc-slider" id="sl-vibration" min="1" max="15" step="0.1" value="4.2" oninput="manualSensor('vibration',this.value)">
+      <div class="sc-slider-val" id="slv-vibration">4.2</div>
+    </div>
+    <div class="sc-slider-row">
+      <div class="sc-slider-label">TEMP °C</div>
+      <input type="range" class="sc-slider" id="sl-temperature" min="300" max="500" step="1" value="387" oninput="manualSensor('temperature',this.value)">
+      <div class="sc-slider-val" id="slv-temperature">387</div>
+    </div>
+    <div class="sc-slider-row">
+      <div class="sc-slider-label">PRESIÓN bar</div>
+      <input type="range" class="sc-slider" id="sl-pressure" min="10" max="30" step="0.5" value="18.7" oninput="manualSensor('pressure',this.value)">
+      <div class="sc-slider-val" id="slv-pressure">18.7</div>
+    </div>
+
+    <div class="sc-section-label">▸ LOG DE EVENTOS IA</div>
+    <div class="sc-log" id="sc-log"></div>
+
+  </div>
+</div>
+
+<script>
+// ==========================================
+// NIS-PMA — Industrial AI Dashboard
+// Simulation Engine + Visualization
+// ==========================================
+
+'use strict';
+
+// ---- SIMULATION STATE ----
+const SIM = {
+  time: 0,
+  tick: 0,
+  // Base values
+  corrosion: 12.4,      // %
+  deformation: 1.8,     // mm
+  fatigue: 23.5,        // %
+  vibration: 4.2,       // mm/s
+  temperature: 387,     // °C
+  humidity: 42,         // %
+  pressure: 18.7,       // bar
+  // Trend deltas (per tick)
+  corr_trend: 0.004,
+  deform_trend: 0.002,
+  fatigue_trend: 0.015,
+  // RUL
+  rul_days: 1842,
+  rul_total: 7300,
+  design_life_start: new Date('2019-03-12'),
+  // AI model
+  fp_base: { d15:3.2, d30:6.8, d60:12.4, d90:19.1, d180:31.6 },
+  // Criticality factors
+  importance: 88,
+  urgency: 35,
+  impact: 72,
+  // Status
+  status: 'operational',
+  alarm_count: 7,
+  inspections: 43,
+};
+
+// History buffers (100 points)
+const HISTORY = {
+  corrosion: [], deformation: [], vibration: [], fatigue: [],
+  temperature: [], pred_future: []
+};
+const HIST_LEN = 80;
+
+function addHistory(key, val) {
+  HISTORY[key].push(val);
+  if (HISTORY[key].length > HIST_LEN) HISTORY[key].shift();
+}
+
+// ---- NOISE + UTILS ----
+function noise(amp) { return (Math.random() - 0.5) * 2 * amp; }
+function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function colorForValue(v, low, mid, high) {
+  if (v < low) return '#00e676';
+  if (v < mid) return '#ffd600';
+  if (v < high) return '#ff6b1a';
+  return '#ff1744';
+}
+
+// ---- CHARTS ----
+Chart.defaults.color = '#4d7a8a';
+Chart.defaults.borderColor = 'rgba(0,229,255,0.07)';
+
+function mkLineChart(id, color, label) {
+  const ctx = document.getElementById(id).getContext('2d');
+  return new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: Array(HIST_LEN).fill(''),
+      datasets: [{
+        label,
+        data: [],
+        borderColor: color,
+        borderWidth: 1.5,
+        fill: true,
+        backgroundColor: color.replace(')', ', 0.06)').replace('rgb', 'rgba').replace('#', 'rgba(').replace(/rgba\(([\da-f]{2})([\da-f]{2})([\da-f]{2})/i, (m,r,g,b) => `rgba(${parseInt(r,16)},${parseInt(g,16)},${parseInt(b,16)}`),
+        tension: 0.4,
+        pointRadius: 0,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 300 },
+      scales: {
+        x: { display: false },
+        y: { display: false }
+      },
+      plugins: { legend: { display: false }, tooltip: { enabled: false } }
+    }
+  });
+}
+
+function getGradient(ctx, color1, color2) {
+  const g = ctx.createLinearGradient(0, 0, 0, 100);
+  g.addColorStop(0, color1);
+  g.addColorStop(1, color2);
+  return g;
+}
+
+let chartCorr, chartDeform, chartVib, chartFatigue, predChart;
+
+function initCharts() {
+  chartCorr    = mkLineChart('chart-corr',    '#ff6b1a', 'Corrosión');
+  chartDeform  = mkLineChart('chart-deform',  '#ffd600', 'Deformación');
+  chartVib     = mkLineChart('chart-vib',     '#00e5ff', 'Vibración');
+  chartFatigue = mkLineChart('chart-fatigue', '#ff1744', 'Fatiga');
+
+  // Predictive curve chart
+  const pctx = document.getElementById('pred-chart').getContext('2d');
+  const gradGreen = pctx.createLinearGradient(0, 0, 200, 0);
+  gradGreen.addColorStop(0, '#00e676'); gradGreen.addColorStop(0.5, '#ffd600'); gradGreen.addColorStop(1, '#ff1744');
+
+  predChart = new Chart(pctx, {
+    type: 'line',
+    data: {
+      labels: ['HOY','15D','30D','60D','90D','180D','365D'],
+      datasets: [
+        {
+          label: 'Degradación Predicha',
+          data: [0, 0, 0, 0, 0, 0, 0],
+          borderColor: '#00e5ff',
+          borderWidth: 2,
+          fill: true,
+          backgroundColor: 'rgba(0,229,255,0.05)',
+          tension: 0.4, pointRadius: 3,
+          pointBackgroundColor: '#00e5ff',
+          pointBorderColor: '#00e5ff',
+        },
+        {
+          label: 'Umbral Crítico',
+          data: [75, 75, 75, 75, 75, 75, 75],
+          borderColor: 'rgba(255,23,68,0.5)',
+          borderWidth: 1, borderDash: [4,4],
+          fill: false, pointRadius: 0,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 600 },
+      scales: {
+        x: { ticks: { color: '#3d6070', font: { family: 'Share Tech Mono', size: 9 } }, grid: { color: 'rgba(0,229,255,0.05)' } },
+        y: { min: 0, max: 100, ticks: { color: '#3d6070', font: { family: 'Share Tech Mono', size: 9 }, stepSize: 25 }, grid: { color: 'rgba(0,229,255,0.05)' } }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: 'rgba(0,10,20,0.9)', titleFont: { family: 'Rajdhani' }, bodyFont: { family: 'Share Tech Mono', size: 10 } }
+      }
+    }
+  });
+}
+
+function updateCharts() {
+  function upd(chart, data) {
+    chart.data.datasets[0].data = [...data];
+    chart.update('none');
+  }
+  upd(chartCorr,   HISTORY.corrosion);
+  upd(chartDeform, HISTORY.deformation);
+  upd(chartVib,    HISTORY.vibration);
+  upd(chartFatigue,HISTORY.fatigue);
+
+  // Predictive curve: project current degradation forward
+  const base = SIM.fatigue;
+  const curve = [
+    base,
+    base + SIM.fp_base.d15 * 0.8,
+    base + SIM.fp_base.d30 * 0.8,
+    base + SIM.fp_base.d60 * 0.75,
+    base + SIM.fp_base.d90 * 0.7,
+    base + SIM.fp_base.d180 * 0.65,
+    Math.min(100, base + SIM.fp_base.d180 * 1.3),
+  ];
+  predChart.data.datasets[0].data = curve;
+  predChart.update('none');
+}
+
+// ---- CRITICALITY GAUGE ----
+let critCanvas, critCtx;
+function initCritGauge() {
+  critCanvas = document.getElementById('crit-gauge-canvas');
+  critCtx = critCanvas.getContext('2d');
+}
+
+function drawCritGauge(value) {
+  const ctx = critCtx;
+  const cx = 40, cy = 40, r = 32;
+  ctx.clearRect(0, 0, 80, 80);
+
+  // Background arc
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, Math.PI * 0.75, Math.PI * 2.25);
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 7; ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Value arc
+  const startA = Math.PI * 0.75;
+  const endA = startA + (Math.PI * 1.5) * (value / 100);
+  let color;
+  if (value < 30) color = '#00e676';
+  else if (value < 55) color = '#ffd600';
+  else if (value < 75) color = '#ff6b1a';
+  else color = '#ff1744';
+
+  // Gradient arc
+  const grad = ctx.createLinearGradient(cx - r, cy, cx + r, cy);
+  grad.addColorStop(0, '#1a6fff'); grad.addColorStop(1, color);
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, startA, endA);
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 7; ctx.lineCap = 'round';
+  ctx.shadowColor = color; ctx.shadowBlur = 10;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Ticks
+  for (let i = 0; i <= 10; i++) {
+    const a = startA + (Math.PI * 1.5) * (i / 10);
+    const inner = r - 10, outer = r - 6;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * inner, cy + Math.sin(a) * inner);
+    ctx.lineTo(cx + Math.cos(a) * outer, cy + Math.sin(a) * outer);
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+}
+
+// ---- DIGITAL TWIN (Canvas 2D) ----
+let twinCanvas, twinCtx;
+let twinAngle = 0;
+let twinDamageMap = [0.1, 0.15, 0.08, 0.22, 0.12, 0.18]; // zones
+
+function initTwin() {
+  twinCanvas = document.getElementById('twin-canvas');
+  twinCtx = twinCanvas.getContext('2d');
+  twinCanvas.width = twinCanvas.offsetWidth * window.devicePixelRatio;
+  twinCanvas.height = twinCanvas.offsetHeight * window.devicePixelRatio;
+  twinCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+}
+
+function drawTwin() {
+  const ctx = twinCtx;
+  const W = twinCanvas.offsetWidth, H = twinCanvas.offsetHeight;
+  ctx.clearRect(0, 0, W, H);
+
+  const cx = W / 2, cy = H / 2 - 10;
+  const a = twinAngle;
+
+  // Perspective reactor body
+  const rx = 60 + Math.cos(a) * 18; // perspective ellipse x-radius
+  const reactorH = 180;
+  const top = cy - reactorH / 2;
+  const bot = cy + reactorH / 2;
+  const rx2 = 62; // slight wider
+
+  // Glow backdrop
+  const bgGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 120);
+  bgGrad.addColorStop(0, 'rgba(0,80,160,0.08)');
+  bgGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, W, H);
+
+  // Grid floor
+  ctx.save();
+  ctx.translate(cx, bot + 10);
+  ctx.scale(1, 0.35);
+  ctx.strokeStyle = 'rgba(0,229,255,0.08)'; ctx.lineWidth = 0.8;
+  for (let i = -5; i <= 5; i++) {
+    ctx.beginPath(); ctx.moveTo(i * 20, -60); ctx.lineTo(i * 20, 60); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-100, i * 20); ctx.lineTo(100, i * 20); ctx.stroke();
+  }
+  ctx.restore();
+
+  // === REACTOR VESSEL BODY ===
+  // Sections with damage coloring
+  const sections = 6;
+  const secH = (reactorH - 20) / sections;
+
+  for (let s = 0; s < sections; s++) {
+    const sy = top + 10 + s * secH;
+    const dmg = twinDamageMap[s];
+    const alpha = 0.1 + dmg * 0.5;
+
+    // Damage-colored fill
+    let fillColor;
+    if (dmg < 0.15) fillColor = `rgba(0,100,180,${alpha + 0.1})`;
+    else if (dmg < 0.3) fillColor = `rgba(180,140,0,${alpha})`;
+    else fillColor = `rgba(220,40,40,${alpha + 0.05})`;
+
+    // Section rect (with perspective)
+    const sRx = rx - s * 0.5;
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(cx, sy, sRx, 12, 0, Math.PI, 2 * Math.PI);
+    ctx.rect(cx - sRx, sy, sRx * 2, secH);
+    ctx.ellipse(cx, sy + secH, sRx, 12, 0, 0, Math.PI);
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.restore();
+
+    // Section outline
+    ctx.strokeStyle = `rgba(0,229,255,${0.15 + dmg * 0.2})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.ellipse(cx, sy + secH, sRx, 12, 0, 0, Math.PI);
+    ctx.stroke();
+
+    // Damage glow
+    if (dmg > 0.2) {
+      const grd = ctx.createRadialGradient(cx, sy + secH/2, 0, cx, sy + secH/2, sRx);
+      grd.addColorStop(0, dmg > 0.3 ? `rgba(255,23,68,${dmg * 0.3})` : `rgba(255,150,0,${dmg * 0.25})`);
+      grd.addColorStop(1, 'transparent');
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.ellipse(cx, sy + secH / 2, sRx, secH / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Weld lines
+    ctx.strokeStyle = 'rgba(0,229,255,0.25)';
+    ctx.lineWidth = 0.8;
+    ctx.setLineDash([3, 6]);
+    ctx.beginPath();
+    ctx.moveTo(cx - sRx, sy + secH);
+    ctx.lineTo(cx + sRx, sy + secH);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Main body shell outline
+  ctx.strokeStyle = 'rgba(0,229,255,0.6)';
+  ctx.lineWidth = 1.5;
+  // Left line
+  ctx.beginPath(); ctx.moveTo(cx - rx, top + 10); ctx.lineTo(cx - rx + 2, bot - 10); ctx.stroke();
+  // Right line
+  ctx.beginPath(); ctx.moveTo(cx + rx, top + 10); ctx.lineTo(cx + rx - 2, bot - 10); ctx.stroke();
+
+  // Top cap ellipse
+  ctx.beginPath();
+  ctx.ellipse(cx, top + 10, rx, 18, 0, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(0,229,255,0.7)'; ctx.lineWidth = 1.5; ctx.stroke();
+  const topCapGrad = ctx.createRadialGradient(cx, top + 10, 0, cx, top + 10, rx);
+  topCapGrad.addColorStop(0, 'rgba(0,229,255,0.15)'); topCapGrad.addColorStop(1, 'rgba(0,40,80,0.3)');
+  ctx.fillStyle = topCapGrad; ctx.fill();
+
+  // Bottom cap ellipse
+  ctx.beginPath();
+  ctx.ellipse(cx, bot - 10, rx - 2, 14, 0, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(0,229,255,0.5)'; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.fillStyle = 'rgba(0,30,60,0.4)'; ctx.fill();
+
+  // Nozzle top
+  ctx.fillStyle = 'rgba(0,229,255,0.3)';
+  ctx.beginPath(); ctx.rect(cx - 10, top - 14, 20, 18); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,229,255,0.8)'; ctx.lineWidth = 1;
+  ctx.strokeRect(cx - 10, top - 14, 20, 18);
+  ctx.beginPath(); ctx.ellipse(cx, top - 14, 10, 5, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,100,200,0.4)'; ctx.fill(); ctx.stroke();
+
+  // Bottom drain
+  ctx.fillStyle = 'rgba(0,229,255,0.2)';
+  ctx.beginPath(); ctx.rect(cx - 8, bot, 16, 14); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,229,255,0.6)'; ctx.lineWidth = 1;
+  ctx.strokeRect(cx - 8, bot, 16, 14);
+
+  // Side pipes (left + right)
+  [[cx - rx - 20, cy - 30], [cx + rx + 20, cy + 10]].forEach(([px, py], i) => {
+    ctx.strokeStyle = 'rgba(0,180,220,0.5)'; ctx.lineWidth = 5;
+    ctx.beginPath();
+    if (i === 0) { ctx.moveTo(cx - rx, cy - 30); ctx.lineTo(px, py); }
+    else { ctx.moveTo(cx + rx - 2, cy + 10); ctx.lineTo(px, py); }
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,229,255,0.7)'; ctx.lineWidth = 1;
+    ctx.stroke();
+    // flange
+    ctx.fillStyle = 'rgba(0,229,255,0.3)';
+    ctx.beginPath(); ctx.arc(px, py, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,229,255,0.8)'; ctx.lineWidth = 1; ctx.stroke();
+  });
+
+  // Support legs
+  const legPositions = [-35, -12, 12, 35];
+  legPositions.forEach(lx => {
+    ctx.strokeStyle = 'rgba(0,150,200,0.4)'; ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(cx + lx, bot - 10);
+    ctx.lineTo(cx + lx + (lx > 0 ? 8 : -8), bot + 30);
+    ctx.stroke();
+  });
+
+  // Instrumentation lines (fake sensor connections)
+  const sensorPositions = [
+    [cx + 30, top + 30],
+    [cx - 28, top + 70],
+    [cx + 25, top + 110],
+    [cx - 22, top + 150],
+  ];
+  sensorPositions.forEach(([sx, sy]) => {
+    ctx.strokeStyle = 'rgba(0,229,255,0.2)'; ctx.lineWidth = 0.8; ctx.setLineDash([2, 4]);
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + (sx > cx ? 20 : -20), sy); ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // Tech labels
+  ctx.font = '9px Share Tech Mono'; ctx.fillStyle = 'rgba(0,229,255,0.5)'; ctx.textAlign = 'center';
+  ctx.fillText(`RX-7  OFFSHORE REACTOR`, cx, top - 22);
+  ctx.font = '8px Share Tech Mono'; ctx.fillStyle = 'rgba(0,150,180,0.6)';
+  ctx.fillText(`Ø 2400mm | H 12000mm | ASME VIII`, cx, top - 12);
+  ctx.fillText(`P.DISEÑO 25 bar | T.DISEÑO 450°C`, cx, H - 8);
+  ctx.textAlign = 'left';
+
+  // Update angle
+  twinAngle += 0.006;
+}
+
+// ---- HEATMAP ----
+let hmCanvas, hmCtx;
+let hmData = [];
+const HM_ROWS = 12, HM_COLS = 20;
+
+function initHeatmap() {
+  hmCanvas = document.getElementById('heatmap-canvas');
+  hmCtx = hmCanvas.getContext('2d');
+  // Init heatmap data
+  for (let r = 0; r < HM_ROWS; r++) {
+    hmData[r] = [];
+    for (let c = 0; c < HM_COLS; c++) {
+      hmData[r][c] = Math.random() * 0.3;
+    }
+  }
+}
+
+function heatColor(v) {
+  // 0=blue(normal) 0.3=cyan 0.5=green 0.7=yellow 0.85=orange 1=red
+  const stops = [
+    [0,    [26, 106, 255]],
+    [0.3,  [0,  200, 255]],
+    [0.5,  [0,  220, 120]],
+    [0.7,  [255, 214, 0]],
+    [0.85, [255, 107, 26]],
+    [1.0,  [255, 23,  68]],
+  ];
+  for (let i = 0; i < stops.length - 1; i++) {
+    const [t0, c0] = stops[i], [t1, c1] = stops[i+1];
+    if (v >= t0 && v <= t1) {
+      const t = (v - t0) / (t1 - t0);
+      return [
+        Math.round(lerp(c0[0], c1[0], t)),
+        Math.round(lerp(c0[1], c1[1], t)),
+        Math.round(lerp(c0[2], c1[2], t)),
+      ];
+    }
+  }
+  return [255, 23, 68];
+}
+
+function drawHeatmap() {
+  const W = hmCanvas.offsetWidth, H = hmCanvas.offsetHeight - 38;
+  hmCanvas.width = W * window.devicePixelRatio;
+  hmCanvas.height = (H + 38) * window.devicePixelRatio;
+  hmCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  hmCtx.clearRect(0, 0, W, H + 38);
+
+  const cellW = W / HM_COLS, cellH = H / HM_ROWS;
+
+  // Structural outline (reactor side view)
+  // Zones labeled
+  const zoneLabels = ['DOMO SUPERIOR','CUERPO A','CUERPO B','ZONA REACTIVA','CUERPO C','ZONA CALIENTE','ZONA INTERMEDIA','CATALIZADOR','CUERPO D','ZONA BAJA','SOPORTE','BASE'];
+
+  for (let r = 0; r < HM_ROWS; r++) {
+    for (let c = 0; c < HM_COLS; c++) {
+      // Update values
+      const current = hmData[r][c];
+      const target = current + noise(0.01) + SIM.corr_trend * 0.1;
+      hmData[r][c] = clamp(target, 0, 1);
+
+      const [red, green, blue] = heatColor(hmData[r][c]);
+      hmCtx.fillStyle = `rgba(${red},${green},${blue},0.75)`;
+      hmCtx.fillRect(c * cellW + 0.5, r * cellH + 38 + 0.5, cellW - 1, cellH - 1);
+
+      // Cell border
+      hmCtx.strokeStyle = 'rgba(0,0,0,0.3)'; hmCtx.lineWidth = 0.5;
+      hmCtx.strokeRect(c * cellW, r * cellH + 38, cellW, cellH);
+    }
+    // Row label
+    hmCtx.font = '8px Share Tech Mono'; hmCtx.fillStyle = 'rgba(180,220,230,0.8)';
+    hmCtx.textAlign = 'right';
+    hmCtx.fillText(zoneLabels[r] || `ZN-${r}`, W - 2, r * cellH + 38 + cellH / 2 + 3);
+  }
+
+  // Zone separator lines
+  hmCtx.strokeStyle = 'rgba(0,229,255,0.15)'; hmCtx.lineWidth = 0.8;
+  for (let r = 0; r <= HM_ROWS; r++) {
+    hmCtx.beginPath(); hmCtx.moveTo(0, r * cellH + 38); hmCtx.lineTo(W, r * cellH + 38); hmCtx.stroke();
+  }
+  for (let c = 0; c <= HM_COLS; c++) {
+    hmCtx.beginPath(); hmCtx.moveTo(c * cellW, 38); hmCtx.lineTo(c * cellW, H + 38); hmCtx.stroke();
+  }
+
+  // Header strip
+  hmCtx.fillStyle = 'rgba(0,229,255,0.08)'; hmCtx.fillRect(0, 0, W, 38);
+  hmCtx.strokeStyle = 'rgba(0,229,255,0.2)'; hmCtx.lineWidth = 1;
+  hmCtx.strokeRect(0, 0, W, 38);
+
+  // Column headers
+  const colLabels = ['C01','C02','C03','C04','C05','C06','C07','C08','C09','C10','C11','C12','C13','C14','C15','C16','C17','C18','C19','C20'];
+  hmCtx.font = '8px Share Tech Mono'; hmCtx.fillStyle = 'rgba(0,229,255,0.6)'; hmCtx.textAlign = 'center';
+  colLabels.forEach((lbl, c) => {
+    hmCtx.fillText(lbl, c * cellW + cellW / 2, 12);
+  });
+
+  // Corrosion/fatigue/deformation mode indicators
+  const modes = [
+    { label:'CORROSIÓN', x: W*0.2, val: SIM.corrosion },
+    { label:'DEFORMACIÓN', x: W*0.5, val: SIM.deformation * 10 },
+    { label:'FATIGA', x: W*0.8, val: SIM.fatigue },
+  ];
+  modes.forEach(({ label, x, val }) => {
+    hmCtx.font = '9px Share Tech Mono'; hmCtx.fillStyle = 'rgba(200,220,230,0.7)'; hmCtx.textAlign = 'center';
+    hmCtx.fillText(label, x, 26);
+    hmCtx.font = '8px Share Tech Mono'; hmCtx.fillStyle = colorForValue(val, 15, 30, 60);
+    hmCtx.fillText(`${val.toFixed(1)}`, x, 36);
+  });
+}
+
+// ---- SENSOR LIST (left panel) ----
+const SENSORS = [
+  { id:'TI-101', name:'Temperatura Domo', unit:'°C', key:'temperature', lo:350, hi:420, icon:'🌡', colorClass:'green' },
+  { id:'PI-201', name:'Presión Operación', unit:'bar', key:'pressure', lo:15, hi:22, icon:'⬡', colorClass:'cyan' },
+  { id:'VI-301', name:'Vibración RMS', unit:'mm/s', key:'vibration', lo:0, hi:8, icon:'〜', colorClass:'cyan' },
+  { id:'CI-401', name:'Corrosión Gral.', unit:'%', key:'corrosion', lo:0, hi:30, icon:'⚡', colorClass:'yellow' },
+  { id:'DI-501', name:'Deformación Max.', unit:'mm', key:'deformation', lo:0, hi:5, icon:'↔', colorClass:'yellow' },
+  { id:'FI-601', name:'Fatiga Acumulada', unit:'%', key:'fatigue', lo:0, hi:100, icon:'◈', colorClass:'red' },
+  { id:'HI-701', name:'Humedad Relativa', unit:'%', key:'humidity', lo:30, hi:60, icon:'💧', colorClass:'green' },
+];
+
+function initSensorList() {
+  const list = document.getElementById('sensor-list');
+  list.innerHTML = '';
+  SENSORS.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'sensor-row';
+    row.id = `srow-${s.id}`;
+    row.innerHTML = `
+      <div class="s-icon ${s.colorClass}" id="sicon-${s.id}">${s.icon}</div>
+      <div class="s-name">${s.id}</div>
+      <div>
+        <span class="s-val" id="sval-${s.id}" style="color:var(--cyan)">--</span>
+        <span class="s-unit">${s.unit}</span>
+      </div>
+      <div class="s-bar-wrap">
+        <div class="s-bar" id="sbar-${s.id}" style="background:var(--cyan);width:50%"></div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function updateSensorList() {
+  SENSORS.forEach(s => {
+    const val = SIM[s.key];
+    const pct = clamp((val - s.lo) / (s.hi - s.lo) * 100, 0, 100);
+    const color = colorForValue(pct, 33, 66, 85);
+    const el = document.getElementById(`sval-${s.id}`);
+    const bar = document.getElementById(`sbar-${s.id}`);
+    const icon = document.getElementById(`sicon-${s.id}`);
+    if (el) {
+      el.textContent = typeof val === 'number' ? val.toFixed(1) : val;
+      el.style.color = color;
+    }
+    if (bar) { bar.style.width = pct + '%'; bar.style.background = color; }
+    if (icon) {
+      icon.className = `s-icon ${pct > 85 ? 'red' : pct > 66 ? 'yellow' : 'green'}`;
+    }
+    // Update sensor point colors
+    const pt = document.getElementById(`sp${SENSORS.indexOf(s)+1}`);
+    if (pt) {
+      pt.className = 'sensor-pt' + (pct > 85 ? ' crit' : pct > 66 ? ' warn' : '');
+    }
+  });
+}
+
+// ---- FAILURE PROBABILITY ----
+const FP_HORIZONS = [
+  { label:'15D', key:'d15', lo:5, hi:20 },
+  { label:'30D', key:'d30', lo:10, hi:35 },
+  { label:'60D', key:'d60', lo:15, hi:50 },
+  { label:'90D', key:'d90', lo:20, hi:65 },
+  { label:'180D', key:'d180', lo:30, hi:80 },
+];
+
+function initFailProb() {
+  const list = document.getElementById('fail-prob-list');
+  list.innerHTML = '';
+  FP_HORIZONS.forEach(h => {
+    const row = document.createElement('div');
+    row.className = 'fp-row';
+    row.innerHTML = `
+      <div class="fp-label">${h.label}</div>
+      <div class="fp-bar-wrap"><div class="fp-bar" id="fpbar-${h.key}" style="width:0%;background:var(--cyan)"></div></div>
+      <div class="fp-val" id="fpval-${h.key}" style="color:var(--cyan)">--%</div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function updateFailProb() {
+  FP_HORIZONS.forEach(h => {
+    const val = SIM.fp_base[h.key];
+    const color = colorForValue(val, 15, 35, 55);
+    const bar = document.getElementById(`fpbar-${h.key}`);
+    const valEl = document.getElementById(`fpval-${h.key}`);
+    if (bar) { bar.style.width = val + '%'; bar.style.background = color; }
+    if (valEl) { valEl.textContent = val.toFixed(1) + '%'; valEl.style.color = color; }
+  });
+}
+
+// ---- CRITICALITY MATRIX ----
+function initCritMatrix() {
+  const matrix = document.getElementById('crit-matrix');
+  const factors = [
+    { label:'IMP. FUNCIONAL', id:'cm-imp' },
+    { label:'NIVEL DAÑO', id:'cm-dmg' },
+    { label:'URGENCIA', id:'cm-urg' },
+    { label:'IMPACTO OP.', id:'cm-imp2' },
+  ];
+  matrix.innerHTML = '';
+  factors.forEach(f => {
+    const item = document.createElement('div');
+    item.className = 'cm-item';
+    item.innerHTML = `
+      <div class="cm-label">${f.label}</div>
+      <div class="cm-bar-wrap"><div class="cm-bar" id="${f.id}-bar" style="width:50%;background:var(--cyan)"></div></div>
+      <div class="cm-val" id="${f.id}-val" style="color:var(--cyan)">--</div>
+    `;
+    matrix.appendChild(item);
+  });
+}
+
+function updateCriticality() {
+  const dmg = (SIM.corrosion / 30 + SIM.deformation / 5 + SIM.fatigue / 100) / 3 * 100;
+  const pFail = SIM.fp_base.d30;
+  const critScore = Math.round(
+    (SIM.importance * 0.25 + dmg * 0.35 + SIM.urgency * 0.2 + pFail * 0.2)
+  );
+  SIM.critScore = clamp(critScore, 0, 100);
+
+  document.getElementById('crit-num').textContent = SIM.critScore;
+  drawCritGauge(SIM.critScore);
+
+  let level, color;
+  if (SIM.critScore < 30) { level = 'BAJA'; color = 'var(--green-ok)'; }
+  else if (SIM.critScore < 55) { level = 'MEDIA'; color = 'var(--yellow-warn)'; }
+  else if (SIM.critScore < 75) { level = 'ALTA'; color = 'var(--orange)'; }
+  else { level = 'EXTREMA'; color = 'var(--red-alarm)'; }
+
+  document.getElementById('crit-level').textContent = level;
+  document.getElementById('crit-level').style.color = color;
+  document.getElementById('crit-num').style.color = color;
+  const badge = document.getElementById('crit-badge');
+  badge.textContent = level;
+
+  document.getElementById('crit-factors').innerHTML = `
+    Importancia: ${SIM.importance}/100<br>
+    Nivel Daño: ${dmg.toFixed(1)}%<br>
+    Urgencia: ${SIM.urgency}/100<br>
+    P(Falla 30d): ${pFail.toFixed(1)}%
+  `;
+
+  // Matrix bars
+  const vals = [SIM.importance, dmg, SIM.urgency, SIM.impact];
+  const ids = ['cm-imp', 'cm-dmg', 'cm-urg', 'cm-imp2'];
+  vals.forEach((v, i) => {
+    const c = colorForValue(v, 33, 66, 85);
+    const bar = document.getElementById(`${ids[i]}-bar`);
+    const val = document.getElementById(`${ids[i]}-val`);
+    if (bar) { bar.style.width = v + '%'; bar.style.background = c; }
+    if (val) { val.textContent = v.toFixed(0); val.style.color = c; }
+  });
+}
+
+// ---- RUL ----
+function updateRUL() {
+  const pct = (SIM.rul_days / SIM.rul_total * 100).toFixed(1);
+  document.getElementById('rul-days').textContent = Math.round(SIM.rul_days);
+  document.getElementById('rul-pct').textContent = `${pct}% vida restante`;
+  document.getElementById('rul-bar').style.width = pct + '%';
+  
+  const rulEl = document.getElementById('rul-days');
+  const badge = document.getElementById('rul-badge');
+  if (SIM.rul_days > 1000) {
+    rulEl.style.color = 'var(--cyan)';
+    badge.textContent = 'NOMINAL'; badge.style.color = 'var(--green-ok)'; badge.style.borderColor = 'var(--green-ok)'; badge.style.background = 'var(--green-dim)';
+  } else if (SIM.rul_days > 365) {
+    rulEl.style.color = 'var(--yellow-warn)';
+    badge.textContent = 'ATENCIÓN'; badge.style.color = 'var(--yellow-warn)'; badge.style.borderColor = 'var(--yellow-warn)'; badge.style.background = 'var(--yellow-dim)';
+  } else {
+    rulEl.style.color = 'var(--red-alarm)';
+    badge.textContent = 'CRÍTICO'; badge.style.color = 'var(--red-alarm)'; badge.style.borderColor = 'var(--red-alarm)'; badge.style.background = 'var(--red-dim)';
+  }
+}
+
+// ---- TOP KPIs ----
+function updateTopKPIs() {
+  const shi = clamp(100 - SIM.fatigue * 0.3 - SIM.corrosion * 0.5 - SIM.deformation * 2, 40, 99);
+  const color = colorForValue(100 - shi, 10, 30, 50);
+  const shiEl = document.getElementById('kpi-shi');
+  shiEl.textContent = shi.toFixed(1) + '%';
+  shiEl.style.color = color;
+
+  document.getElementById('kpi-mtbf').textContent = '2847h';
+  document.getElementById('kpi-mttr').textContent = '4.2h';
+  document.getElementById('kpi-disp').textContent = '99.1%';
+  document.getElementById('kpi-uptime').textContent = '4271d';
+  document.getElementById('kpi-temp').textContent = SIM.temperature.toFixed(0) + '°C';
+
+  document.getElementById('bkpi-riesgo').textContent = (SIM.critScore || 28) + '%';
+  document.getElementById('bkpi-nd').textContent = (SIM.corrosion * 0.8 + SIM.fatigue * 0.2).toFixed(1) + '%';
+  document.getElementById('bkpi-insp').textContent = SIM.inspections;
+  document.getElementById('bkpi-alerts').textContent = SIM.alarm_count;
+}
+
+// ---- ALARMS ----
+const ALARM_TEMPLATES = [
+  { type:'a-info',  icon:'ℹ', msg:'Sensor TI-101 recalibrado automáticamente',    sub:'Sistema IA — Auto-ajuste confirmado' },
+  { type:'a-warn',  icon:'⚠', msg:'Corrosión zona Cuerpo B supera umbral P2',     sub:'CI-401 > 12% | Intervención recomendada' },
+  { type:'a-warn',  icon:'⚠', msg:'Vibración en rango amarillo — Zona Reactiva',  sub:'VI-301 = 4.8 mm/s | Monitoreo activo' },
+  { type:'a-crit',  icon:'🚨', msg:'FATIGA ACUMULADA CRÍTICA — Zona Caliente',   sub:'FI-601 > 23% | Inspección urgente' },
+  { type:'a-ok',    icon:'✓', msg:'Mantenimiento predictivo programado exitoso',   sub:'Orden OT-2041 completada — Próx: 90d' },
+  { type:'a-info',  icon:'◈', msg:'Modelo IA actualizado — Ciclo 847',           sub:'Precisión 96.3% | Datos nuevos integrados' },
+  { type:'a-warn',  icon:'⚠', msg:'Temperatura domo +8°C sobre baseline',       sub:'TI-101 = 387°C | Tendencia ascendente' },
+];
+
+function initAlarms() {
+  const scroll = document.getElementById('alarm-scroll');
+  scroll.innerHTML = '';
+  const now = new Date();
+  ALARM_TEMPLATES.forEach((a, i) => {
+    const card = document.createElement('div');
+    card.className = `alarm-card ${a.type}`;
+    const t = new Date(now - (ALARM_TEMPLATES.length - i) * 8 * 60000);
+    const ts = t.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
+    card.innerHTML = `
+      <div class="alarm-icon">${a.icon}</div>
+      <div class="alarm-body">
+        <div class="alarm-msg">${a.msg}</div>
+        <div class="alarm-sub">${a.sub}</div>
+      </div>
+      <div class="alarm-time">${ts}</div>
+    `;
+    scroll.appendChild(card);
+  });
+}
+
+// ---- TIMESTAMP ----
+function updateTimestamp() {
+  const now = new Date();
+  document.getElementById('ts-time').textContent = now.toLocaleTimeString('es-EC');
+  document.getElementById('ts-date').textContent = now.toLocaleDateString('es-EC', { weekday:'short', year:'numeric', month:'short', day:'numeric' }).toUpperCase();
+}
+
+// ---- SIMULATION STEP ----
+let hmTimer = 0;
+function simStep() {
+  SIM.tick++;
+  SIM.time += 1 / 60;
+
+  // Update sensor values with trends + noise
+  SIM.corrosion   = clamp(SIM.corrosion   + SIM.corr_trend   + noise(0.08),  8,   40);
+  SIM.deformation = clamp(SIM.deformation + SIM.deform_trend + noise(0.005), 1.2, 8);
+  SIM.fatigue     = clamp(SIM.fatigue     + SIM.fatigue_trend + noise(0.15), 18,  85);
+  SIM.vibration   = clamp(SIM.vibration   + noise(0.3) + Math.sin(SIM.time * 0.8) * 0.1, 2, 12);
+  SIM.temperature = clamp(SIM.temperature + noise(1.5) + Math.sin(SIM.time * 0.3) * 0.5, 360, 430);
+  SIM.humidity    = clamp(SIM.humidity    + noise(0.5), 35, 65);
+  SIM.pressure    = clamp(SIM.pressure    + noise(0.2) + Math.sin(SIM.time * 0.5) * 0.05, 16, 22);
+  SIM.rul_days    = clamp(SIM.rul_days - 0.0001667, 100, 7300); // ~1 day per day in realtime
+
+  // Occasional random events
+  if (SIM.tick % 300 === 0) {
+    SIM.corr_trend  += Math.random() * 0.001;
+    SIM.urgency = clamp(SIM.urgency + noise(5), 20, 70);
+  }
+
+  // Update AI failure predictions (coherent with current state)
+  const degFactor = (SIM.corrosion / 15 + SIM.fatigue / 50) / 2;
+  SIM.fp_base.d15  = clamp(2 + degFactor * 5  + noise(0.5), 1, 25);
+  SIM.fp_base.d30  = clamp(4 + degFactor * 10 + noise(1),   3, 40);
+  SIM.fp_base.d60  = clamp(8 + degFactor * 18 + noise(1.5), 5, 55);
+  SIM.fp_base.d90  = clamp(13 + degFactor * 25 + noise(2),  8, 70);
+  SIM.fp_base.d180 = clamp(22 + degFactor * 40 + noise(3),  15, 85);
+
+  // History
+  addHistory('corrosion',   SIM.corrosion);
+  addHistory('deformation', SIM.deformation);
+  addHistory('vibration',   SIM.vibration);
+  addHistory('fatigue',     SIM.fatigue);
+
+  // Update value displays
+  document.getElementById('cv-corr').textContent    = SIM.corrosion.toFixed(1);
+  document.getElementById('cv-deform').textContent  = SIM.deformation.toFixed(2);
+  document.getElementById('cv-vib').textContent     = SIM.vibration.toFixed(1);
+  document.getElementById('cv-fatigue').textContent = SIM.fatigue.toFixed(1);
+
+  // Color updates for mini-chart values
+  const corrColor = colorForValue(SIM.corrosion, 10, 20, 30);
+  document.getElementById('cv-corr').style.color = corrColor;
+  const fatColor = colorForValue(SIM.fatigue, 30, 55, 70);
+  document.getElementById('cv-fatigue').style.color = fatColor;
+
+  // Status
+  const worstPct = Math.max(SIM.corrosion / 30 * 100, SIM.fatigue / 80 * 100, SIM.deformation / 5 * 100);
+  let statusClass = 'status-operational', statusText = 'OPERACIONAL';
+  if (worstPct > 75) { statusClass = 'status-critical'; statusText = 'CRÍTICO'; }
+  else if (worstPct > 50) { statusClass = 'status-warning'; statusText = 'ADVERTENCIA'; }
+  const si = document.getElementById('status-indicator');
+  si.className = `status-indicator ${statusClass}`;
+  document.getElementById('status-text').textContent = statusText;
+  SIM.status = statusText;
+
+  updateTimestamp();
+  updateTopKPIs();
+  updateSensorList();
+  updateFailProb();
+  updateCriticality();
+  updateRUL();
+  updateCharts();
+
+  // Heatmap: every 3 seconds
+  hmTimer++;
+  if (hmTimer >= 3) { drawHeatmap(); hmTimer = 0; }
+
+  // Twin
+  drawTwin();
+}
+
+// ---- LOADING SEQUENCE ----
+const loadMessages = [
+  'INICIALIZANDO ARRAY DE SENSORES...',
+  'CARGANDO MODELOS DE IA PREDICTIVA...',
+  'SINCRONIZANDO GEMELO DIGITAL...',
+  'ESTABLECIENDO CONEXIÓN CON RX-7...',
+  'CALIBRANDO ALGORITMOS DE CRITICIDAD...',
+  'ACTIVANDO DASHBOARD INDUSTRIAL...',
+];
+
+function runLoader() {
+  const bar = document.getElementById('loadBar');
+  const status = document.getElementById('loadStatus');
+  let progress = 0;
+  let msgIdx = 0;
+
+  const interval = setInterval(() => {
+    progress += Math.random() * 8 + 4;
+    if (progress > 100) progress = 100;
+    bar.style.width = progress + '%';
+    const mi = Math.floor((progress / 100) * loadMessages.length);
+    if (mi < loadMessages.length && mi !== msgIdx) {
+      msgIdx = mi; status.textContent = loadMessages[mi];
+    }
+    if (progress >= 100) {
+      clearInterval(interval);
+      setTimeout(() => {
+        const loading = document.getElementById('loading');
+        loading.classList.add('out');
+        setTimeout(() => loading.remove(), 800);
+        startDashboard();
+      }, 400);
+    }
+  }, 80);
+}
+
+// ---- STARTUP ----
+function startDashboard() {
+  // Init canvases
+  initTwin();
+  initHeatmap();
+  initCharts();
+  initSensorList();
+  initFailProb();
+  initCritMatrix();
+  initCritGauge();
+  initAlarms();
+
+  // Warm up history
+  for (let i = 0; i < HIST_LEN; i++) simStep();
+
+  // GSAP entry animation
+  gsap.from('#topbar', { y: -62, opacity: 0, duration: 0.8, ease: 'power2.out' });
+  gsap.from('#panel-twin', { x: -340, opacity: 0, duration: 0.9, delay: 0.2, ease: 'power3.out' });
+  gsap.from('#panel-heatmap', { y: -50, opacity: 0, duration: 0.8, delay: 0.3, ease: 'power2.out' });
+  gsap.from('#panel-charts', { y: 50, opacity: 0, duration: 0.8, delay: 0.4, ease: 'power2.out' });
+  gsap.from('#panel-right', { x: 320, opacity: 0, duration: 0.9, delay: 0.2, ease: 'power3.out' });
+  gsap.from('#bottom-bar', { y: 120, opacity: 0, duration: 0.7, delay: 0.5, ease: 'power2.out' });
+
+  // Main loop at 10 fps for sim, 30fps for twin
+  let lastSim = 0;
+  function loop(ts) {
+    if (ts - lastSim > 100) { // 10 Hz sim
+      simStep();
+      lastSim = ts;
+    }
+    drawTwin();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
+
+// ---- RESIZE ----
+window.addEventListener('resize', () => {
+  if (twinCanvas) initTwin();
+});
+
+// ============================================
+// SCENARIO SIMULATION ENGINE
+// ============================================
+
+let scenarioPanel = null;
+let activeScenario = null;
+let scenarioInterval = null;
+let manualOverrides = {}; // key -> {value, locked}
+
+// Scenario definitions
+const SCENARIOS = {
+  normal: {
+    name: 'OPERACIÓN NOMINAL',
+    icon: '✓',
+    level: 'ok',
+    desc: 'Sistema restaurado a parámetros de diseño',
+    targets: { corrosion:12, deformation:1.8, fatigue:24, vibration:4.2, temperature:387, pressure:18.7 },
+    trends: { corr_trend:0.004, deform_trend:0.002, fatigue_trend:0.015 },
+    dmgMap: [0.10, 0.14, 0.08, 0.18, 0.11, 0.14],
+    urgency: 30, impact: 65,
+    alarms: [
+      { type:'a-ok',   icon:'✓', msg:'Sistema restaurado a condición nominal', sub:'IA confirmó parámetros dentro de diseño' },
+      { type:'a-info', icon:'ℹ', msg:'Reset de escenario completado',          sub:'Todos los sensores recalibrados' },
+    ]
+  },
+  corrosion: {
+    name: 'CORROSIÓN ACELERADA',
+    icon: '⚡',
+    level: 'warn',
+    desc: 'Tasa de corrosión 4× nominal — Zona B expuesta',
+    targets: { corrosion:28, deformation:2.4, fatigue:35, vibration:5.1, temperature:398, pressure:19.2 },
+    trends: { corr_trend:0.025, deform_trend:0.004, fatigue_trend:0.025 },
+    dmgMap: [0.15, 0.72, 0.65, 0.40, 0.22, 0.18],
+    urgency: 62, impact: 78,
+    alarms: [
+      { type:'a-warn', icon:'⚠', msg:'CORROSIÓN ACELERADA — Zona Cuerpo B al 72%', sub:'CI-401 = 28% | Tasa 4× umbral nominal' },
+      { type:'a-warn', icon:'⚠', msg:'Degradación activa en Zona Intermedia',      sub:'Pérdida espesor estimada: 0.8mm' },
+      { type:'a-info', icon:'◈', msg:'Modelo IA recalculó RUL con nuevo perfil',   sub:'RUL reducido 340 días vs. predicción anterior' },
+    ]
+  },
+  fatigue: {
+    name: 'FATIGA CRÍTICA',
+    icon: '◈',
+    level: 'warn',
+    desc: 'Ciclos mecánicos superan umbral de diseño',
+    targets: { corrosion:16, deformation:3.8, fatigue:68, vibration:6.8, temperature:401, pressure:20.1 },
+    trends: { corr_trend:0.008, deform_trend:0.012, fatigue_trend:0.08 },
+    dmgMap: [0.20, 0.30, 0.45, 0.78, 0.60, 0.35],
+    urgency: 75, impact: 82,
+    alarms: [
+      { type:'a-crit', icon:'🚨', msg:'FATIGA CRÍTICA — Zona Reactiva al 78%',     sub:'FI-601 = 68% | Umbral diseño superado' },
+      { type:'a-warn', icon:'⚠', msg:'Deformación plástica detectada: 3.8mm',      sub:'DI-501 > tolerancia ASME VIII / Div.1' },
+      { type:'a-warn', icon:'⚠', msg:'Vibración amplificada por fatiga estructural', sub:'VI-301 = 6.8mm/s | Resonancia sospechada' },
+    ]
+  },
+  vibration: {
+    name: 'VIBRACIÓN ANÓMALA',
+    icon: '〜',
+    level: 'warn',
+    desc: 'Frecuencia natural excitada — resonancia activa',
+    targets: { corrosion:14, deformation:2.1, fatigue:32, vibration:11.4, temperature:392, pressure:19.8 },
+    trends: { corr_trend:0.006, deform_trend:0.006, fatigue_trend:0.040 },
+    dmgMap: [0.25, 0.30, 0.55, 0.50, 0.48, 0.28],
+    urgency: 68, impact: 74,
+    alarms: [
+      { type:'a-crit', icon:'🚨', msg:'RESONANCIA DETECTADA — f=47Hz en Cuerpo C',  sub:'VI-301 = 11.4mm/s | ISO 10816 Zona D' },
+      { type:'a-warn', icon:'⚠', msg:'Fatiga acelerada por vibración sostenida',     sub:'Ciclos adicionales: +18% / hora' },
+      { type:'a-info', icon:'◈', msg:'IA sugiere inspección de soporte S-04',        sub:'Prob. aflojamiento: 71.3% | Prioridad alta' },
+    ]
+  },
+  overpressure: {
+    name: 'SOBREPRESIÓN CRÍTICA',
+    icon: '⬡',
+    level: 'crit',
+    desc: 'Presión operativa supera MAWP del equipo',
+    targets: { corrosion:18, deformation:4.6, fatigue:52, vibration:8.2, temperature:412, pressure:27.8 },
+    trends: { corr_trend:0.010, deform_trend:0.018, fatigue_trend:0.055 },
+    dmgMap: [0.85, 0.70, 0.65, 0.60, 0.55, 0.45],
+    urgency: 90, impact: 95,
+    alarms: [
+      { type:'a-crit', icon:'🚨', msg:'⚡ SOBREPRESIÓN — 27.8 bar > MAWP 25 bar',   sub:'PI-201 CRÍTICO | Válvula PSV-101 actuada' },
+      { type:'a-crit', icon:'🚨', msg:'DEFORMACIÓN PLÁSTICA DOMO: 4.6mm',           sub:'Superada tolerancia elástica ASME PCC-1' },
+      { type:'a-warn', icon:'⚠', msg:'Temperatura sube por expansión adiabática',    sub:'TI-101 = 412°C | Tendencia ascendente' },
+      { type:'a-info', icon:'ℹ', msg:'IA activa protocolo de emergencia EPL-03',    sub:'Notificación enviada a control de turno' },
+    ]
+  },
+  thermal: {
+    name: 'EXCURSIÓN TÉRMICA',
+    icon: '🌡',
+    level: 'crit',
+    desc: 'Temperatura supera límite de diseño del material',
+    targets: { corrosion:22, deformation:5.1, fatigue:58, vibration:7.6, temperature:471, pressure:22.4 },
+    trends: { corr_trend:0.018, deform_trend:0.015, fatigue_trend:0.060 },
+    dmgMap: [0.90, 0.75, 0.68, 0.55, 0.42, 0.35],
+    urgency: 88, impact: 92,
+    alarms: [
+      { type:'a-crit', icon:'🚨', msg:'EXCURSIÓN TÉRMICA — 471°C > T.DISEÑO 450°C', sub:'TI-101 CRÍTICO | Reducción resistencia material' },
+      { type:'a-crit', icon:'🚨', msg:'FLUENCIA TÉRMICA activa — Domo Superior',     sub:'Pérdida límite elástico estimada: 18%' },
+      { type:'a-warn', icon:'⚠', msg:'Corrosión acelerada por temperatura elevada',  sub:'Factor multiplicador: 2.8× | API 571 activo' },
+      { type:'a-info', icon:'◈', msg:'IA reduce RUL en 890 días por ciclo térmico',  sub:'Modelo Manson-Coffin actualizado' },
+    ]
+  },
+  multifail: {
+    name: 'FALLA MÚLTIPLE — COLAPSO',
+    icon: '🚨',
+    level: 'crit',
+    desc: 'Falla concurrente de múltiples sistemas — ACCIÓN INMEDIATA',
+    targets: { corrosion:38, deformation:7.4, fatigue:85, vibration:13.8, temperature:462, pressure:26.2 },
+    trends: { corr_trend:0.060, deform_trend:0.040, fatigue_trend:0.180 },
+    dmgMap: [0.95, 0.90, 0.92, 0.88, 0.85, 0.82],
+    urgency: 99, impact: 100,
+    alarms: [
+      { type:'a-crit', icon:'🚨', msg:'🔴 FALLA MÚLTIPLE ACTIVA — EVACUACIÓN',       sub:'Criticidad EXTREMA | Probabilidad falla: 87%' },
+      { type:'a-crit', icon:'🚨', msg:'INTEGRIDAD ESTRUCTURAL COMPROMETIDA',         sub:'6 zonas en estado crítico simultáneo' },
+      { type:'a-crit', icon:'🚨', msg:'SOBREPRESIÓN + EXCURSIÓN TÉRMICA ACTIVAS',    sub:'Combinación de fallas fuera de diseño' },
+      { type:'a-crit', icon:'🚨', msg:'RUL < 180 DÍAS — PARADA FORZOSA RECOMENDADA', sub:'IA: Probabilidad falla catastrófica 87.3%' },
+      { type:'a-warn', icon:'⚠', msg:'Sistemas de seguridad PSV y PRV actuados',     sub:'Aislamiento automático zona A-7 activado' },
+    ]
+  },
+  maintenance: {
+    name: 'POST-MANTENIMIENTO',
+    icon: '🔧',
+    level: 'ok',
+    desc: 'Sistema restaurado tras mantenimiento mayor M-847',
+    targets: { corrosion:7.2, deformation:0.9, fatigue:12, vibration:2.8, temperature:375, pressure:17.4 },
+    trends: { corr_trend:0.002, deform_trend:0.001, fatigue_trend:0.008 },
+    dmgMap: [0.05, 0.08, 0.06, 0.10, 0.07, 0.09],
+    urgency: 18, impact: 55,
+    alarms: [
+      { type:'a-ok',   icon:'✓', msg:'Mantenimiento mayor M-847 completado',         sub:'Tiempo ejecución: 72h | Alcance total' },
+      { type:'a-ok',   icon:'✓', msg:'Reemplazo de juntas y sellos: 47 puntos',       sub:'Materiales: AISI 316L / PTFE grado A' },
+      { type:'a-info', icon:'◈', msg:'IA recalibrada — RUL extendido +980 días',      sub:'Modelo actualizado con datos post-MT' },
+      { type:'a-ok',   icon:'✓', msg:'Prueba hidrostática 1.5× MAWP: APROBADA',      sub:'ASME PCC-2 | Cert. inspector CWI-4421' },
+    ]
+  },
+};
+
+// ---- PANEL TOGGLE ----
+function toggleScenarioPanel() {
+  const panel = document.getElementById('scenario-panel');
+  panel.classList.toggle('open');
+}
+
+// ---- SCENARIO LOG ----
+function scLog(msg, type = 'info') {
+  const log = document.getElementById('sc-log');
+  if (!log) return;
+  const now = new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const entry = document.createElement('div');
+  entry.className = `sc-log-entry log-${type}`;
+  entry.textContent = `[${now}] ${msg}`;
+  log.insertBefore(entry, log.firstChild);
+  // Keep last 30 entries
+  while (log.children.length > 30) log.removeChild(log.lastChild);
+}
+
+// ---- APPLY SCENARIO ----
+function applyScenario(scenarioKey) {
+  const sc = SCENARIOS[scenarioKey];
+  if (!sc) return;
+
+  // Clear previous active button
+  document.querySelectorAll('.sc-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`btn-${scenarioKey}`)?.classList.add('active');
+
+  activeScenario = scenarioKey;
+
+  // Apply target sensor values immediately (with ramp)
+  const targets = sc.targets;
+  const duration = 3000; // 3s ramp
+  const steps = 30;
+  const interval = duration / steps;
+
+  const startVals = {
+    corrosion:   SIM.corrosion,
+    deformation: SIM.deformation,
+    fatigue:     SIM.fatigue,
+    vibration:   SIM.vibration,
+    temperature: SIM.temperature,
+    pressure:    SIM.pressure,
+  };
+
+  let step = 0;
+  if (scenarioInterval) clearInterval(scenarioInterval);
+  scenarioInterval = setInterval(() => {
+    step++;
+    const t = step / steps;
+    const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // easeInOut
+
+    Object.keys(targets).forEach(k => {
+      SIM[k] = lerp(startVals[k], targets[k], ease);
+    });
+
+    // Update sliders to reflect current values
+    syncSlidersToSIM();
+
+    if (step >= steps) {
+      clearInterval(scenarioInterval);
+      // Lock in trends
+      SIM.corr_trend    = sc.trends.corr_trend;
+      SIM.deform_trend  = sc.trends.deform_trend;
+      SIM.fatigue_trend = sc.trends.fatigue_trend;
+      SIM.urgency       = sc.urgency;
+      SIM.impact        = sc.impact;
+    }
+  }, interval);
+
+  // Update twin damage map
+  twinDamageMap = [...sc.dmgMap];
+
+  // Heatmap: inject high damage into zones
+  injectHeatmapDamage(sc.dmgMap);
+
+  // Show banner
+  showBanner(sc);
+
+  // Failure overlay
+  const overlay = document.getElementById('failure-overlay');
+  if (sc.level === 'crit') {
+    overlay.classList.add('active');
+  } else {
+    overlay.classList.remove('active');
+  }
+
+  // Live dot
+  const dot = document.getElementById('sc-live-dot');
+  if (dot) {
+    dot.className = sc.level === 'crit' ? 'sc-live-dot armed' : 'sc-live-dot';
+  }
+
+  // Update alarms
+  injectAlarms(sc.alarms);
+
+  // Log
+  const logType = sc.level === 'crit' ? 'crit' : sc.level === 'warn' ? 'warn' : 'ok';
+  scLog(`ESCENARIO ACTIVADO: ${sc.name}`, logType);
+  scLog(sc.desc, 'info');
+
+  // Log extra details per scenario
+  setTimeout(() => scLog(`IA: Recalculando RUL y probabilidad de falla...`, 'info'), 800);
+  setTimeout(() => {
+    const rul = scenarioKey === 'multifail' ? 180 :
+                scenarioKey === 'thermal'   ? 620 :
+                scenarioKey === 'overpressure' ? 480 :
+                scenarioKey === 'maintenance' ? 2800 :
+                scenarioKey === 'normal' ? 1842 : 1100;
+    SIM.rul_days = rul;
+    scLog(`IA: RUL actualizado → ${rul} días`, logType);
+  }, 1400);
+}
+
+// ---- MANUAL SENSOR OVERRIDE ----
+function manualSensor(key, value) {
+  const v = parseFloat(value);
+  SIM[key] = v;
+  const el = document.getElementById(`slv-${key}`);
+  if (el) el.textContent = v.toFixed(key === 'temperature' || key === 'fatigue' ? 0 : 1);
+
+  // Deactivate scenario btn highlights when manually adjusting
+  // but keep scenario trends
+
+  // Auto-evaluate severity and log
+  let logMsg = '', logType = 'info';
+  if (key === 'corrosion') {
+    if (v > 25) { logMsg = `CORROSIÓN ALTA: ${v}% > umbral 25%`; logType = 'crit'; }
+    else if (v > 15) { logMsg = `Corrosión advertencia: ${v}%`; logType = 'warn'; }
+    else { logMsg = `Corrosión normal: ${v}%`; logType = 'ok'; }
+  } else if (key === 'fatigue') {
+    if (v > 65) { logMsg = `FATIGA CRÍTICA: ${v}% > umbral 65%`; logType = 'crit'; }
+    else if (v > 40) { logMsg = `Fatiga elevada: ${v}%`; logType = 'warn'; }
+    else { logMsg = `Fatiga nominal: ${v}%`; logType = 'ok'; }
+  } else if (key === 'vibration') {
+    if (v > 10) { logMsg = `VIBRACIÓN CRÍTICA: ${v} mm/s`; logType = 'crit'; }
+    else if (v > 7) { logMsg = `Vibración elevada: ${v} mm/s`; logType = 'warn'; }
+    else { logMsg = `Vibración normal: ${v} mm/s`; logType = 'ok'; }
+  } else if (key === 'temperature') {
+    if (v > 450) { logMsg = `EXCURSIÓN TÉRMICA: ${v}°C > T.DISEÑO`; logType = 'crit'; }
+    else if (v > 420) { logMsg = `Temperatura alta: ${v}°C`; logType = 'warn'; }
+    else { logMsg = `Temperatura nominal: ${v}°C`; logType = 'ok'; }
+  } else if (key === 'pressure') {
+    if (v > 25) { logMsg = `SOBREPRESIÓN: ${v} bar > MAWP 25`; logType = 'crit'; }
+    else if (v > 22) { logMsg = `Presión elevada: ${v} bar`; logType = 'warn'; }
+    else { logMsg = `Presión nominal: ${v} bar`; logType = 'ok'; }
+  } else if (key === 'deformation') {
+    if (v > 5) { logMsg = `DEFORMACIÓN CRÍTICA: ${v} mm`; logType = 'crit'; }
+    else if (v > 3) { logMsg = `Deformación alta: ${v} mm`; logType = 'warn'; }
+    else { logMsg = `Deformación normal: ${v} mm`; logType = 'ok'; }
+  }
+  if (logMsg) scLog(logMsg, logType);
+
+  // Update overlay based on combined severity
+  const worstCrit = SIM.fatigue > 65 || SIM.corrosion > 28 || SIM.vibration > 10 || SIM.temperature > 450 || SIM.pressure > 25;
+  const overlay = document.getElementById('failure-overlay');
+  worstCrit ? overlay.classList.add('active') : overlay.classList.remove('active');
+}
+
+// ---- SYNC SLIDERS ----
+function syncSlidersToSIM() {
+  const sliders = ['corrosion','deformation','fatigue','vibration','temperature','pressure'];
+  sliders.forEach(k => {
+    const sl = document.getElementById(`sl-${k}`);
+    const vl = document.getElementById(`slv-${k}`);
+    if (sl) sl.value = SIM[k];
+    if (vl) vl.textContent = parseFloat(SIM[k]).toFixed(k === 'temperature' || k === 'fatigue' ? 0 : 1);
+  });
+}
+
+// ---- INJECT ALARMS ----
+function injectAlarms(alarmList) {
+  const scroll = document.getElementById('alarm-scroll');
+  // Prepend new alarms
+  const now = new Date();
+  alarmList.slice().reverse().forEach((a, i) => {
+    const card = document.createElement('div');
+    card.className = `alarm-card ${a.type}`;
+    const ts = new Date(now - i * 12000).toLocaleTimeString('es-EC', { hour:'2-digit', minute:'2-digit' });
+    card.innerHTML = `
+      <div class="alarm-icon">${a.icon}</div>
+      <div class="alarm-body">
+        <div class="alarm-msg">${a.msg}</div>
+        <div class="alarm-sub">${a.sub}</div>
+      </div>
+      <div class="alarm-time">${ts}</div>
+    `;
+    // Animate in
+    card.style.opacity = '0'; card.style.transform = 'translateY(-10px)';
+    scroll.insertBefore(card, scroll.firstChild);
+    setTimeout(() => {
+      card.style.transition = 'all 0.4s ease'; card.style.opacity = '1'; card.style.transform = 'translateY(0)';
+    }, i * 120);
+  });
+  SIM.alarm_count += alarmList.length;
+}
+
+// ---- INJECT HEATMAP DAMAGE ----
+function injectHeatmapDamage(dmgMap) {
+  for (let r = 0; r < HM_ROWS; r++) {
+    const rowDmg = dmgMap[Math.floor(r / 2)] || 0.1;
+    for (let c = 0; c < HM_COLS; c++) {
+      const noise = (Math.random() - 0.3) * rowDmg * 0.4;
+      hmData[r][c] = clamp(rowDmg + noise, 0.02, 0.98);
+    }
+  }
+}
+
+// ---- SHOW BANNER ----
+let bannerTimeout = null;
+function showBanner(sc) {
+  const banner = document.getElementById('scenario-banner');
+  const icon   = document.getElementById('banner-icon');
+  const text   = document.getElementById('banner-text');
+  const sub    = document.getElementById('banner-sub');
+
+  icon.textContent = sc.icon;
+  text.textContent = sc.name;
+  sub.textContent  = sc.desc;
+
+  banner.className = `scenario-banner show b-${sc.level === 'crit' ? 'crit' : sc.level === 'warn' ? 'warn' : 'ok'}`;
+  banner.style.display = 'flex';
+
+  if (bannerTimeout) clearTimeout(bannerTimeout);
+  // Keep critical banners visible longer
+  const delay = sc.level === 'crit' ? 8000 : 5000;
+  bannerTimeout = setTimeout(() => {
+    banner.classList.remove('show');
+  }, delay);
+}
+
+// ---- INIT SCENARIO ENGINE ----
+function initScenarioEngine() {
+  // Initial log entries
+  scLog('Sistema NIS-PMA iniciado correctamente', 'ok');
+  scLog('Motor IA cargado — Modelo v2.4 activo', 'info');
+  scLog('Conexión con RX-7 establecida — 7 sensores online', 'ok');
+  scLog('Listo. Seleccione un escenario para simular', 'info');
+}
+
+// ---- START ----
+runLoader();
+</script>
+</body>
+</html>

@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Structural Integrity Platform — I-Beam Digital Twin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;900&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* =====================================================
+   DESIGN SYSTEM — INDUSTRIAL DARK THEME
+   ===================================================== */
+:root{
+  --bg0:#030608;
+  --bg1:#060c12;
+  --bg2:#08111a;
+  --bg3:#0b1722;
+  --bg4:#0e1e2e;
+  --panel:#070e18;
+  --panel2:#091422;
+  --border:rgba(0,200,255,0.1);
+  --border2:rgba(0,200,255,0.2);
+  --border3:rgba(0,200,255,0.35);
+  --cyan:#00ccff;
+  --cyan2:#0099cc;
+  --cyan3:#006688;
+  --blue:#0d5fa0;
+  --green:#00e676;
+  --green2:#00c853;
+  --amber:#ffab00;
+  --amber2:#ff8f00;
+  --orange:#ff6d00;
+  --red:#ff1744;
+  --red2:#d50000;
+  --text1:#ddeeff;
+  --text2:#6aaccc;
+  --text3:#3a6a82;
+  --metal1:#1a2e40;
+  --metal2:#223344;
+  --metal3:#2a4055;
+  --font-t:'Orbitron',monospace;
+  --font-u:'Rajdhani',sans-serif;
+  --font-b:'Exo 2',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow-x:hidden;}
+body{
+  background:var(--bg0);
+  color:var(--text1);
+  font-family:var(--font-b);
+  font-size:13px;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
+
+/* ===== HEADER ===== */
+.hdr{
+  height:52px;
+  background:linear-gradient(90deg,#030e1a 0%,#04121f 50%,#030a14 100%);
+  border-bottom:1px solid var(--border2);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 14px;
+  flex-shrink:0;
+  position:sticky;top:0;z-index:200;
+}
+.hdr-logo{display:flex;align-items:center;gap:10px;}
+.logo-svg{width:38px;height:38px;flex-shrink:0;}
+.logo-name{
+  font-family:var(--font-t);
+  font-size:12px;font-weight:700;
+  color:var(--cyan);letter-spacing:2.5px;
+  line-height:1.15;
+}
+.logo-sub{
+  font-family:var(--font-u);
+  font-size:9px;color:var(--text3);
+  letter-spacing:3px;text-transform:uppercase;
+}
+.hdr-pills{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.pill{
+  display:flex;align-items:center;gap:5px;
+  padding:3px 9px;border-radius:20px;
+  font-family:var(--font-u);font-size:10px;font-weight:700;
+  letter-spacing:1.2px;text-transform:uppercase;border:1px solid;
+}
+.pill-ok{border-color:var(--green);color:var(--green);background:rgba(0,230,118,0.05);}
+.pill-warn{border-color:var(--amber);color:var(--amber);background:rgba(255,171,0,0.07);}
+.pill-crit{border-color:var(--red);color:var(--red);background:rgba(255,23,68,0.07);}
+.pill-blue{border-color:var(--cyan2);color:var(--cyan2);background:rgba(0,180,220,0.06);}
+.dot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
+.hdr-clock{
+  font-family:var(--font-t);font-size:12px;
+  color:var(--text3);letter-spacing:1.5px;text-align:right;
+}
+.hdr-clock-date{font-size:9px;color:var(--text3);letter-spacing:1px;margin-top:1px;}
+
+/* ===== MAIN GRID ===== */
+.main{
+  flex:1;
+  display:grid;
+  grid-template-columns:200px 1fr 236px;
+  grid-template-rows:1fr auto;
+  gap:7px;padding:7px;
+  min-height:0;
+}
+@media(max-width:1080px){.main{grid-template-columns:185px 1fr 214px;}}
+@media(max-width:820px){
+  .main{grid-template-columns:1fr;}
+  .left-col{order:2;}.center-col{order:1;}.right-col{order:3;}
+}
+
+/* ===== PANELS ===== */
+.pnl{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:5px;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.pnl-hdr{
+  padding:6px 10px;
+  border-bottom:1px solid var(--border);
+  background:rgba(0,200,255,0.025);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.pnl-title{
+  font-family:var(--font-u);font-size:10px;font-weight:700;
+  color:var(--cyan);letter-spacing:2px;text-transform:uppercase;
+}
+.badge{
+  font-family:var(--font-u);font-size:9px;font-weight:700;
+  padding:2px 6px;border-radius:2px;letter-spacing:1px;
+}
+.b-ok{background:rgba(0,230,118,0.12);color:var(--green);}
+.b-warn{background:rgba(255,171,0,0.12);color:var(--amber);}
+.b-crit{background:rgba(255,23,68,0.12);color:var(--red);}
+.b-blue{background:rgba(0,200,255,0.1);color:var(--cyan);}
+
+/* ===== LEFT COL ===== */
+.left-col{display:flex;flex-direction:column;gap:7px;}
+.kpi-scroll{overflow-y:auto;padding:6px;display:grid;gap:5px;flex:1;}
+.kpi{
+  background:var(--bg2);border:1px solid var(--border);border-radius:3px;
+  padding:6px 8px;transition:border-color .3s;
+}
+.kpi:hover{border-color:var(--border2);}
+.kpi-lbl{
+  font-family:var(--font-u);font-size:9px;color:var(--text3);
+  letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px;
+}
+.kpi-row{display:flex;align-items:baseline;gap:3px;}
+.kpi-val{font-family:var(--font-t);font-size:17px;font-weight:700;line-height:1;}
+.kpi-unit{font-family:var(--font-u);font-size:9px;color:var(--text2);}
+.kpi-bar{height:2px;background:var(--bg3);border-radius:1px;margin-top:4px;overflow:hidden;}
+.kbar{height:100%;border-radius:1px;transition:width .9s,background .6s;}
+.vc{color:var(--cyan)}.vg{color:var(--green)}.va{color:var(--amber)}
+.vo{color:var(--orange)}.vr{color:var(--red)}
+
+/* ===== CENTER COL ===== */
+.center-col{display:flex;flex-direction:column;gap:7px;}
+
+/* Twin viewport */
+.twin-pnl{flex:1;min-height:280px;}
+.twin-ctrl{
+  padding:6px 8px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:5px;flex-wrap:wrap;background:rgba(0,200,255,0.02);
+}
+.vbtn{
+  padding:3px 9px;border-radius:3px;
+  font-family:var(--font-u);font-size:10px;font-weight:700;
+  letter-spacing:1px;cursor:pointer;
+  border:1px solid var(--border2);background:transparent;
+  color:var(--text2);text-transform:uppercase;transition:all .2s;
+}
+.vbtn.active,.vbtn:hover{
+  background:rgba(0,200,255,0.1);
+  color:var(--cyan);border-color:var(--cyan);
+}
+.twin-wrap{
+  position:relative;flex:1;
+  background:radial-gradient(ellipse at 50% 30%, #0a1a28 0%, var(--bg0) 80%);
+}
+#beamCanvas{display:block;width:100%;height:370px;}
+.twin-legend{
+  padding:4px 8px 6px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.leg-item{
+  display:flex;align-items:center;gap:4px;
+  font-family:var(--font-u);font-size:10px;color:var(--text2);
+}
+.leg-dot{width:22px;height:4px;border-radius:2px;display:inline-block;}
+
+/* Sim buttons */
+.sim-pnl{flex-shrink:0;}
+.sim-grid{
+  padding:7px 8px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
+  gap:5px;
+}
+.sb{
+  padding:6px 6px;border-radius:3px;
+  font-family:var(--font-u);font-size:10px;font-weight:700;
+  cursor:pointer;border:1px solid;background:transparent;
+  text-align:center;letter-spacing:.5px;
+  transition:all .18s;line-height:1.25;text-transform:uppercase;
+}
+.sb:hover{transform:translateY(-1px);}
+.sb.sw{border-color:var(--amber);color:var(--amber);}
+.sb.sw:hover,.sb.sw.active{background:rgba(255,171,0,0.12);}
+.sb.sc{border-color:var(--orange);color:var(--orange);}
+.sb.sc:hover,.sb.sc.active{background:rgba(255,109,0,0.12);}
+.sb.sf{border-color:var(--red);color:var(--red);}
+.sb.sf:hover,.sb.sf.active{background:rgba(255,23,68,0.12);}
+.sb.sr{border-color:var(--cyan);color:var(--cyan);}
+.sb.sr:hover{background:rgba(0,200,255,0.08);}
+
+/* Mini charts */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;flex-shrink:0;}
+.chart-mini-h{height:90px;padding:4px 8px 6px;}
+
+/* ===== RIGHT COL ===== */
+.right-col{display:flex;flex-direction:column;gap:7px;overflow-y:auto;}
+
+/* AI ring */
+.ai-ring-wrap{
+  padding:10px 10px 6px;
+  display:flex;flex-direction:column;align-items:center;
+}
+.ai-rows{padding:0 10px 8px;}
+.ai-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:4px 0;border-bottom:1px solid var(--border);
+  font-family:var(--font-u);font-size:11px;
+}
+.ai-row:last-child{border-bottom:none;}
+.ai-rl{color:var(--text2);}
+.ai-rv{font-weight:700;letter-spacing:.5px;}
+
+/* RUL */
+.rul-big{
+  font-family:var(--font-t);font-size:40px;font-weight:900;
+  color:var(--cyan);line-height:1;text-align:center;
+  padding:8px 0 2px;
+}
+.rul-sub{
+  font-family:var(--font-u);font-size:9px;color:var(--text3);
+  letter-spacing:2.5px;text-transform:uppercase;text-align:center;
+  margin-bottom:8px;
+}
+.pred-row{
+  display:flex;align-items:center;gap:6px;
+  padding:3px 10px;font-family:var(--font-u);font-size:11px;
+}
+.pred-lbl{color:var(--text2);width:40px;flex-shrink:0;}
+.pred-bg{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.pred-fill{height:100%;border-radius:3px;transition:width .8s,background .5s;}
+.pred-v{width:34px;text-align:right;font-weight:700;font-size:11px;}
+
+/* Anomalies */
+.anom-list{padding:5px 10px;}
+.anom-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:4px 0;border-bottom:1px solid var(--border);
+  font-family:var(--font-u);font-size:11px;
+}
+.anom-item:last-child{border-bottom:none;}
+.anom-n{color:var(--text2);}
+.anom-s{font-weight:700;}
+
+/* Deg chart */
+.deg-chart-h{height:95px;padding:4px 8px 6px;}
+
+/* ===== CONSOLE ===== */
+.console-pnl{
+  grid-column:1/-1;
+  background:var(--panel);border:1px solid var(--border);border-radius:5px;
+  max-height:148px;overflow-y:auto;display:flex;flex-direction:column;
+}
+.event-row{
+  display:grid;
+  grid-template-columns:112px 72px 68px 1fr;
+  gap:8px;padding:4px 12px;
+  border-bottom:1px solid rgba(0,200,255,0.04);
+  font-family:var(--font-b);font-size:11px;align-items:center;
+  animation:fadeUp .35s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(-3px);}to{opacity:1;transform:translateY(0);}}
+.ev-ts{color:var(--text3);font-family:var(--font-t);font-size:9px;}
+.ev-sev{
+  font-weight:700;letter-spacing:.8px;font-size:9px;
+  text-align:center;padding:2px 4px;border-radius:2px;
+}
+.en{background:rgba(0,230,118,.08);color:var(--green);}
+.ew{background:rgba(255,171,0,.09);color:var(--amber);}
+.ec{background:rgba(255,109,0,.09);color:var(--orange);}
+.ee{background:rgba(255,23,68,.1);color:var(--red);}
+.ev-src{color:var(--cyan2);font-size:10px;}
+.ev-msg{color:var(--text1);}
+
+/* scrollbar */
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:var(--bg1);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* Vibration shake anim on EMERGENCY */
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-2px);}40%{transform:translateX(2px);}60%{transform:translateX(-1px);}80%{transform:translateX(1px);}}
+.emergency-shake{animation:shake .15s infinite;}
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="hdr">
+  <div class="hdr-logo">
+    <!-- Logo SVG -->
+    <svg class="logo-svg" viewBox="0 0 38 38" fill="none">
+      <defs>
+        <filter id="glow1"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <circle cx="19" cy="19" r="17.5" stroke="#00ccff" stroke-width=".6" opacity=".35"/>
+      <circle cx="19" cy="19" r="13" stroke="#00ccff" stroke-width=".4" opacity=".18"/>
+      <!-- I-beam silhouette -->
+      <rect x="10" y="10" width="18" height="3.5" rx="1" fill="#00ccff" opacity=".85" filter="url(#glow1)"/>
+      <rect x="10" y="24.5" width="18" height="3.5" rx="1" fill="#00ccff" opacity=".85"/>
+      <rect x="17" y="13.5" width="4" height="11" rx=".5" fill="#00ccff" opacity=".7"/>
+      <!-- Signal lines -->
+      <path d="M6 19 Q9 14 12 19 Q15 24 18 19" stroke="#00e676" stroke-width="1" fill="none" stroke-linecap="round" opacity=".8"/>
+      <circle cx="18" cy="19" r="1.5" fill="#00e676" opacity=".9"/>
+    </svg>
+    <div>
+      <div class="logo-name">STRUCTGUARD AI</div>
+      <div class="logo-sub">AI Structural Integrity Platform</div>
+    </div>
+  </div>
+
+  <div class="hdr-pills">
+    <span class="pill pill-ok" id="globalPill"><span class="dot"></span><span id="globalTxt">NOMINAL</span></span>
+    <span class="pill pill-ok"><span class="dot"></span>AI ONLINE</span>
+    <span class="pill pill-ok"><span class="dot"></span>IIoT ×14</span>
+    <span class="pill pill-blue">EDGE→CLOUD→AI</span>
+  </div>
+
+  <div class="hdr-clock">
+    <div id="clk">--:--:--</div>
+    <div class="hdr-clock-date" id="cld">--/--/----</div>
+  </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <!-- ===== LEFT KPIs ===== -->
+  <div class="left-col">
+    <div class="pnl" style="flex:1;">
+      <div class="pnl-hdr">
+        <span class="pnl-title">KPIs Estructurales</span>
+        <span class="badge b-blue">LIVE</span>
+      </div>
+      <div class="kpi-scroll" id="kpiGrid"></div>
+    </div>
+  </div>
+
+  <!-- ===== CENTER ===== -->
+  <div class="center-col">
+
+    <!-- Digital Twin -->
+    <div class="pnl twin-pnl">
+      <div class="twin-ctrl">
+        <span style="font-family:var(--font-u);font-size:9px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-right:2px;">MODO:</span>
+        <button class="vbtn active" onclick="setMode('thermal')"   id="btn-thermal">Térmico</button>
+        <button class="vbtn"        onclick="setMode('corrosion')" id="btn-corrosion">Corrosión</button>
+        <button class="vbtn"        onclick="setMode('stress')"    id="btn-stress">Esfuerzo</button>
+        <button class="vbtn"        onclick="setMode('deform')"    id="btn-deform">Deform.</button>
+        <button class="vbtn"        onclick="setMode('fatigue')"   id="btn-fatigue">Fatiga</button>
+        <button class="vbtn"        onclick="setMode('ai')"        id="btn-ai">IA Flow</button>
+      </div>
+      <div class="twin-wrap">
+        <canvas id="beamCanvas"></canvas>
+      </div>
+      <div class="twin-legend">
+        <span style="font-family:var(--font-u);font-size:9px;color:var(--text3);">LEYENDA:</span>
+        <div id="legItems" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+      </div>
+    </div>
+
+    <!-- Simulation Panel -->
+    <div class="pnl sim-pnl">
+      <div class="pnl-hdr">
+        <span class="pnl-title">Simulación de Fallas</span>
+        <span class="badge b-warn" id="simBadge">STANDBY</span>
+      </div>
+      <div class="sim-grid">
+        <button class="sb sw" onclick="runSim('overload')">⚡ Sobrecarga</button>
+        <button class="sb sw" onclick="runSim('fatigue')">↺ Fatiga Acum.</button>
+        <button class="sb sc" onclick="runSim('corrosion')">🔴 Corrosión</button>
+        <button class="sb sc" onclick="runSim('deformation')">📐 Deform. Crít.</button>
+        <button class="sb sc" onclick="runSim('buckling')">↓ Pandeo</button>
+        <button class="sb sc" onclick="runSim('vibration')">〰 Vibración</button>
+        <button class="sb sf" onclick="runSim('fracture')">💥 Fractura</button>
+        <button class="sb sf" onclick="runSim('collapse')">☠ Colapso</button>
+        <button class="sb sw" onclick="runSim('temperature')">🌡 T° Extrema</button>
+        <button class="sb sr" onclick="runSim('reset')">↺ Reset</button>
+      </div>
+    </div>
+
+    <!-- Mini charts -->
+    <div class="chart-row">
+      <div class="pnl">
+        <div class="pnl-hdr"><span class="pnl-title">Temperatura</span></div>
+        <div class="chart-mini-h"><canvas id="cTemp"></canvas></div>
+      </div>
+      <div class="pnl">
+        <div class="pnl-hdr"><span class="pnl-title">Deformación</span></div>
+        <div class="chart-mini-h"><canvas id="cDeform"></canvas></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== RIGHT COL ===== -->
+  <div class="right-col">
+
+    <!-- AI Engine -->
+    <div class="pnl">
+      <div class="pnl-hdr">
+        <span class="pnl-title">Motor IA</span>
+        <span class="badge b-ok">WEIBULL+LSTM</span>
+      </div>
+      <div class="ai-ring-wrap">
+        <svg viewBox="0 0 110 68" width="100%" style="max-width:170px;">
+          <path d="M14 58 A44 44 0 0 1 96 58" stroke="#0b1722" stroke-width="9" fill="none"/>
+          <path id="aiArc" d="M14 58 A44 44 0 0 1 96 58" stroke="#00ccff" stroke-width="9" fill="none"
+            stroke-dasharray="138" stroke-dashoffset="28" stroke-linecap="round"/>
+          <text x="55" y="52" text-anchor="middle" font-family="Orbitron,monospace" font-size="16" font-weight="700" fill="#00ccff" id="aiN">87</text>
+          <text x="55" y="63" text-anchor="middle" font-family="Rajdhani,sans-serif" font-size="8" fill="#3a6a82">CONFIDENCE %</text>
+        </svg>
+      </div>
+      <div class="ai-rows">
+        <div class="ai-row"><span class="ai-rl">Modelo</span><span class="ai-rv vc">Weibull+LSTM</span></div>
+        <div class="ai-row"><span class="ai-rl">Estado</span><span class="ai-rv vg" id="aiState">INFERENCIA</span></div>
+        <div class="ai-row"><span class="ai-rl">Predicción</span><span class="ai-rv va" id="aiPred">DEGRADACIÓN</span></div>
+        <div class="ai-row"><span class="ai-rl">Risk Score</span><span class="ai-rv va" id="aiRisk">MODERADO</span></div>
+      </div>
+    </div>
+
+    <!-- RUL -->
+    <div class="pnl">
+      <div class="pnl-hdr">
+        <span class="pnl-title">Vida Remanente</span>
+        <span class="badge b-blue">RUL</span>
+      </div>
+      <div class="rul-big" id="rulVal">312</div>
+      <div class="rul-sub">Días Estimados</div>
+      <div class="pred-row">
+        <span class="pred-lbl">30d</span>
+        <div class="pred-bg"><div class="pred-fill" id="pf30" style="width:12%;background:var(--green)"></div></div>
+        <span class="pred-v vg" id="pv30">12%</span>
+      </div>
+      <div class="pred-row">
+        <span class="pred-lbl">60d</span>
+        <div class="pred-bg"><div class="pred-fill" id="pf60" style="width:24%;background:var(--amber)"></div></div>
+        <span class="pred-v va" id="pv60">24%</span>
+      </div>
+      <div class="pred-row" style="padding-bottom:8px;">
+        <span class="pred-lbl">90d</span>
+        <div class="pred-bg"><div class="pred-fill" id="pf90" style="width:39%;background:var(--orange)"></div></div>
+        <span class="pred-v vo" id="pv90">39%</span>
+      </div>
+    </div>
+
+    <!-- Anomalies -->
+    <div class="pnl">
+      <div class="pnl-hdr">
+        <span class="pnl-title">Anomalías IA</span>
+        <span class="badge b-warn" id="anomBadge">3 DET.</span>
+      </div>
+      <div class="anom-list" id="anomList"></div>
+    </div>
+
+    <!-- Degradation chart -->
+    <div class="pnl">
+      <div class="pnl-hdr"><span class="pnl-title">Curva Degradación</span></div>
+      <div class="deg-chart-h"><canvas id="cDeg"></canvas></div>
+    </div>
+
+    <!-- Reliability chart -->
+    <div class="pnl">
+      <div class="pnl-hdr"><span class="pnl-title">Health Index Trend</span></div>
+      <div class="deg-chart-h"><canvas id="cHealth"></canvas></div>
+    </div>
+
+  </div>
+
+  <!-- ===== CONSOLE ===== -->
+  <div class="console-pnl">
+    <div class="pnl-hdr" style="position:sticky;top:0;background:var(--panel);z-index:10;flex-shrink:0;">
+      <span class="pnl-title">Consola SCADA · Eventos IIoT · IA Predictiva</span>
+      <span class="badge b-blue" id="evCount">0</span>
+    </div>
+    <div id="evList"></div>
+  </div>
+
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT ENGINE
+     ============================================================ -->
+<script>
+"use strict";
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  mode:'thermal', sim:'none', tick:0,
+  health:87, reliability:92, availability:96, maintainability:88,
+  integrity:85, damage:15, criticality:18, risk:22,
+  corrosion:18, temp:44, deform:0.65, vibration:2.3,
+  fatigue:34, stress:38, flow:3.1, rul:312,
+  pf30:12, pf60:24, pf90:39, aiConf:87,
+  evCount:0, particles:[], ptick:0,
+};
+
+const PROFILES = {
+  overload:    {health:50,reliability:62,availability:88,maintainability:74,integrity:52,damage:48,criticality:58,risk:64,corrosion:20,temp:72,deform:3.2,vibration:6.8,fatigue:74,stress:91,rul:88,pf30:44,pf60:67,pf90:83,aiConf:92,sev:'WARNING',mode:'stress'},
+  fatigue:     {health:42,reliability:54,availability:82,maintainability:68,integrity:44,damage:56,criticality:65,risk:71,corrosion:26,temp:52,deform:2.1,vibration:5.2,fatigue:91,stress:64,rul:65,pf30:57,pf60:79,pf90:91,aiConf:94,sev:'CRITICAL',mode:'fatigue'},
+  corrosion:   {health:35,reliability:48,availability:79,maintainability:61,integrity:38,damage:62,criticality:72,risk:78,corrosion:72,temp:47,deform:1.4,vibration:3.2,fatigue:50,stress:44,rul:100,pf30:63,pf60:84,pf90:95,aiConf:89,sev:'CRITICAL',mode:'corrosion'},
+  deformation: {health:28,reliability:41,availability:74,maintainability:55,integrity:30,damage:70,criticality:79,risk:84,corrosion:24,temp:56,deform:8.2,vibration:9.1,fatigue:63,stress:80,rul:56,pf30:71,pf60:87,pf90:97,aiConf:96,sev:'CRITICAL',mode:'deform'},
+  buckling:    {health:20,reliability:32,availability:68,maintainability:44,integrity:22,damage:78,criticality:88,risk:91,corrosion:21,temp:61,deform:12.4,vibration:6.3,fatigue:77,stress:97,rul:39,pf30:77,pf60:92,pf90:99,aiConf:97,sev:'EMERGENCY',mode:'deform'},
+  vibration:   {health:45,reliability:58,availability:85,maintainability:70,integrity:48,damage:52,criticality:61,risk:67,corrosion:23,temp:66,deform:3.4,vibration:17.2,fatigue:60,stress:58,rul:76,pf30:50,pf60:72,pf90:89,aiConf:90,sev:'CRITICAL',mode:'stress'},
+  fracture:    {health:13,reliability:22,availability:58,maintainability:32,integrity:14,damage:86,criticality:93,risk:96,corrosion:33,temp:75,deform:15.8,vibration:21.4,fatigue:94,stress:99,rul:17,pf30:90,pf60:98,pf90:100,aiConf:98,sev:'EMERGENCY',mode:'stress'},
+  collapse:    {health:4, reliability:8, availability:42,maintainability:18,integrity:5, damage:95,criticality:99,risk:100,corrosion:48,temp:91,deform:32.1,vibration:28.6,fatigue:100,stress:100,rul:2,pf30:99,pf60:100,pf90:100,aiConf:99,sev:'EMERGENCY',mode:'deform'},
+  temperature: {health:40,reliability:55,availability:83,maintainability:67,integrity:42,damage:58,criticality:64,risk:69,corrosion:28,temp:128,deform:4.1,vibration:4.5,fatigue:55,stress:71,rul:92,pf30:46,pf60:70,pf90:86,aiConf:91,sev:'WARNING',mode:'thermal'},
+  reset:       {health:87,reliability:92,availability:96,maintainability:88,integrity:85,damage:15,criticality:18,risk:22,corrosion:18,temp:44,deform:0.65,vibration:2.3,fatigue:34,stress:38,rul:312,pf30:12,pf60:24,pf90:39,aiConf:87,sev:'NORMAL',mode:'thermal'},
+};
+
+const SIM_MSGS = {
+  overload:   'Sobrecarga estructural — esfuerzo supera límite operacional en alma de viga',
+  fatigue:    'Fatiga acumulada crítica — ciclos de carga exceden umbral de diseño Nf',
+  corrosion:  'Corrosión severa — pérdida de espesor de alas supera 15% en tramo 3',
+  deformation:'Deformación plástica irreversible — sección transversal comprometida',
+  buckling:   'PANDEO INMINENTE — carga axial ≥94% de carga crítica de Euler',
+  vibration:  'Vibración excesiva — amplitud modal fuera de banda, posible resonancia',
+  fracture:   '⚠ FRACTURA PARCIAL — propagación de grieta en zona de soldadura. ACCIÓN INMEDIATA',
+  collapse:   '🔴 COLAPSO ESTRUCTURAL — falla catastrófica inminente. EVACUAR ÁREA',
+  temperature:'Temperatura extrema — zona de expansión térmica comprometida en ala superior',
+  reset:      'Sistema reiniciado — todos los parámetros en condición nominal operacional',
+};
+
+// ============================================================
+// KPI DEFINITIONS
+// ============================================================
+const KPIS = [
+  {id:'health',     lbl:'Health Index',      unit:'%',  max:100, cf:v=>v>70?'vg':v>40?'va':'vr'},
+  {id:'reliability',lbl:'Reliability (RAM)',  unit:'%',  max:100, cf:v=>v>80?'vg':v>55?'va':'vr'},
+  {id:'availability',lbl:'Availability',      unit:'%',  max:100, cf:v=>v>88?'vg':v>70?'va':'vr'},
+  {id:'integrity',  lbl:'Struct. Integrity',  unit:'%',  max:100, cf:v=>v>75?'vg':v>45?'va':'vr'},
+  {id:'damage',     lbl:'Nivel de Daño',      unit:'%',  max:100, cf:v=>v<25?'vg':v<60?'va':'vr'},
+  {id:'criticality',lbl:'Criticidad',         unit:'%',  max:100, cf:v=>v<25?'vg':v<60?'va':'vr'},
+  {id:'risk',       lbl:'Riesgo Operacional', unit:'%',  max:100, cf:v=>v<25?'vg':v<60?'va':'vr'},
+  {id:'fatigue',    lbl:'Fatiga Acumulada',   unit:'%',  max:100, cf:v=>v<50?'vg':v<80?'va':'vr'},
+  {id:'stress',     lbl:'Esfuerzo',           unit:'%',  max:100, cf:v=>v<50?'vg':v<80?'va':'vr'},
+  {id:'corrosion',  lbl:'Corrosión',          unit:'%',  max:100, cf:v=>v<25?'vg':v<55?'va':'vr'},
+  {id:'temp',       lbl:'Temperatura',        unit:'°C', max:150, cf:v=>v<65?'vc':v<95?'va':'vr'},
+  {id:'deform',     lbl:'Deformación',        unit:'mm', max:35,  cf:v=>v<2?'vg':v<6?'va':'vr'},
+  {id:'vibration',  lbl:'Vibración',          unit:'mm/s',max:30, cf:v=>v<5?'vg':v<12?'va':'vr'},
+];
+
+// ============================================================
+// RENDER KPIs
+// ============================================================
+function renderKPIs(){
+  const g = document.getElementById('kpiGrid');
+  g.innerHTML = KPIS.map(k=>{
+    const v = S[k.id], c = k.cf(v), pct = Math.min(100,(v/k.max)*100);
+    const bc = c==='vg'?'var(--green)':c==='va'?'var(--amber)':c==='vc'?'var(--cyan)':c==='vo'?'var(--orange)':'var(--red)';
+    return `<div class="kpi">
+      <div class="kpi-lbl">${k.lbl}</div>
+      <div class="kpi-row">
+        <span class="kpi-val ${c}">${k.id==='deform'?v.toFixed(1):Math.round(v)}</span>
+        <span class="kpi-unit">${k.unit}</span>
+      </div>
+      <div class="kpi-bar"><div class="kbar" style="width:${pct}%;background:${bc}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// ANOMALIES
+// ============================================================
+const BASE_ANOM = [
+  {n:'Zona soldadura W3',s:0.72,c:'va'},
+  {n:'Reducción ala inferior',s:0.58,c:'va'},
+  {n:'Vibracion modo 3',s:0.41,c:'vc'},
+];
+function getAnoms(){
+  if(S.sim==='none') return BASE_ANOM;
+  const p = PROFILES[S.sim];
+  const pool=[
+    {n:'Grieta inicio F1',s:0.93,c:'vr'},
+    {n:'Pérdida espesor alma',s:0.87,c:'vr'},
+    {n:'Tensión concentrada',s:0.80,c:'vo'},
+    {n:'Deflexión plástica',s:0.75,c:'vo'},
+    {n:'Soldadura S2 comprometida',s:0.69,c:'va'},
+    {n:'Microfisuración base',s:0.62,c:'va'},
+  ];
+  const n = p.sev==='EMERGENCY'?6:p.sev==='CRITICAL'?4:2;
+  return pool.slice(0,n);
+}
+function renderAnoms(){
+  const a = getAnoms();
+  document.getElementById('anomBadge').textContent = a.length + ' DET.';
+  document.getElementById('anomList').innerHTML = a.map(x=>`
+    <div class="anom-item">
+      <span class="anom-n">${x.n}</span>
+      <span class="anom-s ${x.c}">${(x.s*100).toFixed(0)}%</span>
+    </div>`).join('');
+}
+
+// ============================================================
+// AI PANEL
+// ============================================================
+function updateAI(){
+  const p = S.sim!=='none'? PROFILES[S.sim]:null;
+  const sev = p?p.sev:'NORMAL';
+  const conf = S.aiConf;
+  const StateMap={NORMAL:'INFERENCIA',WARNING:'ALERTA ACTIVA',CRITICAL:'ANÁLISIS CRÍTICO',EMERGENCY:'MODO EMERGENCIA'};
+  const PredMap ={NORMAL:'DEGRADACIÓN LENTA',WARNING:'FALLA PROBABLE',CRITICAL:'FALLA INMINENTE',EMERGENCY:'COLAPSO INMINENTE'};
+  const RiskMap ={NORMAL:'MODERADO',WARNING:'ALTO',CRITICAL:'MUY ALTO',EMERGENCY:'EXTREMO'};
+  const RiskC  ={NORMAL:'va',WARNING:'vo',CRITICAL:'vr',EMERGENCY:'vr'};
+  const StateC ={NORMAL:'vg',WARNING:'va',CRITICAL:'vo',EMERGENCY:'vr'};
+  document.getElementById('aiState').textContent=StateMap[sev];
+  document.getElementById('aiState').className='ai-rv '+StateC[sev];
+  document.getElementById('aiPred').textContent=PredMap[sev];
+  document.getElementById('aiPred').className='ai-rv '+(sev==='NORMAL'?'va':sev==='WARNING'?'vo':'vr');
+  document.getElementById('aiRisk').textContent=RiskMap[sev];
+  document.getElementById('aiRisk').className='ai-rv '+RiskC[sev];
+
+  const arc=document.getElementById('aiArc');
+  const off=138-(conf/100)*138;
+  arc.setAttribute('stroke-dashoffset',off);
+  arc.setAttribute('stroke',conf>80?'#00ccff':conf>60?'#ffab00':'#ff1744');
+  document.getElementById('aiN').textContent=conf;
+  document.getElementById('aiN').setAttribute('fill',conf>80?'#00ccff':conf>60?'#ffab00':'#ff1744');
+
+  // RUL
+  const rc=S.rul>180?'var(--cyan)':S.rul>90?'var(--amber)':'var(--red)';
+  document.getElementById('rulVal').textContent=S.rul;
+  document.getElementById('rulVal').style.color=rc;
+
+  // Pred bars
+  const barData=[{id:'pf30',vid:'pv30',v:S.pf30},{id:'pf60',vid:'pv60',v:S.pf60},{id:'pf90',vid:'pv90',v:S.pf90}];
+  barData.forEach(b=>{
+    const c=b.v<30?'var(--green)':b.v<60?'var(--amber)':'var(--red)';
+    const cc=b.v<30?'vg':b.v<60?'va':'vr';
+    document.getElementById(b.id).style.width=b.v+'%';
+    document.getElementById(b.id).style.background=c;
+    document.getElementById(b.vid).textContent=b.v+'%';
+    document.getElementById(b.vid).className='pred-v '+cc;
+  });
+}
+
+// ============================================================
+// GLOBAL STATUS
+// ============================================================
+function updateGlobal(){
+  const p=S.sim!=='none'?PROFILES[S.sim]:null;
+  const sev=p?p.sev:'NORMAL';
+  const pill=document.getElementById('globalPill');
+  document.getElementById('globalTxt').textContent=sev;
+  pill.className='pill '+(sev==='NORMAL'?'pill-ok':sev==='WARNING'?'pill-warn':'pill-crit');
+}
+
+// ============================================================
+// CONSOLE EVENTS
+// ============================================================
+function addEv(sev,src,msg){
+  const ts=new Date().toTimeString().slice(0,8);
+  const sc={NORMAL:'en',WARNING:'ew',CRITICAL:'ec',EMERGENCY:'ee'}[sev]||'en';
+  const row=document.createElement('div');
+  row.className='event-row';
+  row.innerHTML=`<span class="ev-ts">${ts}</span>
+    <span class="ev-sev ${sc}">${sev}</span>
+    <span class="ev-src">${src}</span>
+    <span class="ev-msg">${msg}</span>`;
+  const list=document.getElementById('evList');
+  list.insertBefore(row,list.firstChild);
+  if(list.children.length>50) list.removeChild(list.lastChild);
+  S.evCount++;
+  document.getElementById('evCount').textContent=S.evCount+' EVT';
+}
+
+// ============================================================
+// SIMULATION
+// ============================================================
+function runSim(name){
+  document.querySelectorAll('.sb.active').forEach(b=>b.classList.remove('active'));
+  S.sim=name;
+  const p=PROFILES[name];
+  Object.keys(p).forEach(k=>{ if(typeof S[k]==='number') S[k]=p[k]; });
+  S.mode=p.mode||S.mode;
+  if(name!=='reset') S.sim=name; else S.sim='none';
+  // Activate button visually
+  document.querySelectorAll('.sb').forEach(b=>{
+    if(b.textContent.toLowerCase().replace(/[^a-z]/g,'').includes(name.slice(0,5))) b.classList.add('active');
+  });
+  if(name==='reset') document.querySelectorAll('.sb.active').forEach(b=>b.classList.remove('active'));
+
+  const sb=document.getElementById('simBadge');
+  sb.textContent=name==='reset'?'STANDBY':p.sev+' ACTIVO';
+  sb.className='badge '+(p.sev==='NORMAL'?'b-blue':p.sev==='WARNING'?'b-warn':'b-crit');
+
+  setMode(S.mode,false);
+  addEv(p.sev,'SIM·ENGINE',SIM_MSGS[name]);
+
+  // Emergency shake
+  const cw=document.querySelector('.twin-wrap');
+  if(p.sev==='EMERGENCY'){ cw.classList.add('emergency-shake'); }
+  else{ cw.classList.remove('emergency-shake'); }
+
+  renderKPIs(); updateAI(); updateGlobal(); renderAnoms(); updateCharts();
+}
+
+// ============================================================
+// MODE SWITCHING
+// ============================================================
+const LEGENDS={
+  thermal:  [['#0040ff','Frío'],['#00ff88','Templado'],['#ffff00','Caliente'],['#ff6000','Crítico'],['#ff0000','Extremo']],
+  corrosion:[['#4a7a92','Normal'],['#a07030','Leve'],['#cc5500','Moderada'],['#ff2200','Severa']],
+  stress:   [['#0060ff','Bajo'],['#00cc88','Normal'],['#ffcc00','Alto'],['#ff4400','Crítico']],
+  deform:   [['#0080ff','≤1mm'],['#00ff88','1-3mm'],['#ffaa00','3-8mm'],['#ff2200','>8mm']],
+  fatigue:  [['#2255aa','<30%'],['#3388cc','30-60%'],['#ffaa00','60-80%'],['#ff1744','>80%']],
+  ai:       [['#00ccff','Flujo IA'],['#00e676','Señal OK'],['#ffab00','Alerta'],['#ff1744','Crítico']],
+};
+function setMode(m,updateBtns=true){
+  S.mode=m;
+  if(updateBtns){
+    document.querySelectorAll('.vbtn').forEach(b=>b.classList.remove('active'));
+    const b=document.getElementById('btn-'+m); if(b) b.classList.add('active');
+  }
+  const items=LEGENDS[m]||[];
+  document.getElementById('legItems').innerHTML=items.map(([c,l])=>
+    `<span class="leg-item"><span class="leg-dot" style="background:${c}"></span>${l}</span>`
+  ).join('');
+}
+
+// ============================================================
+// CANVAS — I-BEAM DIGITAL TWIN
+// ============================================================
+const cvs=document.getElementById('beamCanvas');
+const ctx=cvs.getContext('2d');
+
+function resizeCvs(){
+  const w=cvs.parentElement.clientWidth;
+  cvs.width=w; cvs.height=370;
+}
+
+// Color ramp helper
+function heatColor(n){
+  n=Math.max(0,Math.min(1,n));
+  const stops=[[0,'#0040ff'],[.22,'#00aaff'],[.44,'#00ff88'],[.60,'#ffee00'],[.78,'#ff6600'],[1,'#ff0000']];
+  for(let i=1;i<stops.length;i++){
+    if(n<=stops[i][0]){
+      const lo=stops[i-1],hi=stops[i];
+      return lerpHex(lo[1],hi[1],(n-lo[0])/(hi[0]-lo[0]));
+    }
+  }
+  return '#ff0000';
+}
+function lerpHex(a,b,t){
+  const pr=x=>parseInt(x.slice(1,3),16);
+  const pg=x=>parseInt(x.slice(3,5),16);
+  const pb2=x=>parseInt(x.slice(5,7),16);
+  const r=(pr(a)+(pr(b)-pr(a))*t|0).toString(16).padStart(2,'0');
+  const g=(pg(a)+(pg(b)-pg(a))*t|0).toString(16).padStart(2,'0');
+  const b2=(pb2(a)+(pb2(b)-pb2(a))*t|0).toString(16).padStart(2,'0');
+  return `#${r}${g}${b2}`;
+}
+function lightenHex(h,f){
+  const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+  return `rgb(${Math.min(255,r+f*255|0)},${Math.min(255,g+f*255|0)},${Math.min(255,b+f*255|0)})`;
+}
+function darkenHex(h,f){
+  const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+  return `rgb(${Math.max(0,r*(1-f)|0)},${Math.max(0,g*(1-f)|0)},${Math.max(0,b*(1-f)|0)})`;
+}
+
+// Particles for AI mode
+function initPart(){
+  S.particles=Array.from({length:80},()=>({
+    x:Math.random()*cvs.width, y:Math.random()*cvs.height,
+    vx:(Math.random()-.5)*1.4, vy:(Math.random()-.5)*.8,
+    r:Math.random()*1.8+.8,
+    a:Math.random()*.7+.3,
+    c:Math.random()<.6?'#00ccff':Math.random()<.5?'#00e676':'#ffab00'
+  }));
+}
+
+function getSF(){
+  if(S.sim==='none') return 0;
+  const p=PROFILES[S.sim];
+  return {NORMAL:0,WARNING:.35,CRITICAL:.65,EMERGENCY:1}[p.sev]||0;
+}
+
+// ---- MAIN DRAW FUNCTION ----
+function drawBeam(){
+  resizeCvs();
+  const W=cvs.width, H=cvs.height;
+  const t=S.tick*.028;
+  ctx.clearRect(0,0,W,H);
+
+  // Background grid — full canvas
+  ctx.strokeStyle='rgba(0,180,255,0.032)';ctx.lineWidth=.5;
+  for(let x=0;x<W;x+=28){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=28){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  const sf=getSF();
+
+  // ── LAYOUT: left 72% lateral view │ right 28% front section ──
+  const divX = Math.round(W*0.725);
+
+  // Faint divider
+  ctx.strokeStyle='rgba(0,200,255,0.12)';ctx.lineWidth=1;ctx.setLineDash([6,5]);
+  ctx.beginPath();ctx.moveTo(divX,8);ctx.lineTo(divX,H-8);ctx.stroke();ctx.setLineDash([]);
+
+  // Panel labels
+  ctx.font='bold 9px Rajdhani,sans-serif';ctx.fillStyle='rgba(0,200,255,0.45)';ctx.textAlign='center';
+  ctx.fillText('VISTA LATERAL — PERFIL I (3D)', divX/2, 14);
+  ctx.fillText('SECCIÓN FRONTAL', divX+(W-divX)/2, 14);
+
+  // ═══════════════════════════════
+  //  LEFT — 3D LATERAL VIEW
+  // ═══════════════════════════════
+  const LW=divX-12;
+  const beamL=Math.min(LW*0.88,520);
+  const cx2=LW/2+6, cy2=H/2+4;
+  const bx0=cx2-beamL/2, bx1=cx2+beamL/2;
+
+  const defMag=(S.deform/35)*sf*26;
+  const vibMag=(S.vibration/30)*sf*6;
+
+  // I-beam proportions — bigger and clearer
+  const FH=22;           // flange thickness
+  const WH=Math.min(H*.22,72); // web height
+  const flangeY_top=cy2-WH/2-FH;
+  const flangeY_bot=cy2+WH/2;
+  const isoD=26;
+
+  const NUM=100;
+  const pts=[];
+  for(let i=0;i<=NUM;i++){
+    const fx=i/NUM;
+    const px=bx0+fx*(bx1-bx0);
+    const dy=defMag*Math.sin(Math.PI*fx)+vibMag*Math.sin(4*Math.PI*fx+t*3);
+    pts.push({x:px,dy});
+  }
+
+  // ISO depth faces (draw first, behind main surface)
+  _isoFace(pts, flangeY_bot+FH, isoD*1.3, sf);        // bottom flange underside
+  _isoFace(pts, flangeY_top+FH, WH, isoD*0.6, sf);    // web side
+  _isoFace(pts, flangeY_top, FH, isoD*0.9, sf);        // top flange underside
+
+  // Main I-beam segments with full coloring
+  const SEGS=90;
+  for(let i=0;i<SEGS;i++){
+    const fx=(i+.5)/SEGS;
+    const fi=i,fi1=i+1;
+    const bc=getModeColor(fx,t,sf);
+    const wc=getModeColor(fx,t,sf,true);
+
+    // TOP FLANGE
+    _fillQuad(pts[fi],pts[fi1],flangeY_top,FH,bc,true);
+    // WEB
+    _fillQuad(pts[fi],pts[fi1],flangeY_top+FH,WH,wc,false);
+    // BOTTOM FLANGE
+    _fillQuad(pts[fi],pts[fi1],flangeY_bot,FH,bc,true,true);
+  }
+
+  // Contour outlines
+  ctx.lineWidth=1.1;ctx.strokeStyle='rgba(0,195,235,0.28)';
+  _contourLine(pts,flangeY_top);
+  _contourLine(pts,flangeY_top+FH);
+  _contourLine(pts,flangeY_bot);
+  _contourLine(pts,flangeY_bot+FH);
+
+  // Web edge lines (visible I profile from side)
+  ctx.lineWidth=0.7;ctx.strokeStyle='rgba(0,195,235,0.18)';
+  _contourLine(pts,flangeY_top+FH);
+  _contourLine(pts,flangeY_bot);
+
+  drawStiffeners(ctx,pts,bx0,bx1,flangeY_top,FH,WH,t,sf);
+  drawEndPlates(ctx,pts,bx0,bx1,flangeY_top,FH,WH,isoD,sf);
+  drawWelds(ctx,pts,bx0,bx1,flangeY_top,FH,WH,sf);
+  drawSensors(ctx,pts,bx0,bx1,flangeY_top,FH,WH,t,sf);
+  drawOverlays(ctx,cvs,pts,bx0,bx1,flangeY_top,FH,WH,t,sf);
+  if(S.mode==='ai') drawParticles(ctx,LW,H,t);
+  if(S.mode==='fatigue') drawFatigueViz(ctx,pts,bx0,bx1,flangeY_top,FH,WH,t,sf);
+
+  // Dimension line (lateral)
+  drawDims(ctx,cx2,bx0,bx1,flangeY_bot+FH+isoD*1.3+10,LW);
+
+  // ═══════════════════════════════
+  //  RIGHT — FRONT CROSS-SECTION
+  // ═══════════════════════════════
+  const RX=divX+8, RW=W-divX-8;
+  drawFrontSection(ctx, RX, RW, H, t, sf);
+
+  S.tick++;
+  requestAnimationFrame(drawBeam);
+}
+
+// ─── Helper: fill one longitudinal quad ───
+function _fillQuad(p0,p1,baseY,h,color,isFlange,isBottom=false){
+  const y0=baseY+p0.dy, y1=baseY+p1.dy;
+  const grd=ctx.createLinearGradient(0,y0,0,y0+h);
+  if(isFlange&&!isBottom){
+    grd.addColorStop(0,lightenHex(color,.42));
+    grd.addColorStop(.28,color);
+    grd.addColorStop(1,darkenHex(color,.28));
+  } else if(isBottom){
+    grd.addColorStop(0,lightenHex(color,.15));
+    grd.addColorStop(.5,darkenHex(color,.15));
+    grd.addColorStop(1,darkenHex(color,.48));
+  } else {
+    grd.addColorStop(0,darkenHex(color,.12));
+    grd.addColorStop(.5,color);
+    grd.addColorStop(1,darkenHex(color,.22));
+  }
+  ctx.fillStyle=grd;
+  ctx.beginPath();
+  ctx.moveTo(p0.x,y0);ctx.lineTo(p1.x,y1);
+  ctx.lineTo(p1.x,y1+h);ctx.lineTo(p0.x,y0+h);
+  ctx.closePath();ctx.fill();
+}
+
+// ─── Helper: iso depth face ───
+function _isoFace(pts,baseY,depth,sf){
+  if(depth<1) return;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i],p1=pts[i+1];
+    const y0=baseY+p0.dy, y1=baseY+p1.dy;
+    ctx.beginPath();
+    ctx.moveTo(p0.x,y0);ctx.lineTo(p1.x,y1);
+    ctx.lineTo(p1.x+depth,y1+depth*.38);
+    ctx.lineTo(p0.x+depth,y0+depth*.38);
+    ctx.closePath();
+    ctx.fillStyle=`rgba(8,18,30,${.58+sf*.14})`;ctx.fill();
+    ctx.strokeStyle='rgba(0,160,200,0.07)';ctx.lineWidth=.35;ctx.stroke();
+  }
+}
+
+// ─── Helper: contour line ───
+function _contourLine(pts,baseY){
+  ctx.beginPath();
+  pts.forEach((p,i)=>{ const y=baseY+p.dy; i===0?ctx.moveTo(p.x,y):ctx.lineTo(p.x,y); });
+  ctx.stroke();
+}
+
+// ═══════════════════════════════════════════════
+//  FRONT CROSS-SECTION — HIGH QUALITY PROFILE I
+// ═══════════════════════════════════════════════
+function drawFrontSection(ctx, rx, rw, H, t, sf){
+  const cx=rx+rw/2, cy=H/2+10;
+
+  // Section proportions — H450×200 realistic
+  const totalH=Math.min(H*0.70,210);
+  const flangeW=Math.min(rw*0.78,160);
+  const flangeT=Math.round(totalH*0.095);  // flange thickness
+  const webT   =Math.round(flangeW*0.065); // web thickness
+  const webH   =totalH-flangeT*2;
+
+  const fx0=cx-flangeW/2, fy_top=cy-totalH/2;
+  const fy_bot=fy_top+totalH;
+  const wx0=cx-webT/2;
+
+  // ── SHADOW ──
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,0.7)';ctx.shadowBlur=18;
+  ctx.shadowOffsetX=4;ctx.shadowOffsetY=6;
+  ctx.fillStyle='rgba(0,0,0,0.01)';
+  ctx.fillRect(fx0,fy_top,flangeW,totalH);
+  ctx.restore();
+
+  // ── GET SECTION COLORS based on mode ──
+  const flangeCol=getSectionColor(sf,t,'flange');
+  const webCol   =getSectionColor(sf,t,'web');
+  const weldCol  =getSectionColor(sf,t,'weld');
+
+  // ── BOTTOM FLANGE ──
+  drawSectionRect(ctx,fx0,fy_bot-flangeT,flangeW,flangeT,flangeCol,true,false);
+
+  // ── TOP FLANGE ──
+  drawSectionRect(ctx,fx0,fy_top,flangeW,flangeT,flangeCol,false,true);
+
+  // ── WEB ──
+  drawSectionRect(ctx,wx0,fy_top+flangeT,webT,webH,webCol,false,false,true);
+
+  // ── FILLET RADII (rounded corners at flange-web junction) ──
+  drawFillets(ctx,cx,fy_top+flangeT,fy_bot-flangeT,webT,flangeT,webCol,flangeCol);
+
+  // ── WELD LINES at flange-web junction ──
+  const weldAlpha=sf>.5?0.9:0.55;
+  ctx.save();
+  ctx.strokeStyle=weldCol;ctx.lineWidth=3;
+  ctx.shadowColor=weldCol;ctx.shadowBlur=sf>0?6:3;
+  // Top flange bottom — weld
+  ctx.globalAlpha=weldAlpha;
+  ctx.beginPath();ctx.moveTo(wx0-1,fy_top+flangeT);ctx.lineTo(wx0+webT+1,fy_top+flangeT);ctx.stroke();
+  // Bottom flange top — weld
+  ctx.beginPath();ctx.moveTo(wx0-1,fy_bot-flangeT);ctx.lineTo(wx0+webT+1,fy_bot-flangeT);ctx.stroke();
+  ctx.globalAlpha=1;ctx.restore();
+
+  // ── CENTERLINE ──
+  ctx.save();
+  ctx.strokeStyle='rgba(0,200,255,0.22)';ctx.lineWidth=.8;ctx.setLineDash([5,4]);
+  ctx.beginPath();ctx.moveTo(cx,fy_top-14);ctx.lineTo(cx,fy_bot+14);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(fx0-14,cy);ctx.lineTo(fx0+flangeW+14,cy);ctx.stroke();
+  ctx.setLineDash([]);ctx.restore();
+
+  // ── DIMENSION ANNOTATIONS ──
+  drawSectionDims(ctx,cx,rx,rw,H,fx0,fy_top,flangeW,flangeT,webT,webH,totalH);
+
+  // ── HATCH PATTERN (engineering cross-section) ──
+  drawHatch(ctx,fx0,fy_top,flangeW,flangeT,webT,webH,totalH,cx,wx0,sf,t);
+
+  // ── STRESS CONCENTRATION GLOW at weld zones ──
+  if(sf>0.2){
+    const glowA=(Math.sin(t*2)+1)*.5*sf*.55;
+    ctx.save();
+    ctx.globalAlpha=glowA;
+    const glowC=sf>.7?'rgba(255,30,0,.7)':'rgba(255,160,0,.6)';
+    ctx.shadowColor=glowC;ctx.shadowBlur=14;ctx.strokeStyle=glowC;ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.moveTo(wx0,fy_top+flangeT);ctx.lineTo(wx0+webT,fy_top+flangeT);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(wx0,fy_bot-flangeT);ctx.lineTo(wx0+webT,fy_bot-flangeT);ctx.stroke();
+    ctx.globalAlpha=1;ctx.restore();
+  }
+
+  // ── SENSOR DOTS on section ──
+  drawSectionSensors(ctx,cx,fx0,fy_top,flangeW,flangeT,webT,webH,totalH,t,sf);
+
+  // ── CRACK overlay on section ──
+  if(sf>0.7&&(S.sim==='fracture'||S.sim==='collapse')){
+    ctx.save();
+    ctx.strokeStyle=S.sim==='collapse'?'#ff0000':'#ff4400';
+    ctx.lineWidth=S.sim==='collapse'?3:1.8;
+    ctx.shadowColor='#ff0000';ctx.shadowBlur=10;
+    const wy=cy-webH*.15;
+    ctx.beginPath();
+    ctx.moveTo(wx0+webT*.5,fy_top+flangeT+webH*.1);
+    ctx.lineTo(wx0+webT*.8,wy);
+    ctx.lineTo(wx0-3,wy+webH*.25);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── TITLE LABEL ──
+  ctx.save();
+  ctx.font='bold 9px Rajdhani,sans-serif';ctx.fillStyle='rgba(0,200,255,0.5)';ctx.textAlign='center';
+  ctx.fillText('H450×200×9×14 — ASTM A572',cx,fy_bot+36);
+  ctx.restore();
+}
+
+// ── Draw a section rectangle with metallic gradient ──
+function drawSectionRect(ctx,x,y,w,h,color,isTopFlange,isBotFlange,isWeb=false){
+  ctx.save();
+  let grd;
+  if(isWeb){
+    // Vertical gradient for web
+    grd=ctx.createLinearGradient(x,0,x+w,0);
+    grd.addColorStop(0,darkenHex(color,.4));
+    grd.addColorStop(.2,lightenHex(color,.25));
+    grd.addColorStop(.5,color);
+    grd.addColorStop(.8,lightenHex(color,.18));
+    grd.addColorStop(1,darkenHex(color,.35));
+  } else if(isTopFlange){
+    grd=ctx.createLinearGradient(0,y,0,y+h);
+    grd.addColorStop(0,lightenHex(color,.5));
+    grd.addColorStop(.3,lightenHex(color,.2));
+    grd.addColorStop(.7,color);
+    grd.addColorStop(1,darkenHex(color,.35));
+  } else {
+    grd=ctx.createLinearGradient(0,y,0,y+h);
+    grd.addColorStop(0,darkenHex(color,.35));
+    grd.addColorStop(.3,color);
+    grd.addColorStop(.7,lightenHex(color,.18));
+    grd.addColorStop(1,lightenHex(color,.45));
+  }
+  ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=6;
+  ctx.fillStyle=grd;
+  ctx.beginPath();ctx.rect(x,y,w,h);ctx.fill();
+  ctx.shadowBlur=0;
+  // Outline
+  ctx.strokeStyle='rgba(0,195,235,0.42)';ctx.lineWidth=1;
+  ctx.strokeRect(x,y,w,h);
+  ctx.restore();
+}
+
+// ── Fillet radii at flange-web junctions ──
+function drawFillets(ctx,cx,yTop,yBot,webT,flangeT,webCol,flangeCol){
+  const r=Math.round(flangeT*.45);
+  const wx0=cx-webT/2,wx1=cx+webT/2;
+  [[wx0,yTop,'tl'],[wx1,yTop,'tr'],[wx0,yBot,'bl'],[wx1,yBot,'br']].forEach(([fx,fy,pos])=>{
+    ctx.save();
+    const grd=ctx.createRadialGradient(fx,fy,0,fx,fy,r*1.5);
+    grd.addColorStop(0,webCol);grd.addColorStop(1,flangeCol);
+    ctx.fillStyle=grd;
+    ctx.beginPath();
+    if(pos==='tl')      ctx.arc(fx,fy,r,0,Math.PI*.5);
+    else if(pos==='tr') ctx.arc(fx,fy,r,Math.PI*.5,Math.PI);
+    else if(pos==='bl') ctx.arc(fx,fy,r,-Math.PI*.5,0);
+    else                ctx.arc(fx,fy,r,Math.PI,-Math.PI*.5);
+    ctx.closePath();ctx.fill();
+    ctx.restore();
+  });
+}
+
+// ── Hatch cross-section fill ──
+function drawHatch(ctx,fx0,fy_top,flangeW,flangeT,webT,webH,totalH,cx,wx0,sf,t){
+  const alpha=0.22+sf*.08;
+  ctx.save();ctx.globalAlpha=alpha;
+  ctx.strokeStyle='rgba(0,180,220,0.7)';ctx.lineWidth=.55;
+  // Clip to I-shape
+  ctx.beginPath();
+  // I-shape path (CW)
+  ctx.moveTo(fx0,fy_top);
+  ctx.lineTo(fx0+flangeW,fy_top);
+  ctx.lineTo(fx0+flangeW,fy_top+flangeT);
+  ctx.lineTo(cx+webT/2,fy_top+flangeT);
+  ctx.lineTo(cx+webT/2,fy_top+flangeT+webH);
+  ctx.lineTo(fx0+flangeW,fy_top+flangeT+webH);
+  ctx.lineTo(fx0+flangeW,fy_top+totalH);
+  ctx.lineTo(fx0,fy_top+totalH);
+  ctx.lineTo(fx0,fy_top+flangeT+webH);
+  ctx.lineTo(cx-webT/2,fy_top+flangeT+webH);
+  ctx.lineTo(cx-webT/2,fy_top+flangeT);
+  ctx.lineTo(fx0,fy_top+flangeT);
+  ctx.closePath();
+  ctx.clip();
+  // Draw diagonal hatch
+  const hatchStep=8;
+  const xs=fx0-totalH, xe=fx0+flangeW+totalH;
+  for(let x=xs;x<xe;x+=hatchStep){
+    ctx.beginPath();ctx.moveTo(x,fy_top);ctx.lineTo(x+totalH,fy_top+totalH);ctx.stroke();
+  }
+  ctx.globalAlpha=1;ctx.restore();
+}
+
+// ── Dimension annotations ──
+function drawSectionDims(ctx,cx,rx,rw,H,fx0,fy_top,flangeW,flangeT,webT,webH,totalH){
+  ctx.save();
+  ctx.strokeStyle='rgba(0,200,255,0.28)';ctx.lineWidth=.7;ctx.fillStyle='rgba(80,180,220,0.7)';
+  ctx.font='7.5px Rajdhani,sans-serif';ctx.textAlign='left';
+
+  const fy_bot=fy_top+totalH;
+  const padR=fx0+flangeW+9;
+  const wx0=cx-webT/2;
+
+  // Total height dim (right side)
+  ctx.beginPath();ctx.moveTo(padR,fy_top);ctx.lineTo(padR+12,fy_top);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(padR,fy_bot);ctx.lineTo(padR+12,fy_bot);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(padR+7,fy_top);ctx.lineTo(padR+7,fy_bot);ctx.stroke();
+  ctx.save();ctx.translate(padR+16,fy_top+(totalH/2));ctx.rotate(Math.PI/2);
+  ctx.fillText('H = 450mm',0,0);ctx.restore();
+
+  // Flange width dim (top)
+  const dimTop=fy_top-12;
+  ctx.beginPath();ctx.moveTo(fx0,dimTop);ctx.lineTo(fx0+flangeW,dimTop);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(fx0,dimTop-4);ctx.lineTo(fx0,dimTop+4);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(fx0+flangeW,dimTop-4);ctx.lineTo(fx0+flangeW,dimTop+4);ctx.stroke();
+  ctx.textAlign='center';ctx.fillText('B = 200mm',cx,dimTop-3);
+
+  // Flange thickness labels
+  ctx.textAlign='left';
+  ctx.fillStyle='rgba(255,171,0,0.75)';
+  ctx.fillText('tf=14',fx0+flangeW+3,fy_top+flangeT-2);
+  ctx.fillText('tf=14',fx0+flangeW+3,fy_bot-4);
+  ctx.fillStyle='rgba(0,220,255,0.65)';
+  ctx.textAlign='center';
+  ctx.fillText('tw=9',cx,fy_top+flangeT+webH/2+3);
+
+  ctx.restore();
+}
+
+// ── Sensor dots on cross-section ──
+function drawSectionSensors(ctx,cx,fx0,fy_top,flangeW,flangeT,webT,webH,totalH,t,sf){
+  const fy_bot=fy_top+totalH;
+  const wx0=cx-webT/2;
+  const sensors=[
+    {x:fx0+flangeW*.2,y:fy_top+flangeT*.5,c:'#ff6600',l:'T'},
+    {x:cx,y:fy_top+flangeT+webH*.5,c:'#00ccff',l:'S'},
+    {x:fx0+flangeW*.8,y:fy_bot-flangeT*.5,c:'#00e676',l:'V'},
+    {x:fx0+flangeW*.15,y:fy_bot-flangeT*.5,c:'#ff3300',l:'C'},
+    {x:cx,y:fy_top+flangeT+webH*.2,c:'#aa55ff',l:'U'},
+  ];
+  sensors.forEach((s,i)=>{
+    const pulse=Math.abs(Math.sin(t*1.5+i*.8));
+    const ac=sf>.6?'#ff1744':sf>.25?'#ffab00':s.c;
+    ctx.save();
+    ctx.beginPath();ctx.arc(s.x,s.y,4,0,Math.PI*2);
+    ctx.fillStyle=darkenHex(ac,.4);ctx.fill();
+    ctx.strokeStyle=ac;ctx.lineWidth=1.2;ctx.stroke();
+    ctx.beginPath();ctx.arc(s.x,s.y,6+pulse*4,0,Math.PI*2);
+    ctx.strokeStyle=ac;ctx.globalAlpha=.22+pulse*.3;ctx.lineWidth=1;ctx.stroke();
+    ctx.globalAlpha=1;
+    ctx.font='bold 7px Rajdhani,sans-serif';ctx.fillStyle=ac;ctx.textAlign='center';
+    ctx.fillText(s.l,s.x,s.y-7);
+    ctx.restore();
+  });
+}
+
+// ── Get color for section components based on mode ──
+function getSectionColor(sf,t,part){
+  const mode=S.mode;
+  if(mode==='thermal'){
+    const base=(S.temp-30)/130;
+    const adj=part==='web'?0.08:0;
+    return heatColor(Math.min(1,base+adj+sf*.12));
+  }
+  if(mode==='corrosion'){
+    const cf=S.corrosion/100;
+    return heatColor(Math.min(1,cf*(part==='flange'?.9:.7)));
+  }
+  if(mode==='stress'){
+    const v=S.stress/100;
+    if(part==='weld') return heatColor(Math.min(1,v*.95));
+    return heatColor(Math.min(1,v*(part==='web'?.85:.65)));
+  }
+  if(mode==='deform'){
+    const v=S.deform/35;
+    return heatColor(Math.min(1,v*(part==='web'?.8:1)));
+  }
+  if(mode==='fatigue'){
+    const v=S.fatigue/100;
+    return heatColor(Math.min(1,v*.8+(Math.sin(t*2+.5)+1)*.05));
+  }
+  if(mode==='ai'){
+    return heatColor((Math.sin(t*(part==='web'?1.2:.8))+1)*.25);
+  }
+  // Default metallic
+  if(part==='web')   return '#16334a';
+  if(part==='weld')  return '#00ccff';
+  return '#1c3d56';
+}
+
+
+
+function getModeColor(fx,t,sf,isWeb=false){
+  const mode=S.mode;
+  if(mode==='thermal'){
+    const base=(S.temp-30)/130;
+    const hot=.3+Math.sin(t*.4)*.12;
+    const d=Math.abs(fx-hot);
+    const local=Math.max(0,1-d*3.5)*sf*.5;
+    const wave=Math.sin(fx*Math.PI*3+t*.5)*.08;
+    return heatColor(Math.min(1,base+local+wave+(isWeb?-.06:0)));
+  }
+  if(mode==='corrosion'){
+    const cf=S.corrosion/100;
+    const n=(Math.sin(fx*16.3+t*.15)+1)*.5*cf;
+    const s=(Math.sin(fx*8.7+t*.08+2)+1)*.5*cf*.6;
+    return heatColor(Math.min(1,n+s+(isWeb?.1:0)));
+  }
+  if(mode==='stress'){
+    const sf2=S.stress/100;
+    const bell=Math.exp(-Math.pow(fx-.5,2)/.07)*sf2;
+    const ends=(Math.exp(-Math.pow(fx,2)/.02)+Math.exp(-Math.pow(fx-1,2)/.02))*.7*sf2;
+    return heatColor(Math.min(1,bell+ends+(isWeb?.05:0)));
+  }
+  if(mode==='deform'){
+    const df=S.deform/35;
+    const b=Math.sin(Math.PI*fx)*df*1.8;
+    return heatColor(Math.min(1,b+(isWeb?-.1:0)));
+  }
+  if(mode==='fatigue'){
+    const ff=S.fatigue/100;
+    const stripes=Math.abs(Math.sin(fx*20))*ff*.6;
+    return heatColor(Math.min(1,ff*.5+stripes*.5+(isWeb?-.05:0)));
+  }
+  if(mode==='ai'){
+    const p=(Math.sin(fx*Math.PI*8+t)+1)*.35;
+    return heatColor(p);
+  }
+  return isWeb?'#112234':'#1a3a52';
+}
+
+
+
+function drawStiffeners(ctx,pts,bx0,bx1,fy,fh,wh,t,sf){
+  const pipeLen=bx1-bx0;
+  [.12,.25,.38,.5,.62,.75,.88].forEach(frac=>{
+    const sx=bx0+frac*pipeLen;
+    const idx=Math.round(frac*(pts.length-1));
+    const dy=pts[idx]?pts[idx].dy:0;
+    const y0=fy+dy, y1=fy+fh+wh+dy;
+    ctx.save();
+    ctx.strokeStyle=sf>.6?'rgba(255,120,0,.55)':'rgba(0,180,220,.28)';
+    ctx.lineWidth=2;ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.moveTo(sx,y0);ctx.lineTo(sx,y1);ctx.stroke();
+    ctx.setLineDash([]);
+    // Stiffener plates (horizontal)
+    ctx.fillStyle=sf>.5?'rgba(255,80,0,.18)':'rgba(0,160,210,.1)';
+    ctx.fillRect(sx-4,fy+fh+dy,8,wh);
+    ctx.strokeStyle=sf>.5?'rgba(255,80,0,.35)':'rgba(0,160,210,.22)';
+    ctx.lineWidth=.7;ctx.setLineDash([]);
+    ctx.strokeRect(sx-4,fy+fh+dy,8,wh);
+    ctx.restore();
+  });
+}
+
+function drawEndPlates(ctx,pts,bx0,bx1,fy,fh,wh,isoDepth,sf){
+  const endW=16;
+  [[bx0,true],[bx1,false]].forEach(([ex,isLeft])=>{
+    const idx=isLeft?0:pts.length-1;
+    const dy=pts[idx]?pts[idx].dy:0;
+    const ex2=isLeft?ex-endW:ex;
+    const totalH=fh*2+wh;
+    const grd=ctx.createLinearGradient(ex2,0,ex2+endW,0);
+    grd.addColorStop(0,'#1a3a52');grd.addColorStop(.5,'#22506a');grd.addColorStop(1,'#0e2030');
+    ctx.fillStyle=grd;
+    ctx.beginPath();ctx.rect(ex2,fy+dy,endW,totalH);ctx.fill();
+    ctx.strokeStyle='rgba(0,180,220,.45)';ctx.lineWidth=.8;ctx.strokeRect(ex2,fy+dy,endW,totalH);
+    // End plate bolts
+    const boltX=ex2+endW/2;
+    [fy+8,fy+totalH/2,fy+totalH-8].forEach(by=>{
+      ctx.beginPath();ctx.arc(boltX,by+dy,3.5,0,Math.PI*2);
+      ctx.fillStyle='#162838';ctx.fill();
+      ctx.strokeStyle='rgba(0,200,240,.6)';ctx.lineWidth=.8;ctx.stroke();
+      // Bolt hex hint
+      ctx.strokeStyle='rgba(0,200,240,.3)';ctx.lineWidth=.5;
+      ctx.beginPath();ctx.arc(boltX,by+dy,5.5,0,Math.PI*2);ctx.stroke();
+    });
+  });
+}
+
+function drawWelds(ctx,pts,bx0,bx1,fy,fh,wh,sf){
+  const L=bx1-bx0;
+  [.2,.4,.6,.8].forEach(frac=>{
+    const wx=bx0+frac*L;
+    const idx=Math.round(frac*(pts.length-1));
+    const dy=pts[idx]?pts[idx].dy:0;
+    ctx.save();
+    ctx.strokeStyle=sf>.6?'rgba(255,60,0,.65)':'rgba(0,220,255,.35)';
+    ctx.lineWidth=2.2;ctx.setLineDash([3,2.5]);
+    ctx.shadowColor=sf>.6?'rgba(255,60,0,.4)':'rgba(0,200,255,.3)';
+    ctx.shadowBlur=4;
+    ctx.beginPath();
+    ctx.moveTo(wx,fy+fh+dy);
+    ctx.lineTo(wx,fy+fh+wh+dy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  });
+}
+
+function drawSensors(ctx,pts,bx0,bx1,fy,fh,wh,t,sf){
+  const L=bx1-bx0;
+  const sensors=[
+    {frac:.08,pos:'top', lbl:'T1',type:'temp',  c:'#ff6600'},
+    {frac:.22,pos:'bot', lbl:'V1',type:'vibr',  c:'#00ccff'},
+    {frac:.36,pos:'top', lbl:'S1',type:'strain', c:'#00e676'},
+    {frac:.5, pos:'bot', lbl:'U1',type:'ultra',  c:'#aa55ff'},
+    {frac:.64,pos:'top', lbl:'C1',type:'corr',   c:'#ff3300'},
+    {frac:.78,pos:'bot', lbl:'A1',type:'accel',  c:'#ffcc00'},
+    {frac:.9, pos:'top', lbl:'I1',type:'incl',   c:'#00ddff'},
+  ];
+  sensors.forEach((s,i)=>{
+    const px=bx0+s.frac*L;
+    const idx=Math.round(s.frac*(pts.length-1));
+    const dy=pts[idx]?pts[idx].dy:0;
+    const isTop=s.pos==='top';
+    const sy=isTop?fy-18+dy:(fy+fh*2+wh+18+dy);
+    const pulse=Math.abs(Math.sin(t*1.3+i*.9));
+    const ac=sf>.5?'#ff1744':sf>.2?'#ffab00':s.c;
+
+    // Sensor body
+    ctx.save();
+    ctx.fillStyle=darkenHex(ac,.4);
+    ctx.strokeStyle=ac;ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.rect(px-6,sy-4,12,8);ctx.fill();ctx.stroke();
+
+    // Glow ring
+    ctx.beginPath();ctx.arc(px,sy,9+pulse*5,0,Math.PI*2);
+    ctx.strokeStyle=ac;ctx.globalAlpha=.25+pulse*.4;ctx.lineWidth=1;ctx.stroke();
+    ctx.globalAlpha=1;
+
+    // Leader line
+    ctx.strokeStyle='rgba(0,180,220,.18)';ctx.lineWidth=.7;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(px,isTop?sy+4:sy-4);
+    ctx.lineTo(px,isTop?fy+dy:(fy+fh*2+wh+dy));ctx.stroke();ctx.setLineDash([]);
+
+    // Label
+    ctx.font=`bold 8px Rajdhani,sans-serif`;ctx.fillStyle=ac;ctx.textAlign='center';
+    ctx.fillText(s.lbl,px,isTop?sy-7:sy+14);
+    ctx.restore();
+  });
+}
+
+function drawOverlays(ctx,cvs,pts,bx0,bx1,fy,fh,wh,t,sf){
+  if(sf<.01) return;
+  const L=bx1-bx0;
+
+  // Crack for fracture/collapse
+  if(S.sim==='fracture'||S.sim==='collapse'){
+    const idx=Math.round(.5*(pts.length-1));
+    const dy=pts[idx]?pts[idx].dy:0;
+    const cx2=bx0+L*.5, cy2=fy+fh+wh/2+dy;
+    ctx.save();
+    ctx.strokeStyle=S.sim==='collapse'?'#ff0000':'#ff4400';
+    ctx.lineWidth=S.sim==='collapse'?3.5:2;
+    ctx.shadowColor='#ff0000';ctx.shadowBlur=12;
+    ctx.beginPath();
+    ctx.moveTo(cx2,fy+fh+dy);
+    ctx.lineTo(cx2+9,cy2-10);
+    ctx.lineTo(cx2-5,cy2+5);
+    ctx.lineTo(cx2+7,cy2+20);
+    ctx.lineTo(cx2,fy+fh+wh+dy);
+    ctx.stroke();
+    if(S.sim==='collapse'){
+      ctx.beginPath();
+      ctx.moveTo(cx2-25,fy+fh+wh*.3+dy);
+      ctx.lineTo(cx2-12,cy2);
+      ctx.lineTo(cx2-22,fy+fh+wh*.7+dy);ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Corrosion patches
+  if(S.mode==='corrosion'&&S.corrosion>30){
+    ctx.save();ctx.globalAlpha=.42*sf;
+    for(let i=0;i<14;i++){
+      const rx=bx0+(Math.sin(i*2.4+.5)+1)*.5*L;
+      const ry=fy+fh+(Math.cos(i*1.9))*wh*.4+wh/2;
+      const rr=9+Math.sin(i*3)*4;
+      const g=ctx.createRadialGradient(rx,ry,0,rx,ry,rr);
+      g.addColorStop(0,'#cc3300');g.addColorStop(.6,'#882200');g.addColorStop(1,'transparent');
+      ctx.fillStyle=g;
+      ctx.beginPath();ctx.ellipse(rx,ry,rr,rr*.65,i*.7,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Emergency flash
+  if(PROFILES[S.sim]&&PROFILES[S.sim].sev==='EMERGENCY'){
+    const fa=(Math.sin(t*4)+1)*.5*.13;
+    ctx.save();ctx.fillStyle=`rgba(255,0,0,${fa})`;
+    ctx.fillRect(bx0,fy-24,L,fh*2+wh+48);ctx.restore();
+  }
+}
+
+function drawFatigueViz(ctx,pts,bx0,bx1,fy,fh,wh,t,sf){
+  // Cyclic stress bands on web
+  const L=bx1-bx0;
+  ctx.save();
+  for(let i=0;i<18;i++){
+    const fx=((i/18)+(t*.012))%1;
+    const px=bx0+fx*L;
+    const idx=Math.round(fx*(pts.length-1));
+    const dy=pts[idx]?pts[idx].dy:0;
+    ctx.strokeStyle='rgba(0,180,255,0.3)';ctx.lineWidth=.8;
+    ctx.beginPath();ctx.moveTo(px,fy+fh+dy);ctx.lineTo(px,fy+fh+wh+dy);ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawParticles(ctx,W,H,t){
+  if(!S.particles.length) initPart();
+  S.particles.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0)p.x=W;if(p.x>W)p.x=0;
+    if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+    const anim=.4+Math.abs(Math.sin(t+p.x*.012))*.6;
+    ctx.save();ctx.globalAlpha=p.a*anim;
+    ctx.fillStyle=p.c;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  });
+}
+
+function drawDims(ctx,cx,bx0,bx1,dimY,W){
+  ctx.save();
+  ctx.strokeStyle='rgba(0,180,220,.2)';ctx.lineWidth=.5;ctx.fillStyle='rgba(80,160,200,.65)';
+  ctx.font='8.5px Rajdhani,sans-serif';ctx.textAlign='center';
+  ctx.beginPath();ctx.moveTo(bx0,dimY);ctx.lineTo(bx1,dimY);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(bx0,dimY-4);ctx.lineTo(bx0,dimY+4);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(bx1,dimY-4);ctx.lineTo(bx1,dimY+4);ctx.stroke();
+  ctx.fillText('L = 8.0 m  |  H = 450 mm  |  B = 200 mm  |  ASTM A572 Gr.50',cx,dimY+11);
+  ctx.restore();
+}
+
+// ============================================================
+// CHARTS
+// ============================================================
+let cT,cD,cDeg,cH;
+const baseChartOpts=(label,color)=>({
+  type:'line',
+  data:{labels:Array(22).fill(''),
+    datasets:[{label,data:Array(22).fill(0),borderColor:color,borderWidth:1.5,
+      backgroundColor:(_=>{ const c=color; return c+'18'; }),
+      fill:true,tension:.4,pointRadius:0}]},
+  options:{responsive:true,maintainAspectRatio:false,animation:{duration:250},
+    plugins:{legend:{display:false}},
+    scales:{x:{display:false,grid:{display:false}},
+      y:{display:true,grid:{color:'rgba(0,200,255,0.05)'},
+        ticks:{color:'#3a6a82',font:{family:'Rajdhani',size:9}}}}}
+});
+
+function initCharts(){
+  Chart.defaults.color='#3a6a82';
+  Chart.defaults.borderColor='rgba(0,200,255,0.06)';
+  cT=new Chart(document.getElementById('cTemp').getContext('2d'),baseChartOpts('T°C','#ff6600'));
+  cD=new Chart(document.getElementById('cDeform').getContext('2d'),baseChartOpts('mm','#00ccff'));
+
+  cDeg=new Chart(document.getElementById('cDeg').getContext('2d'),{
+    type:'line',
+    data:{labels:['0','30','60','90','120','150','180'],
+      datasets:[
+        {label:'Real',data:[0,9,19,30,43,57,72],borderColor:'#ffab00',borderWidth:1.5,fill:false,tension:.4,pointRadius:2,pointBackgroundColor:'#ffab00'},
+        {label:'IA Pred',data:[null,null,null,30,48,66,85],borderColor:'#00ccff',borderWidth:1.2,borderDash:[4,3],fill:false,tension:.4,pointRadius:0},
+        {label:'Límite',data:[80,80,80,80,80,80,80],borderColor:'#ff1744',borderWidth:.8,borderDash:[2,4],fill:false,pointRadius:0},
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:250},
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(0,200,255,0.05)'},ticks:{color:'#3a6a82',font:{family:'Rajdhani',size:9}}},
+        y:{grid:{color:'rgba(0,200,255,0.05)'},ticks:{color:'#3a6a82',font:{family:'Rajdhani',size:9}},min:0,max:100}}}
+  });
+
+  cH=new Chart(document.getElementById('cHealth').getContext('2d'),{
+    type:'line',
+    data:{labels:Array(14).fill(''),
+      datasets:[{data:Array(14).fill(87),borderColor:'#00e676',borderWidth:1.5,
+        backgroundColor:'rgba(0,230,118,.08)',fill:true,tension:.4,pointRadius:0}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:250},
+      plugins:{legend:{display:false}},
+      scales:{x:{display:false},y:{grid:{color:'rgba(0,200,255,0.05)'},ticks:{color:'#3a6a82',font:{family:'Rajdhani',size:9}},min:0,max:100}}}
+  });
+}
+
+const hTemp=Array(22).fill(44), hDeform=Array(22).fill(.65), hHealth=Array(14).fill(87);
+
+function updateCharts(){
+  hTemp.push(S.temp+(Math.random()-.5)*1.5); hTemp.shift();
+  hDeform.push(S.deform+(Math.random()-.5)*.05); hDeform.shift();
+  hHealth.push(S.health+(Math.random()-.5)*.3); hHealth.shift();
+
+  const tc=S.temp>95?'#ff0000':S.temp>65?'#ff6600':'#ffcc00';
+  const dc=S.deform>8?'#ff1744':S.deform>3?'#ffab00':'#00ccff';
+  const hc=S.health>70?'#00e676':S.health>45?'#ffab00':'#ff1744';
+
+  cT.data.datasets[0].data=[...hTemp];cT.data.datasets[0].borderColor=tc;cT.update('none');
+  cD.data.datasets[0].data=[...hDeform];cD.data.datasets[0].borderColor=dc;cD.update('none');
+  cH.data.datasets[0].data=[...hHealth];cH.data.datasets[0].borderColor=hc;cH.update('none');
+
+  if(S.sim!=='none'&&PROFILES[S.sim].sev!=='NORMAL'){
+    const sc={WARNING:1.35,CRITICAL:1.75,EMERGENCY:2.3}[PROFILES[S.sim].sev]||1;
+    cDeg.data.datasets[1].data=[null,null,null,Math.min(95,30*sc),Math.min(99,48*sc),Math.min(100,66*sc),100];
+  } else {
+    cDeg.data.datasets[1].data=[null,null,null,30,48,66,85];
+  }
+  cDeg.update('none');
+}
+
+// ============================================================
+// CLOCK
+// ============================================================
+function updateClock(){
+  const n=new Date();
+  document.getElementById('clk').textContent=n.toTimeString().slice(0,8);
+  document.getElementById('cld').textContent=n.toLocaleDateString('es-EC');
+}
+
+// ============================================================
+// LIVE DATA TICK
+// ============================================================
+function liveLoop(){
+  if(S.sim==='none'){
+    S.temp    =clamp(S.temp    +(Math.random()-.5)*1.2,40,55);
+    S.deform  =clamp(S.deform  +(Math.random()-.5)*.04,.4,.9);
+    S.vibration=clamp(S.vibration+(Math.random()-.5)*.18,1.8,3.1);
+    S.health  =clamp(S.health  +(Math.random()-.5)*.3,84,90);
+  }
+  renderKPIs(); updateAI();
+  if(Math.random()<.16){
+    const msgs=[
+      ['NORMAL','SENS·T1','Temperatura nominal: '+S.temp.toFixed(1)+'°C — dentro de rango'],
+      ['NORMAL','SENS·V1','Vibración en rango: '+S.vibration.toFixed(2)+' mm/s'],
+      ['NORMAL','AI·ENGINE','Inferencia completada — Health Index: '+Math.round(S.health)+'%'],
+      ['NORMAL','IIoT·GW','Heartbeat OK — 14/14 sensores activos'],
+      ['WARNING','SENS·C1','Corrosión zona W3 en vigilancia — nivel '+Math.round(S.corrosion)+'%'],
+      ['NORMAL','RAM·MODEL','Reliability: '+Math.round(S.reliability)+'% — Availability: '+Math.round(S.availability)+'%'],
+    ];
+    const m=msgs[Math.floor(Math.random()*msgs.length)];
+    addEv(m[0],m[1],m[2]);
+  }
+  updateCharts();
+}
+
+function clamp(v,mn,mx){return Math.max(mn,Math.min(mx,v));}
+
+// ============================================================
+// INIT
+// ============================================================
+function init(){
+  renderKPIs(); renderAnoms(); updateAI(); updateGlobal(); setMode('thermal');
+  initCharts(); initPart();
+  resizeCvs(); drawBeam();
+  setInterval(liveLoop,2400);
+  setInterval(updateClock,1000);
+  updateClock();
+
+  addEv('NORMAL','SYSTEM',  'StructGuard AI v5.1 iniciado — Viga Perfil I Digital Twin cargado');
+  addEv('NORMAL','IIoT·GW', '14 sensores IIoT conectados: temp×2, vibr×3, strain×3, ultra×2, accel×2, incl×2');
+  addEv('NORMAL','AI·ENGINE','Modelo Weibull+LSTM compilado — confianza inicial: 87% — modo: degradación progresiva');
+  addEv('WARNING','RAM·MODEL','Fatiga zona W3 en vigilancia — ciclos acumulados: 34% de vida útil Nf');
+  addEv('NORMAL','SCADA',   'Viga ASTM A572 Gr.50 · H450×200×9×14 mm — condición NOMINAL');
+}
+
+window.addEventListener('resize',resizeCvs);
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>

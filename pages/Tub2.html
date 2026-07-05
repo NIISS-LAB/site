@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PipeGuard AI — Digital Twin Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg0: #050a0f;
+  --bg1: #080e16;
+  --bg2: #0d1520;
+  --bg3: #0f1c2e;
+  --bg4: #112038;
+  --panel: #0b1422;
+  --border: rgba(0,180,255,0.12);
+  --border2: rgba(0,180,255,0.22);
+  --cyan: #00d4ff;
+  --cyan2: #00a8cc;
+  --blue: #1a7fc4;
+  --green: #00e676;
+  --green2: #00c853;
+  --amber: #ffab00;
+  --orange: #ff6d00;
+  --red: #ff1744;
+  --red2: #b71c1c;
+  --text1: #e8f4ff;
+  --text2: #7db8d4;
+  --text3: #4a7a92;
+  --font-title: 'Orbitron', monospace;
+  --font-ui: 'Rajdhani', sans-serif;
+  --font-body: 'Exo 2', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg0);
+  color: var(--text1);
+  font-family: var(--font-body);
+  font-size: 13px;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* HEADER */
+.header {
+  background: linear-gradient(90deg, var(--bg1) 0%, #0a1628 60%, #061020 100%);
+  border-bottom: 1px solid var(--border2);
+  padding: 0 16px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+}
+
+.logo-text {
+  font-family: var(--font-title);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  line-height: 1.2;
+}
+
+.logo-sub {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+
+.status-pill.ok {
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(0,230,118,0.06);
+}
+
+.status-pill.warn {
+  border-color: var(--amber);
+  color: var(--amber);
+  background: rgba(255,171,0,0.08);
+}
+
+.status-pill.crit {
+  border-color: var(--red);
+  color: var(--red);
+  background: rgba(255,23,68,0.08);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.header-time {
+  font-family: var(--font-title);
+  font-size: 11px;
+  color: var(--text3);
+  text-align: right;
+  letter-spacing: 1px;
+}
+
+/* MAIN LAYOUT */
+.main-layout {
+  display: grid;
+  grid-template-columns: 210px 1fr 240px;
+  grid-template-rows: auto auto;
+  gap: 8px;
+  padding: 8px;
+  min-height: calc(100vh - 56px);
+}
+
+@media (max-width: 1100px) {
+  .main-layout {
+    grid-template-columns: 190px 1fr 210px;
+  }
+}
+
+@media (max-width: 860px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+  .left-panel { order: 2; }
+  .center-panel { order: 1; }
+  .right-panel { order: 3; }
+}
+
+/* PANELS */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0,212,255,0.03);
+}
+
+.panel-title {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.panel-badge {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.badge-ok { background: rgba(0,230,118,0.15); color: var(--green); }
+.badge-warn { background: rgba(255,171,0,0.15); color: var(--amber); }
+.badge-crit { background: rgba(255,23,68,0.15); color: var(--red); }
+.badge-blue { background: rgba(0,180,255,0.12); color: var(--cyan); }
+
+/* KPI CARDS */
+.kpi-grid {
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.kpi-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 7px 10px;
+  transition: border-color 0.3s;
+}
+
+.kpi-card:hover {
+  border-color: var(--border2);
+}
+
+.kpi-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.kpi-value {
+  font-family: var(--font-title);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.kpi-unit {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--text2);
+  margin-left: 3px;
+}
+
+.kpi-bar {
+  height: 2px;
+  background: var(--bg3);
+  border-radius: 1px;
+  margin-top: 5px;
+  overflow: hidden;
+}
+
+.kpi-bar-fill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width 0.8s ease;
+}
+
+.v-green { color: var(--green); }
+.v-cyan { color: var(--cyan); }
+.v-amber { color: var(--amber); }
+.v-orange { color: var(--orange); }
+.v-red { color: var(--red); }
+
+/* CENTER PANEL */
+.center-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* TWIN VIEWPORT */
+.twin-viewport {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.twin-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.view-btn {
+  padding: 4px 10px;
+  border-radius: 3px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.view-btn.active, .view-btn:hover {
+  background: rgba(0,212,255,0.12);
+  color: var(--cyan);
+  border-color: var(--cyan);
+}
+
+.twin-canvas-wrap {
+  position: relative;
+  width: 100%;
+  background: var(--bg0);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+canvas#twinCanvas {
+  display: block;
+  width: 100%;
+  height: 340px;
+}
+
+/* SIMULATION BUTTONS */
+.sim-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.sim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.sim-btn {
+  padding: 7px 8px;
+  border-radius: 4px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid;
+  background: transparent;
+  text-align: center;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.sim-btn:hover {
+  transform: translateY(-1px);
+}
+
+.sim-btn.s-warn { border-color: var(--amber); color: var(--amber); }
+.sim-btn.s-warn:hover, .sim-btn.s-warn.active { background: rgba(255,171,0,0.15); }
+.sim-btn.s-crit { border-color: var(--orange); color: var(--orange); }
+.sim-btn.s-crit:hover, .sim-btn.s-crit.active { background: rgba(255,109,0,0.15); }
+.sim-btn.s-fail { border-color: var(--red); color: var(--red); }
+.sim-btn.s-fail:hover, .sim-btn.s-fail.active { background: rgba(255,23,68,0.15); }
+.sim-btn.s-reset { border-color: var(--cyan); color: var(--cyan); }
+.sim-btn.s-reset:hover { background: rgba(0,212,255,0.1); }
+
+/* RIGHT PANEL */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-score-ring {
+  text-align: center;
+  padding: 12px 8px 8px;
+}
+
+.ai-section {
+  padding: 8px 10px;
+}
+
+.ai-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-ui);
+  font-size: 12px;
+}
+
+.ai-row:last-child { border-bottom: none; }
+.ai-row-label { color: var(--text2); }
+.ai-row-val { font-weight: 700; letter-spacing: 0.5px; }
+
+.rul-display {
+  text-align: center;
+  padding: 10px;
+}
+
+.rul-days {
+  font-family: var(--font-title);
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--cyan);
+  line-height: 1;
+}
+
+.rul-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.chart-mini {
+  padding: 6px 8px 8px;
+  height: 110px;
+}
+
+/* CONSOLE */
+.console-panel {
+  grid-column: 1 / -1;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.event-list {
+  padding: 4px 0;
+}
+
+.event-row {
+  display: grid;
+  grid-template-columns: 120px 60px 70px 1fr;
+  gap: 8px;
+  padding: 5px 12px;
+  border-bottom: 1px solid rgba(0,180,255,0.05);
+  font-family: var(--font-body);
+  font-size: 11px;
+  align-items: center;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.event-ts { color: var(--text3); font-family: var(--font-title); font-size: 10px; }
+.event-sev { font-weight: 700; letter-spacing: 1px; font-size: 10px; text-align: center; padding: 2px 5px; border-radius: 2px; }
+.sev-normal { background: rgba(0,230,118,0.1); color: var(--green); }
+.sev-warning { background: rgba(255,171,0,0.1); color: var(--amber); }
+.sev-critical { background: rgba(255,109,0,0.1); color: var(--orange); }
+.sev-emergency { background: rgba(255,23,68,0.12); color: var(--red); }
+.event-src { color: var(--cyan2); font-size: 10px; }
+.event-msg { color: var(--text1); }
+
+/* SENSOR NODES */
+.sensor-tag {
+  position: absolute;
+  font-family: var(--font-title);
+  font-size: 9px;
+  color: var(--cyan);
+  pointer-events: none;
+  letter-spacing: 1px;
+}
+
+/* CHARTS */
+.chart-wrap {
+  padding: 0 8px 8px;
+  height: 100px;
+}
+
+/* Global status global bar */
+.global-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 1px;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg1); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* Prediction bars */
+.pred-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-family: var(--font-ui);
+  font-size: 11px;
+}
+
+.pred-label { color: var(--text2); width: 42px; flex-shrink: 0; }
+.pred-bar-bg { flex: 1; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.pred-bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+.pred-val { width: 36px; text-align: right; font-weight: 700; font-size: 12px; }
+
+.anomaly-list { padding: 6px 10px; }
+.anomaly-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-ui);
+  font-size: 11px;
+}
+.anomaly-item:last-child { border-bottom: none; }
+.anomaly-name { color: var(--text2); }
+.anomaly-score { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+  <div class="header-logo">
+    <svg class="logo-icon" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="17" stroke="#00d4ff" stroke-width="0.8" opacity="0.4"/>
+      <circle cx="18" cy="18" r="13" stroke="#00d4ff" stroke-width="0.5" opacity="0.25"/>
+      <path d="M8 18 Q8 8 18 8 Q28 8 28 18" stroke="#00d4ff" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M8 18 L28 18" stroke="#1a7fc4" stroke-width="1" opacity="0.6"/>
+      <circle cx="18" cy="18" r="3" fill="#00d4ff" opacity="0.9"/>
+      <path d="M12 23 L14 21 L16 23 L18 19 L21 25 L23 21 L25 23" stroke="#00e676" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <div class="logo-text">PIPEGUARD AI</div>
+      <div class="logo-sub">Digital Twin · Pipeline Integrity</div>
+    </div>
+  </div>
+
+  <div class="header-status">
+    <span id="globalStatusPill" class="status-pill ok">
+      <span class="dot"></span>
+      <span id="globalStatusTxt">NOMINAL</span>
+    </span>
+    <span class="status-pill ok"><span class="dot"></span>AI ONLINE</span>
+    <span class="status-pill ok"><span class="dot"></span>IIoT ×12</span>
+    <div class="header-time">
+      <div id="clockDisplay">--:--:--</div>
+      <div style="font-size:9px;color:var(--text3);" id="dateDisplay">--/--/----</div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<div class="main-layout">
+
+  <!-- ===== LEFT KPIs ===== -->
+  <aside class="left-panel">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">KPI Estructural</span>
+        <span class="panel-badge badge-blue">LIVE</span>
+      </div>
+      <div class="kpi-grid" id="kpiGrid">
+        <!-- KPIs injected by JS -->
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== CENTER ===== -->
+  <main class="center-panel">
+
+    <!-- Digital Twin Viewport -->
+    <div class="twin-viewport">
+      <div class="twin-controls">
+        <span style="font-family:var(--font-ui);font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-right:4px;">VIZ MODE:</span>
+        <button class="view-btn active" onclick="setMode('thermal')" id="btn-thermal">Térmico</button>
+        <button class="view-btn" onclick="setMode('corrosion')" id="btn-corrosion">Corrosión</button>
+        <button class="view-btn" onclick="setMode('stress')" id="btn-stress">Esfuerzos</button>
+        <button class="view-btn" onclick="setMode('deform')" id="btn-deform">Deform.</button>
+        <button class="view-btn" onclick="setMode('flow')" id="btn-flow">Flujo/Vel.</button>
+        <button class="view-btn" onclick="setMode('ai')" id="btn-ai">IA Digital</button>
+      </div>
+      <div class="twin-canvas-wrap">
+        <canvas id="twinCanvas"></canvas>
+        <!-- Sensor labels overlay -->
+        <div id="sensorOverlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></div>
+      </div>
+      <!-- Legend -->
+      <div id="legendBar" style="display:flex;align-items:center;gap:6px;margin-top:6px;padding:0 4px;">
+        <span style="font-family:var(--font-ui);font-size:10px;color:var(--text3);">LEYENDA:</span>
+        <div id="legendItems" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+      </div>
+    </div>
+
+    <!-- Simulation Controls -->
+    <div class="sim-panel panel">
+      <div class="panel-header">
+        <span class="panel-title">Simulación de Fallas</span>
+        <span class="panel-badge badge-warn" id="simStatusBadge">STANDBY</span>
+      </div>
+      <div class="sim-grid">
+        <button class="sim-btn s-warn" onclick="runSim('overload')">⚡ Sobrecarga</button>
+        <button class="sim-btn s-warn" onclick="runSim('fatigue')">🔄 Fatiga</button>
+        <button class="sim-btn s-crit" onclick="runSim('corrosion')">🔴 Corrosión</button>
+        <button class="sim-btn s-crit" onclick="runSim('deformation')">📐 Deform. Crítica</button>
+        <button class="sim-btn s-crit" onclick="runSim('buckling')">📉 Pandeo</button>
+        <button class="sim-btn s-crit" onclick="runSim('vibration')">〰️ Vibración</button>
+        <button class="sim-btn s-fail" onclick="runSim('fracture')">💥 Fractura</button>
+        <button class="sim-btn s-fail" onclick="runSim('collapse')">☠️ Colapso</button>
+        <button class="sim-btn s-warn" onclick="runSim('temperature')">🌡️ T° Extrema</button>
+        <button class="sim-btn s-reset" onclick="runSim('reset')">↺ Reset Sistema</button>
+      </div>
+    </div>
+
+    <!-- Mini Charts row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Tendencia Térmica</span>
+        </div>
+        <div class="chart-mini"><canvas id="chartTemp"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Deformación vs Tiempo</span>
+        </div>
+        <div class="chart-mini"><canvas id="chartDeform"></canvas></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ===== RIGHT AI PANEL ===== -->
+  <aside class="right-panel">
+
+    <!-- AI Engine -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Motor IA</span>
+        <span class="panel-badge badge-ok">WEIBULL+LSTM</span>
+      </div>
+      <div class="ai-score-ring">
+        <svg viewBox="0 0 100 60" width="100%" style="max-width:160px;">
+          <path d="M10 50 A40 40 0 0 1 90 50" stroke="#0d1520" stroke-width="8" fill="none"/>
+          <path id="aiArcPath" d="M10 50 A40 40 0 0 1 90 50" stroke="#00d4ff" stroke-width="8" fill="none"
+            stroke-dasharray="125" stroke-dashoffset="25" stroke-linecap="round"/>
+          <text x="50" y="46" text-anchor="middle" font-family="Orbitron,monospace" font-size="14" font-weight="700" fill="#00d4ff" id="aiScoreText">87</text>
+          <text x="50" y="57" text-anchor="middle" font-family="Rajdhani,sans-serif" font-size="8" fill="#4a7a92">CONFIDENCE %</text>
+        </svg>
+      </div>
+      <div class="ai-section">
+        <div class="ai-row">
+          <span class="ai-row-label">Modelo</span>
+          <span class="ai-row-val v-cyan">Weibull+LSTM</span>
+        </div>
+        <div class="ai-row">
+          <span class="ai-row-label">Estado</span>
+          <span class="ai-row-val v-green" id="aiState">INFERENCIA</span>
+        </div>
+        <div class="ai-row">
+          <span class="ai-row-label">Predicción</span>
+          <span class="ai-row-val v-amber" id="aiPrediction">DEGRADACIÓN</span>
+        </div>
+        <div class="ai-row">
+          <span class="ai-row-label">Risk Score</span>
+          <span class="ai-row-val v-amber" id="aiRisk">MODERADO</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RUL -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Vida Remanente</span>
+        <span class="panel-badge badge-blue" id="rulBadge">RUL</span>
+      </div>
+      <div class="rul-display">
+        <div class="rul-days" id="rulDays">312</div>
+        <div class="rul-label">Días Estimados</div>
+      </div>
+      <div style="padding:0 10px 10px;">
+        <div class="pred-row">
+          <span class="pred-label">30 días</span>
+          <div class="pred-bar-bg"><div class="pred-bar-fill" id="pb30" style="width:12%;background:var(--green)"></div></div>
+          <span class="pred-val v-green" id="pv30">12%</span>
+        </div>
+        <div class="pred-row">
+          <span class="pred-label">60 días</span>
+          <div class="pred-bar-bg"><div class="pred-bar-fill" id="pb60" style="width:23%;background:var(--amber)"></div></div>
+          <span class="pred-val v-amber" id="pv60">23%</span>
+        </div>
+        <div class="pred-row">
+          <span class="pred-label">90 días</span>
+          <div class="pred-bar-bg"><div class="pred-bar-fill" id="pb90" style="width:38%;background:var(--orange)"></div></div>
+          <span class="pred-val v-orange" id="pv90">38%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Anomalies -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Anomalías IA</span>
+        <span class="panel-badge badge-warn" id="anomalyCount">3 DETECTADAS</span>
+      </div>
+      <div class="anomaly-list" id="anomalyList">
+      </div>
+    </div>
+
+    <!-- Degradation Chart -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Curva Degradación</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chartDeg"></canvas></div>
+    </div>
+
+  </aside>
+
+  <!-- ===== CONSOLE ===== -->
+  <div class="console-panel">
+    <div class="panel-header" style="position:sticky;top:0;background:var(--panel);z-index:10;">
+      <span class="panel-title">Consola SCADA · Eventos IA</span>
+      <span class="panel-badge badge-blue" id="eventCount">0 EVENTOS</span>
+    </div>
+    <div class="event-list" id="eventList"></div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  mode: 'thermal',
+  simActive: 'none',
+  tick: 0,
+  health: 87,
+  corrosion: 18,
+  temp: 42,
+  deform: 0.6,
+  vibration: 2.1,
+  fatigue: 34,
+  stress: 38,
+  flow: 3.2,
+  rul: 312,
+  pf30: 12, pf60: 23, pf90: 38,
+  aiConf: 87,
+  events: [],
+  eventCount: 0,
+  animFrame: 0,
+  particles: [],
+  waveOffset: 0,
+};
+
+const SIM_PROFILES = {
+  overload:    { health:52, corrosion:20, temp:68, deform:2.8, vibration:6.2, fatigue:72, stress:89, rul:89,  pf30:42, pf60:65, pf90:81, aiConf:91, severity:'WARNING',   mode:'stress' },
+  fatigue:     { health:44, corrosion:28, temp:51, deform:1.9, vibration:4.8, fatigue:88, stress:61, rul:67,  pf30:55, pf60:78, pf90:90, aiConf:93, severity:'CRITICAL',  mode:'deform' },
+  corrosion:   { health:36, corrosion:68, temp:45, deform:1.2, vibration:3.1, fatigue:48, stress:42, rul:102, pf30:61, pf60:82, pf90:94, aiConf:88, severity:'CRITICAL',  mode:'corrosion' },
+  deformation: { health:29, corrosion:22, temp:54, deform:6.8, vibration:8.4, fatigue:61, stress:78, rul:58,  pf30:68, pf60:85, pf90:97, aiConf:95, severity:'CRITICAL',  mode:'deform' },
+  buckling:    { health:22, corrosion:19, temp:58, deform:9.2, vibration:5.6, fatigue:74, stress:94, rul:41,  pf30:74, pf60:90, pf90:99, aiConf:97, severity:'EMERGENCY', mode:'deform' },
+  vibration:   { health:48, corrosion:21, temp:62, deform:3.1, vibration:14.8,fatigue:58, stress:55, rul:78,  pf30:48, pf60:70, pf90:88, aiConf:89, severity:'CRITICAL',  mode:'stress' },
+  fracture:    { health:14, corrosion:31, temp:71, deform:12.4,vibration:18.2,fatigue:92, stress:98, rul:18,  pf30:88, pf60:97, pf90:99, aiConf:98, severity:'EMERGENCY', mode:'stress' },
+  collapse:    { health:3,  corrosion:44, temp:84, deform:28.1,vibration:22.4,fatigue:99, stress:100,rul:2,   pf30:98, pf60:99, pf90:100,aiConf:99, severity:'EMERGENCY', mode:'deform' },
+  temperature: { health:41, corrosion:26, temp:118,deform:3.4, vibration:4.1, fatigue:52, stress:68, rul:94,  pf30:44, pf60:68, pf90:84, aiConf:90, severity:'WARNING',   mode:'thermal' },
+  reset:       { health:87, corrosion:18, temp:42, deform:0.6, vibration:2.1, fatigue:34, stress:38, rul:312, pf30:12, pf60:23, pf90:38, aiConf:87, severity:'NORMAL',    mode:'thermal' },
+};
+
+const SIM_MSGS = {
+  overload:    'Sobrecarga estructural detectada — tensión supera límite operacional en zona media',
+  fatigue:     'Fatiga acumulada crítica — ciclos de carga exceden umbral de diseño',
+  corrosion:   'Corrosión severa detectada — pérdida de espesor de pared supera 15% en tramo 3',
+  deformation: 'Deformación plástica irreversible — sección transversal comprometida',
+  buckling:    'PANDEO INMINENTE — carga axial supera carga crítica de Euler en 94%',
+  vibration:   'Vibración excesiva — amplitud fuera de banda segura, posible resonancia',
+  fracture:    '⚠ FRACTURA PARCIAL — grieta propagándose en zona de soldadura. ACCIÓN INMEDIATA',
+  collapse:    '🔴 COLAPSO ESTRUCTURAL — falla catastrófica inminente. EVACUAR ZONA',
+  temperature: 'Temperatura extrema detectada — zona de expansión térmica comprometida',
+  reset:       'Sistema reiniciado — todos los parámetros en condición nominal',
+};
+
+const KPI_DEFS = [
+  { id:'health',    label:'Health Index',      unit:'%',   colorFn: v => v>70?'v-green':v>40?'v-amber':'v-red' },
+  { id:'corrosion', label:'Corrosión',          unit:'%',   colorFn: v => v<25?'v-green':v<50?'v-amber':'v-red' },
+  { id:'temp',      label:'Temperatura',        unit:'°C',  colorFn: v => v<60?'v-cyan':v<90?'v-amber':'v-red' },
+  { id:'deform',    label:'Deformación',        unit:'mm',  colorFn: v => v<2?'v-green':v<5?'v-amber':'v-red' },
+  { id:'vibration', label:'Vibración',          unit:'mm/s',colorFn: v => v<5?'v-green':v<10?'v-amber':'v-red' },
+  { id:'fatigue',   label:'Fatiga Acum.',       unit:'%',   colorFn: v => v<50?'v-green':v<80?'v-amber':'v-red' },
+  { id:'stress',    label:'Esfuerzo',           unit:'%',   colorFn: v => v<50?'v-green':v<80?'v-amber':'v-red' },
+  { id:'flow',      label:'Flujo Interno',      unit:'m/s', colorFn: v => v<5?'v-cyan':v<8?'v-amber':'v-red' },
+];
+
+// ============================================================
+// KPI RENDER
+// ============================================================
+function renderKPIs() {
+  const grid = document.getElementById('kpiGrid');
+  grid.innerHTML = KPI_DEFS.map(k => {
+    const v = state[k.id];
+    const cls = k.colorFn(v);
+    const pct = Math.min(100, (v / getKpiMax(k.id)) * 100);
+    const barColor = cls === 'v-green' ? 'var(--green)' : cls === 'v-amber' ? 'var(--amber)' : cls === 'v-orange' ? 'var(--orange)' : 'var(--red)';
+    return `<div class="kpi-card">
+      <div class="kpi-label">${k.label}</div>
+      <div style="display:flex;align-items:baseline;gap:2px;">
+        <span class="kpi-value ${cls}">${v.toFixed(k.id==='deform'?1:0)}</span>
+        <span class="kpi-unit">${k.unit}</span>
+      </div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function getKpiMax(id) {
+  const m = {health:100,corrosion:100,temp:150,deform:30,vibration:25,fatigue:100,stress:100,flow:12};
+  return m[id]||100;
+}
+
+// ============================================================
+// ANOMALY LIST
+// ============================================================
+const BASE_ANOMALIES = [
+  { name:'Zona soldadura S3', score:0.72, c:'v-amber' },
+  { name:'Reducción espesor T2', score:0.58, c:'v-amber' },
+  { name:'Vibración modo 3', score:0.41, c:'v-cyan' },
+];
+
+function renderAnomalies() {
+  const list = document.getElementById('anomalyList');
+  const items = state.simActive === 'none' ? BASE_ANOMALIES : getSimAnomalies();
+  document.getElementById('anomalyCount').textContent = items.length + ' DETECTADAS';
+  list.innerHTML = items.map(a => `
+    <div class="anomaly-item">
+      <span class="anomaly-name">${a.name}</span>
+      <span class="anomaly-score ${a.c}">${(a.score*100).toFixed(0)}%</span>
+    </div>`).join('');
+}
+
+function getSimAnomalies() {
+  const p = SIM_PROFILES[state.simActive];
+  if (!p) return BASE_ANOMALIES;
+  const sevMap = { NORMAL:[], WARNING:2, CRITICAL:4, EMERGENCY:6 };
+  const count = sevMap[p.severity] || 2;
+  const pool = [
+    { name:'Fractura iniciación', score:0.91, c:'v-red' },
+    { name:'Pérdida espesor pared', score:0.86, c:'v-red' },
+    { name:'Concentración tensión', score:0.79, c:'v-orange' },
+    { name:'Deflexión excesiva', score:0.74, c:'v-orange' },
+    { name:'Zona soldadura S1', score:0.68, c:'v-amber' },
+    { name:'Microfisuración base', score:0.63, c:'v-amber' },
+  ];
+  return pool.slice(0, count);
+}
+
+// ============================================================
+// AI PANEL UPDATE
+// ============================================================
+const AI_STATES = { NORMAL:'INFERENCIA', WARNING:'ALERTA ACTIVA', CRITICAL:'ANÁLISIS CRÍTICO', EMERGENCY:'MODO EMERGENCIA' };
+const AI_PREDS  = { NORMAL:'DEGRADACIÓN LENTA', WARNING:'FALLA PROBABLE', CRITICAL:'FALLA INMINENTE', EMERGENCY:'COLAPSO INMINENTE' };
+const AI_RISKS  = { NORMAL:'MODERADO', WARNING:'ALTO', CRITICAL:'MUY ALTO', EMERGENCY:'EXTREMO' };
+const AI_RISK_C = { NORMAL:'v-amber', WARNING:'v-orange', CRITICAL:'v-red', EMERGENCY:'v-red' };
+
+function updateAIPanel() {
+  const p = state.simActive !== 'none' ? SIM_PROFILES[state.simActive] : null;
+  const sev = p ? p.severity : 'NORMAL';
+  const conf = p ? p.aiConf : state.aiConf;
+
+  document.getElementById('aiState').textContent = AI_STATES[sev] || 'INFERENCIA';
+  document.getElementById('aiState').className = 'ai-row-val ' + (sev==='NORMAL'?'v-green':sev==='WARNING'?'v-amber':sev==='CRITICAL'?'v-orange':'v-red');
+  document.getElementById('aiPrediction').textContent = AI_PREDS[sev] || 'DEGRADACIÓN';
+  document.getElementById('aiPrediction').className = 'ai-row-val ' + (sev==='NORMAL'?'v-amber':sev==='WARNING'?'v-orange':'v-red');
+  document.getElementById('aiRisk').textContent = AI_RISKS[sev];
+  document.getElementById('aiRisk').className = 'ai-row-val ' + AI_RISK_C[sev];
+
+  const arc = document.getElementById('aiArcPath');
+  const offset = 125 - (conf / 100) * 125;
+  arc.setAttribute('stroke-dashoffset', offset);
+  arc.setAttribute('stroke', conf > 80 ? '#00d4ff' : conf > 60 ? '#ffab00' : '#ff1744');
+  document.getElementById('aiScoreText').textContent = conf;
+
+  document.getElementById('rulDays').textContent = state.rul;
+  const rulC = state.rul > 180 ? 'var(--cyan)' : state.rul > 90 ? 'var(--amber)' : 'var(--red)';
+  document.getElementById('rulDays').style.color = rulC;
+
+  document.getElementById('pb30').style.width = state.pf30 + '%';
+  document.getElementById('pb60').style.width = state.pf60 + '%';
+  document.getElementById('pb90').style.width = state.pf90 + '%';
+  document.getElementById('pv30').textContent = state.pf30 + '%';
+  document.getElementById('pv60').textContent = state.pf60 + '%';
+  document.getElementById('pv90').textContent = state.pf90 + '%';
+
+  const b30c = state.pf30 < 30 ? 'v-green' : state.pf30 < 60 ? 'v-amber' : 'v-red';
+  const b60c = state.pf60 < 30 ? 'v-green' : state.pf60 < 60 ? 'v-amber' : 'v-red';
+  const b90c = state.pf90 < 30 ? 'v-green' : state.pf90 < 60 ? 'v-amber' : 'v-red';
+  document.getElementById('pv30').className = 'pred-val ' + b30c;
+  document.getElementById('pv60').className = 'pred-val ' + b60c;
+  document.getElementById('pv90').className = 'pred-val ' + b90c;
+
+  const bar30col = state.pf30 < 30 ? 'var(--green)' : state.pf30 < 60 ? 'var(--amber)' : 'var(--red)';
+  const bar60col = state.pf60 < 30 ? 'var(--green)' : state.pf60 < 60 ? 'var(--amber)' : 'var(--red)';
+  const bar90col = state.pf90 < 30 ? 'var(--green)' : state.pf90 < 60 ? 'var(--amber)' : 'var(--red)';
+  document.getElementById('pb30').style.background = bar30col;
+  document.getElementById('pb60').style.background = bar60col;
+  document.getElementById('pb90').style.background = bar90col;
+}
+
+// ============================================================
+// GLOBAL STATUS
+// ============================================================
+function updateGlobalStatus() {
+  const p = state.simActive !== 'none' ? SIM_PROFILES[state.simActive] : null;
+  const sev = p ? p.severity : 'NORMAL';
+  const pill = document.getElementById('globalStatusPill');
+  const txt = document.getElementById('globalStatusTxt');
+  txt.textContent = sev;
+  pill.className = 'status-pill ' + (sev==='NORMAL'?'ok':sev==='WARNING'?'warn':'crit');
+}
+
+// ============================================================
+// CONSOLE EVENTS
+// ============================================================
+function addEvent(severity, source, message) {
+  const now = new Date();
+  const ts = now.toTimeString().slice(0,8);
+  state.events.unshift({ ts, severity, source, message });
+  if (state.events.length > 60) state.events.pop();
+  state.eventCount++;
+
+  const sevClass = { NORMAL:'sev-normal', WARNING:'sev-warning', CRITICAL:'sev-critical', EMERGENCY:'sev-emergency' }[severity] || 'sev-normal';
+  const row = document.createElement('div');
+  row.className = 'event-row';
+  row.innerHTML = `<span class="event-ts">${ts}</span>
+    <span class="event-sev ${sevClass}">${severity}</span>
+    <span class="event-src">${source}</span>
+    <span class="event-msg">${message}</span>`;
+  const list = document.getElementById('eventList');
+  list.insertBefore(row, list.firstChild);
+  if (list.children.length > 40) list.removeChild(list.lastChild);
+  document.getElementById('eventCount').textContent = state.eventCount + ' EVENTOS';
+}
+
+// ============================================================
+// SIMULATION
+// ============================================================
+function runSim(simName) {
+  // Deactivate previous button
+  if (state.simActive !== 'none') {
+    const prevBtn = document.querySelector(`.sim-btn.active`);
+    if (prevBtn) prevBtn.classList.remove('active');
+  }
+
+  state.simActive = simName;
+  const prof = SIM_PROFILES[simName];
+
+  // Animate state transition
+  Object.keys(prof).forEach(k => {
+    if (k in state && typeof state[k] === 'number') {
+      state[k] = prof[k];
+    }
+  });
+  state.mode = prof.mode || state.mode;
+
+  // Activate button
+  if (simName !== 'reset') {
+    const btns = document.querySelectorAll('.sim-btn');
+    btns.forEach(b => {
+      if (b.textContent.toLowerCase().includes(simName.slice(0,4))) b.classList.add('active');
+    });
+  }
+
+  // Update sim badge
+  document.getElementById('simStatusBadge').textContent = simName === 'reset' ? 'STANDBY' : prof.severity + ' ACTIVO';
+  document.getElementById('simStatusBadge').className = 'panel-badge ' + (prof.severity==='NORMAL'?'badge-blue':prof.severity==='WARNING'?'badge-warn':'badge-crit');
+
+  // Switch viz mode
+  setMode(state.mode, false);
+
+  // Log event
+  addEvent(prof.severity, 'SIM·ENGINE', SIM_MSGS[simName]);
+  if (simName === 'reset') { state.simActive = 'none'; document.querySelectorAll('.sim-btn.active').forEach(b => b.classList.remove('active')); }
+
+  renderKPIs();
+  updateAIPanel();
+  updateGlobalStatus();
+  renderAnomalies();
+  updateCharts();
+}
+
+// ============================================================
+// VIEW MODE SWITCHING
+// ============================================================
+const MODE_LEGENDS = {
+  thermal:   [['#0040ff','Frío'],['#00ff80','Templado'],['#ffff00','Cálido'],['#ff6000','Caliente'],['#ff0000','Crítico']],
+  corrosion: [['#4a7a92','Nominal'],['#a07030','Leve'],['#cc5500','Moderada'],['#ff2200','Severa']],
+  stress:    [['#0060ff','Bajo'],['#00cc88','Normal'],['#ffcc00','Alto'],['#ff4400','Crítico']],
+  deform:    [['#0080ff','Normal'],['#00ff88','Leve'],['#ffaa00','Moderada'],['#ff2200','Severa']],
+  flow:      [['#0040aa','Lento'],['#0099ff','Normal'],['#00ffcc','Rápido'],['#ffdd00','Turbulento']],
+  ai:        [['#00d4ff','Partícula IA'],['#00e676','Señal OK'],['#ffab00','Alerta'],['#ff1744','Crítico']],
+};
+
+function setMode(m, updateBtn=true) {
+  state.mode = m;
+  if (updateBtn) {
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    const b = document.getElementById('btn-'+m);
+    if (b) b.classList.add('active');
+  }
+  // Legend
+  const leg = document.getElementById('legendItems');
+  const items = MODE_LEGENDS[m] || [];
+  leg.innerHTML = items.map(([c,l]) => `<span style="display:flex;align-items:center;gap:4px;font-family:var(--font-ui);font-size:10px;color:var(--text2);">
+    <span style="width:12px;height:4px;border-radius:2px;background:${c};display:inline-block;"></span>${l}</span>`).join('');
+}
+
+// ============================================================
+// CANVAS DIGITAL TWIN
+// ============================================================
+const canvas = document.getElementById('twinCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const wrap = canvas.parentElement;
+  canvas.width = wrap.clientWidth;
+  canvas.height = 340;
+}
+
+function getThermalColor(t, max=1) {
+  const colors = [[0,'#0040ff'],[0.25,'#00aaff'],[0.5,'#00ff88'],[0.65,'#ffee00'],[0.8,'#ff6600'],[1,'#ff0000']];
+  const n = t / max;
+  for (let i = 1; i < colors.length; i++) {
+    if (n <= colors[i][0]) {
+      const lo = colors[i-1], hi = colors[i];
+      const f = (n - lo[0]) / (hi[0] - lo[0]);
+      return lerpColor(lo[1], hi[1], f);
+    }
+  }
+  return '#ff0000';
+}
+
+function lerpColor(c1, c2, t) {
+  const r1=parseInt(c1.slice(1,3),16),g1=parseInt(c1.slice(3,5),16),b1=parseInt(c1.slice(5,7),16);
+  const r2=parseInt(c2.slice(1,3),16),g2=parseInt(c2.slice(3,5),16),b2=parseInt(c2.slice(5,7),16);
+  const r=Math.round(r1+(r2-r1)*t).toString(16).padStart(2,'0');
+  const g=Math.round(g1+(g2-g1)*t).toString(16).padStart(2,'0');
+  const b=Math.round(b1+(b2-b1)*t).toString(16).padStart(2,'0');
+  return `#${r}${g}${b}`;
+}
+
+// Particle system for AI mode
+function initParticles() {
+  state.particles = Array.from({length:60}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: (Math.random()-0.5)*1.2,
+    vy: (Math.random()-0.5)*0.6,
+    size: Math.random()*2+1,
+    alpha: Math.random()*0.8+0.2,
+    color: Math.random()<0.6?'#00d4ff': Math.random()<0.5?'#00e676':'#ffab00',
+  }));
+}
+
+function drawTwin() {
+  resizeCanvas();
+  const W = canvas.width, H = canvas.height;
+  const t = state.tick * 0.03;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Background grid
+  ctx.strokeStyle = 'rgba(0,180,255,0.04)';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < W; x+=30) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y+=30) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  const cx = W/2, cy = H/2;
+  const pipeLen = Math.min(W * 0.82, 700);
+  const pipeR = Math.min(48, H * 0.13);
+  const x0 = cx - pipeLen/2, x1 = cx + pipeLen/2;
+  const simFactor = getSeverityFactor();
+
+  drawPipeMain(ctx, cx, cy, x0, x1, pipeLen, pipeR, t, simFactor);
+  drawSensors(ctx, cx, cy, x0, x1, pipeR, t, simFactor);
+  drawOverlay(ctx, cx, cy, x0, x1, pipeLen, pipeR, t, simFactor);
+
+  if (state.mode === 'ai') drawAIParticles(ctx, W, H, t);
+  if (state.mode === 'flow') drawFlowVectors(ctx, cx, cy, x0, x1, pipeR, t, simFactor);
+
+  drawDimensions(ctx, cx, cy, x0, x1, pipeR);
+  state.tick++;
+  state.animFrame = requestAnimationFrame(drawTwin);
+}
+
+function getSeverityFactor() {
+  if (state.simActive === 'none') return 0;
+  const s = SIM_PROFILES[state.simActive];
+  if (!s) return 0;
+  return s.severity === 'NORMAL' ? 0 : s.severity === 'WARNING' ? 0.35 : s.severity === 'CRITICAL' ? 0.65 : 1.0;
+}
+
+function drawPipeMain(ctx, cx, cy, x0, x1, pipeLen, pipeR, t, sf) {
+  const mode = state.mode;
+  const deformMag = (state.deform / 30) * sf * 18;
+  const vibMag = (state.vibration / 25) * sf * 4;
+
+  // Build deformed profile points
+  const segments = 80;
+  const topPts = [], botPts = [];
+  for (let i = 0; i <= segments; i++) {
+    const fx = i / segments;
+    const px = x0 + fx * (x1 - x0);
+    let deformY = 0;
+    // Bending parabola + vibration
+    if (sf > 0) {
+      deformY = deformMag * Math.sin(Math.PI * fx) + vibMag * Math.sin(4 * Math.PI * fx + t * 3);
+    }
+    topPts.push([px, cy - pipeR + deformY]);
+    botPts.push([px, cy + pipeR + deformY]);
+  }
+
+  // Pipe shadow / depth
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.7)';
+  ctx.shadowBlur = 20;
+
+  // Main pipe fill based on mode
+  for (let i = 0; i < segments; i++) {
+    const fx = (i + 0.5) / segments;
+    const color = getModeColor(fx, t, sf);
+    const grd = ctx.createLinearGradient(0, topPts[i][1], 0, botPts[i][1]);
+    grd.addColorStop(0, lighten(color, 0.35));
+    grd.addColorStop(0.3, color);
+    grd.addColorStop(0.7, darken(color, 0.2));
+    grd.addColorStop(1, darken(color, 0.5));
+
+    ctx.beginPath();
+    ctx.moveTo(topPts[i][0], topPts[i][1]);
+    ctx.lineTo(topPts[i+1][0], topPts[i+1][1]);
+    ctx.lineTo(botPts[i+1][0], botPts[i+1][1]);
+    ctx.lineTo(botPts[i][0], botPts[i][1]);
+    ctx.closePath();
+    ctx.fillStyle = grd;
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // Pipe top highlight stripe
+  ctx.beginPath();
+  ctx.moveTo(topPts[0][0], topPts[0][1]);
+  topPts.forEach(p => ctx.lineTo(p[0], p[1]));
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = 'rgba(160,220,255,0.3)';
+  ctx.stroke();
+
+  // Pipe bottom shadow
+  ctx.beginPath();
+  ctx.moveTo(botPts[0][0], botPts[0][1]);
+  botPts.forEach(p => ctx.lineTo(p[0], p[1]));
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+  ctx.stroke();
+
+  // Pipe contour
+  ctx.beginPath();
+  ctx.moveTo(topPts[0][0], topPts[0][1]);
+  topPts.forEach(p => ctx.lineTo(p[0], p[1]));
+  botPts.slice().reverse().forEach(p => ctx.lineTo(p[0], p[1]));
+  ctx.closePath();
+  ctx.strokeStyle = 'rgba(0,180,255,0.35)';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // End caps (flanges)
+  drawFlange(ctx, x0, cy, pipeR, t, true, sf);
+  drawFlange(ctx, x1, cy, pipeR, t, false, sf);
+
+  // Weld seams
+  for (let w = 1; w <= 4; w++) {
+    const wx = x0 + (x1 - x0) * (w / 5);
+    const topY = topPts[Math.round(segments * w / 5)][1];
+    const botY = botPts[Math.round(segments * w / 5)][1];
+    ctx.save();
+    ctx.strokeStyle = sf > 0.6 ? 'rgba(255,100,0,0.7)' : 'rgba(0,180,255,0.4)';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.moveTo(wx, topY);
+    ctx.lineTo(wx, botY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  // Pipe inner bore (top-view perspective hints)
+  const boreR = pipeR * 0.55;
+  const midDeform = deformMag * Math.sin(Math.PI * 0.5) + vibMag * Math.sin(2 * Math.PI + t * 3);
+  const boreGrd = ctx.createRadialGradient(cx, cy + midDeform, 0, cx, cy + midDeform, boreR);
+  boreGrd.addColorStop(0, 'rgba(0,60,100,0.8)');
+  boreGrd.addColorStop(1, 'rgba(0,0,0,0)');
+
+  // Pipe internal support rings
+  const ringPositions = [0.15, 0.35, 0.5, 0.65, 0.85];
+  ringPositions.forEach(rp => {
+    const rx = x0 + rp * (x1 - x0);
+    const rtop = topPts[Math.round(rp * segments)][1];
+    const rbot = botPts[Math.round(rp * segments)][1];
+    const mid = (rtop + rbot) / 2;
+    const halfH = (rbot - rtop) / 2;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(100,160,200,0.25)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(rx, mid, 5, halfH * 0.95, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  });
+}
+
+function getModeColor(fx, t, sf) {
+  const mode = state.mode;
+  const x01 = fx;
+
+  if (mode === 'thermal') {
+    const baseFactor = (state.temp - 30) / 120;
+    const hotspot = 0.3 + Math.sin(t * 0.5) * 0.1;
+    const dist = Math.abs(x01 - hotspot);
+    const local = Math.max(0, 1 - dist * 3) * sf * 0.5;
+    return getThermalColor(Math.min(1, baseFactor + local + Math.sin(x01 * Math.PI * 2) * 0.1));
+  }
+  if (mode === 'corrosion') {
+    const corrFactor = state.corrosion / 100;
+    const noiseVal = (Math.sin(x01 * 18 + t * 0.2) + 1) * 0.5 * corrFactor;
+    return getThermalColor(noiseVal, 1);
+  }
+  if (mode === 'stress') {
+    const sFactor = state.stress / 100;
+    const bell = Math.exp(-Math.pow(x01 - 0.5, 2) / 0.08) * sFactor;
+    const ends = (Math.exp(-Math.pow(x01, 2) / 0.02) + Math.exp(-Math.pow(x01 - 1, 2) / 0.02)) * 0.6 * sFactor;
+    return getThermalColor(Math.min(1, bell + ends));
+  }
+  if (mode === 'deform') {
+    const dFactor = state.deform / 30;
+    const bell = Math.sin(Math.PI * x01) * dFactor * 1.5;
+    return getThermalColor(Math.min(1, bell));
+  }
+  if (mode === 'flow') {
+    const fFactor = state.flow / 12;
+    const wave = (Math.sin(x01 * Math.PI * 4 - t * 2) + 1) * 0.4 * fFactor;
+    const base = fFactor * 0.3;
+    return lerpColor('#0040aa', '#00d4ff', Math.min(1, base + wave));
+  }
+  if (mode === 'ai') {
+    const pulsed = (Math.sin(x01 * Math.PI * 6 + t) + 1) * 0.3;
+    return getThermalColor(pulsed);
+  }
+  return '#1a4a6a';
+}
+
+function drawFlange(ctx, x, cy, pipeR, t, isLeft, sf) {
+  const flangeW = 14;
+  const flangeH = pipeR * 2.5;
+  const fx = isLeft ? x - flangeW : x;
+  const deformOffset = sf * (isLeft ? -2 : 2);
+
+  const grd = ctx.createLinearGradient(fx, 0, fx + flangeW, 0);
+  grd.addColorStop(0, '#1a3a52');
+  grd.addColorStop(0.4, '#2a5a7a');
+  grd.addColorStop(1, '#0e2236');
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.rect(fx, cy - flangeH/2 + deformOffset, flangeW, flangeH);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(0,180,255,0.5)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(fx, cy - flangeH/2 + deformOffset, flangeW, flangeH);
+
+  // Bolts
+  const boltY = [cy - flangeH/2 + 8, cy - 6, cy + flangeH/2 - 8];
+  boltY.forEach(by => {
+    ctx.beginPath();
+    ctx.arc(fx + flangeW/2, by + deformOffset, 3, 0, Math.PI*2);
+    ctx.fillStyle = '#1e4060';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,180,255,0.6)';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  });
+}
+
+function drawSensors(ctx, cx, cy, x0, x1, pipeR, t, sf) {
+  const sensorDefs = [
+    { xf:0.1,  side:-1, label:'T1',  type:'temp',   color:'#ff6600' },
+    { xf:0.25, side:1,  label:'V1',  type:'vibr',   color:'#00d4ff' },
+    { xf:0.4,  side:-1, label:'S1',  type:'strain', color:'#00e676' },
+    { xf:0.5,  side:1,  label:'U1',  type:'ultra',  color:'#aa66ff' },
+    { xf:0.6,  side:-1, label:'C1',  type:'corr',   color:'#ff3300' },
+    { xf:0.75, side:1,  label:'A1',  type:'accel',  color:'#ffcc00' },
+    { xf:0.87, side:-1, label:'I1',  type:'incl',   color:'#00ccff' },
+    { xf:0.95, side:1,  label:'T2',  type:'temp',   color:'#ff6600' },
+  ];
+
+  const overlay = document.getElementById('sensorOverlay');
+  overlay.innerHTML = '';
+  const canvasRect = canvas.getBoundingClientRect();
+
+  sensorDefs.forEach((s, i) => {
+    const px = x0 + s.xf * (x1 - x0);
+    const py = cy + s.side * (pipeR + 12);
+    const pulse = Math.abs(Math.sin(t * 1.2 + i * 0.7));
+    const alertColor = sf > 0.5 ? '#ff1744' : sf > 0.2 ? '#ffab00' : s.color;
+
+    // Sensor body
+    ctx.save();
+    ctx.fillStyle = darken(alertColor, 0.3);
+    ctx.strokeStyle = alertColor;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.rect(px - 5, py - 4, 10, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    // Glow ring
+    ctx.beginPath();
+    ctx.arc(px, py, 7 + pulse * 4, 0, Math.PI*2);
+    ctx.strokeStyle = alertColor;
+    ctx.globalAlpha = 0.3 + pulse * 0.4;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Connector line to pipe
+    ctx.strokeStyle = 'rgba(0,180,255,0.2)';
+    ctx.lineWidth = 0.8;
+    ctx.setLineDash([3,3]);
+    ctx.beginPath();
+    ctx.moveTo(px, py + (s.side > 0 ? -8 : 8));
+    ctx.lineTo(px, cy + s.side * pipeR);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  });
+}
+
+function drawOverlay(ctx, cx, cy, x0, x1, pipeLen, pipeR, t, sf) {
+  if (sf < 0.01) return;
+
+  // Crack lines for fracture/collapse
+  if (state.simActive === 'fracture' || state.simActive === 'collapse') {
+    const crackX = cx + Math.sin(t * 0.1) * 5;
+    ctx.save();
+    ctx.strokeStyle = state.simActive === 'collapse' ? '#ff0000' : '#ff4400';
+    ctx.lineWidth = state.simActive === 'collapse' ? 3 : 1.5;
+    ctx.shadowColor = '#ff0000';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.moveTo(crackX, cy - pipeR);
+    ctx.lineTo(crackX + 8, cy - pipeR * 0.3);
+    ctx.lineTo(crackX - 4, cy);
+    ctx.lineTo(crackX + 6, cy + pipeR * 0.4);
+    ctx.lineTo(crackX, cy + pipeR);
+    ctx.stroke();
+    if (state.simActive === 'collapse') {
+      ctx.beginPath();
+      ctx.moveTo(crackX - 20, cy - pipeR * 0.5);
+      ctx.lineTo(crackX - 10, cy + 0);
+      ctx.lineTo(crackX - 18, cy + pipeR * 0.5);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Corrosion texture patches
+  if (state.mode === 'corrosion' && state.corrosion > 30) {
+    ctx.save();
+    ctx.globalAlpha = 0.4 * sf;
+    for (let i = 0; i < 12; i++) {
+      const rx = x0 + Math.sin(i * 2.3) * 0.5 * pipeLen + pipeLen * 0.5;
+      const ry = cy + (Math.cos(i * 1.7)) * pipeR * 0.5;
+      const rr = 8 + Math.sin(i * 3) * 4;
+      const grd = ctx.createRadialGradient(rx, ry, 0, rx, ry, rr);
+      grd.addColorStop(0, '#cc3300');
+      grd.addColorStop(0.6, '#882200');
+      grd.addColorStop(1, 'transparent');
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.ellipse(rx, ry, rr, rr * 0.7, i, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Warning flash for emergency
+  if (state.simActive !== 'none' && SIM_PROFILES[state.simActive].severity === 'EMERGENCY') {
+    const flashAlpha = (Math.sin(t * 4) + 1) * 0.5 * 0.15;
+    ctx.save();
+    ctx.fillStyle = `rgba(255,0,0,${flashAlpha})`;
+    ctx.fillRect(x0, cy - pipeR * 1.5, x1 - x0, pipeR * 3);
+    ctx.restore();
+  }
+}
+
+function drawFlowVectors(ctx, cx, cy, x0, x1, pipeR, t, sf) {
+  const numArrows = 12;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(0,220,255,0.6)';
+  ctx.lineWidth = 1.2;
+  for (let i = 0; i < numArrows; i++) {
+    const fx = ((i / numArrows) + (t * 0.015)) % 1;
+    const ax = x0 + fx * (x1 - x0);
+    const ay = cy + (i % 3 - 1) * pipeR * 0.28;
+    const len = 14 + (state.flow / 12) * 8;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(ax + len, ay);
+    // arrowhead
+    ctx.moveTo(ax + len - 4, ay - 3);
+    ctx.lineTo(ax + len, ay);
+    ctx.lineTo(ax + len - 4, ay + 3);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawAIParticles(ctx, W, H, t) {
+  if (!state.particles.length) initParticles();
+  state.particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < 0) p.x = W;
+    if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H;
+    if (p.y > H) p.y = 0;
+    ctx.save();
+    ctx.globalAlpha = p.alpha * (0.5 + Math.abs(Math.sin(t + p.x * 0.01)) * 0.5);
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+function drawDimensions(ctx, cx, cy, x0, x1, pipeR) {
+  ctx.save();
+  ctx.strokeStyle = 'rgba(0,180,255,0.25)';
+  ctx.fillStyle = 'rgba(100,180,220,0.7)';
+  ctx.font = '9px Rajdhani,sans-serif';
+  ctx.lineWidth = 0.5;
+
+  // Length dim
+  const dimY = cy + pipeR + 32;
+  ctx.beginPath(); ctx.moveTo(x0, dimY); ctx.lineTo(x1, dimY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x0, dimY-4); ctx.lineTo(x0, dimY+4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1, dimY-4); ctx.lineTo(x1, dimY+4); ctx.stroke();
+  ctx.textAlign='center';
+  ctx.fillText('L = 6.0 m  |  Ø 219.1 mm  |  WT 8.18 mm  |  ASTM A106-B', cx, dimY + 12);
+  ctx.restore();
+}
+
+function lighten(hex, f) {
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgb(${Math.min(255,r+f*255|0)},${Math.min(255,g+f*255|0)},${Math.min(255,b+f*255|0)})`;
+}
+function darken(hex, f) {
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgb(${Math.max(0,r*(1-f)|0)},${Math.max(0,g*(1-f)|0)},${Math.max(0,b*(1-f)|0)})`;
+}
+
+// ============================================================
+// CHARTS
+// ============================================================
+let chartTemp, chartDeform, chartDeg;
+const chartOpts = (label, borderColor, bgFrom, bgTo) => ({
+  type: 'line',
+  data: {
+    labels: Array.from({length:20}, (_,i) => ''),
+    datasets:[{ label, data: Array(20).fill(0), borderColor, borderWidth:1.5,
+      backgroundColor: ctx => { const g=ctx.chart.ctx.createLinearGradient(0,0,0,100);
+        g.addColorStop(0, bgFrom); g.addColorStop(1, bgTo); return g; },
+      fill:true, tension:0.4, pointRadius:0 }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false, animation:{duration:300},
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{display:false,grid:{display:false}},
+      y:{display:true,grid:{color:'rgba(0,180,255,0.06)'},
+         ticks:{color:'#4a7a92',font:{family:'Rajdhani',size:9}}}
+    }
+  }
+});
+
+function initCharts() {
+  Chart.defaults.color = '#4a7a92';
+  Chart.defaults.borderColor = 'rgba(0,180,255,0.08)';
+
+  const ctxT = document.getElementById('chartTemp').getContext('2d');
+  chartTemp = new Chart(ctxT, chartOpts('T°C','#ff6600','rgba(255,102,0,0.2)','rgba(255,102,0,0)'));
+
+  const ctxD = document.getElementById('chartDeform').getContext('2d');
+  chartDeform = new Chart(ctxD, chartOpts('mm','#00d4ff','rgba(0,212,255,0.2)','rgba(0,212,255,0)'));
+
+  const ctxDeg = document.getElementById('chartDeg').getContext('2d');
+  chartDeg = new Chart(ctxDeg, {
+    type:'line',
+    data:{
+      labels:['0d','30d','60d','90d','120d','150d','180d'],
+      datasets:[
+        { label:'Degradación Real', data:[0,8,18,28,41,55,70],
+          borderColor:'#ffab00', borderWidth:1.5, fill:false, tension:0.4, pointRadius:2, pointBackgroundColor:'#ffab00' },
+        { label:'Predicción IA', data:[null,null,null,28,45,63,82],
+          borderColor:'#00d4ff', borderWidth:1.2, borderDash:[4,3], fill:false, tension:0.4, pointRadius:0 },
+        { label:'Umbral Crítico', data:[80,80,80,80,80,80,80],
+          borderColor:'#ff1744', borderWidth:1, borderDash:[2,4], fill:false, pointRadius:0 },
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{duration:300},
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:'rgba(0,180,255,0.06)'},ticks:{color:'#4a7a92',font:{family:'Rajdhani',size:9}}},
+        y:{grid:{color:'rgba(0,180,255,0.06)'},ticks:{color:'#4a7a92',font:{family:'Rajdhani',size:9}},
+           min:0,max:100}
+      }
+    }
+  });
+}
+
+const histTemp = Array(20).fill(42);
+const histDeform = Array(20).fill(0.6);
+
+function updateCharts() {
+  histTemp.push(state.temp + (Math.random()-0.5)*2);
+  histTemp.shift();
+  histDeform.push(state.deform + (Math.random()-0.5)*0.1);
+  histDeform.shift();
+
+  chartTemp.data.datasets[0].data = [...histTemp];
+  chartDeform.data.datasets[0].data = [...histDeform];
+
+  const tempColor = state.temp > 90 ? '#ff0000' : state.temp > 60 ? '#ff6600' : '#ffcc00';
+  const deformColor = state.deform > 5 ? '#ff1744' : state.deform > 2 ? '#ffab00' : '#00d4ff';
+  chartTemp.data.datasets[0].borderColor = tempColor;
+  chartDeform.data.datasets[0].borderColor = deformColor;
+
+  chartTemp.update('none');
+  chartDeform.update('none');
+
+  // Update degradation prediction
+  const d = state.simActive !== 'none' ? SIM_PROFILES[state.simActive] : null;
+  if (d && d.severity !== 'NORMAL') {
+    const scale = d.severity === 'EMERGENCY' ? 2.2 : d.severity === 'CRITICAL' ? 1.7 : 1.3;
+    chartDeg.data.datasets[1].data = [null,null,null,
+      Math.min(95, 28 * scale),
+      Math.min(99, 45 * scale),
+      Math.min(100, 63 * scale),
+      100];
+  } else {
+    chartDeg.data.datasets[1].data = [null,null,null,28,45,63,82];
+  }
+  chartDeg.update('none');
+}
+
+// ============================================================
+// CLOCK
+// ============================================================
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clockDisplay').textContent = now.toTimeString().slice(0,8);
+  document.getElementById('dateDisplay').textContent = now.toLocaleDateString('es-EC');
+}
+
+// ============================================================
+// BACKGROUND LIVE DATA TICKS
+// ============================================================
+let tickInterval;
+function startLiveData() {
+  tickInterval = setInterval(() => {
+    if (state.simActive === 'none') {
+      // Gentle fluctuation in nominal state
+      state.temp     = Math.max(38, Math.min(52, state.temp     + (Math.random()-0.5)*1.2));
+      state.deform   = Math.max(0.3, Math.min(0.9, state.deform + (Math.random()-0.5)*0.05));
+      state.vibration= Math.max(1.5, Math.min(3.2, state.vibration+(Math.random()-0.5)*0.2));
+      state.flow     = Math.max(2.8, Math.min(3.8, state.flow    + (Math.random()-0.5)*0.1));
+    }
+    renderKPIs();
+    updateAIPanel();
+
+    // Periodic auto-events
+    if (Math.random() < 0.18) {
+      const msgs = [
+        ['NORMAL','SENS·T1','Temperatura nominal: '+state.temp.toFixed(1)+'°C'],
+        ['NORMAL','SENS·V1','Vibración en rango: '+state.vibration.toFixed(2)+' mm/s'],
+        ['NORMAL','AI·ENGINE','Ciclo inferencia completado — Health Index: '+state.health+'%'],
+        ['NORMAL','IIoT·GW','Heartbeat OK — 12/12 sensores activos'],
+        ['WARNING','SENS·C1','Variación de corrosión detectada en T3'],
+      ];
+      const m = msgs[Math.floor(Math.random()*msgs.length)];
+      addEvent(m[0], m[1], m[2]);
+    }
+    updateCharts();
+  }, 2200);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  renderKPIs();
+  renderAnomalies();
+  updateAIPanel();
+  updateGlobalStatus();
+  setMode('thermal');
+  initCharts();
+  initParticles();
+  drawTwin();
+  startLiveData();
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Initial events
+  addEvent('NORMAL',   'SYSTEM',    'PipeGuard AI v4.2 iniciado — Digital Twin cargado');
+  addEvent('NORMAL',   'IIoT·GW',   '12 sensores IIoT conectados — modo monitoreo continuo');
+  addEvent('NORMAL',   'AI·ENGINE', 'Modelo Weibull+LSTM listo — confianza inicial: 87%');
+  addEvent('WARNING',  'SENS·C1',   'Corrosión zona T3 en vigilancia — nivel 18%');
+  addEvent('NORMAL',   'SCADA',     'Pipeline ASTM A106-B — condición NOMINAL');
+}
+
+window.addEventListener('resize', () => {
+  resizeCanvas();
+});
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

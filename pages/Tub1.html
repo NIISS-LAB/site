@@ -1,0 +1,2552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPIS — Industrial Predictive Intelligence System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg-deep: #050d1a;
+  --bg-mid: #081424;
+  --bg-panel: #0a1929;
+  --bg-card: #0d2035;
+  --bg-card2: #0f2540;
+  --border: #1a3a5c;
+  --border-glow: #1e4d7b;
+  --cyan: #00d4ff;
+  --cyan-dim: #0094b3;
+  --cyan-glow: rgba(0,212,255,0.15);
+  --blue-neon: #4d9fff;
+  --green: #00ff88;
+  --green-dim: #00c96a;
+  --amber: #ffaa00;
+  --amber-dim: #cc8800;
+  --orange: #ff6600;
+  --red: #ff2244;
+  --red-dim: #cc1133;
+  --white: #e8f4ff;
+  --gray: #7a9bb5;
+  --gray-dim: #3d5a73;
+  --font-display: 'Orbitron', monospace;
+  --font-ui: 'Rajdhani', sans-serif;
+  --font-body: 'Exo 2', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--white);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 2px; }
+
+/* ===== HEADER ===== */
+#header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 56px;
+  background: linear-gradient(180deg, #061120 0%, var(--bg-panel) 100%);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+#header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.5;
+}
+
+.h-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.h-logo-icon {
+  width: 36px; height: 36px;
+  position: relative;
+}
+
+.h-logo-icon svg { width: 100%; height: 100%; }
+
+.h-logo-text {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--cyan);
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.h-logo-sub {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--gray);
+  letter-spacing: 1px;
+  margin-top: 1px;
+}
+
+.h-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.h-system-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 4px;
+  color: var(--white);
+  text-transform: uppercase;
+}
+
+.h-asset-id {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--cyan-dim);
+  letter-spacing: 2px;
+}
+
+.h-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.h-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: all 0.3s;
+}
+
+.h-status-badge.normal { color: var(--green); border-color: var(--green); background: rgba(0,255,136,0.05); }
+.h-status-badge.warning { color: var(--amber); border-color: var(--amber); background: rgba(255,170,0,0.05); }
+.h-status-badge.critical { color: var(--orange); border-color: var(--orange); background: rgba(255,102,0,0.1); }
+.h-status-badge.emergency { color: var(--red); border-color: var(--red); background: rgba(255,34,68,0.1); animation: pulse-red 1s infinite; }
+
+@keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: blink 2s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.h-clock {
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  min-width: 90px;
+  text-align: right;
+}
+
+.h-connectivity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.conn-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.conn-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: blink 1.5s infinite;
+}
+
+.conn-dot.amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+
+.conn-label {
+  font-family: var(--font-ui);
+  font-size: 8px;
+  color: var(--gray);
+  letter-spacing: 1px;
+}
+
+.conn-arrow {
+  font-size: 10px;
+  color: var(--gray-dim);
+  margin: 0 2px;
+}
+
+/* ===== MAIN LAYOUT ===== */
+#main {
+  display: grid;
+  grid-template-columns: 240px 1fr 280px;
+  grid-template-rows: 1fr;
+  height: calc(100vh - 56px - 160px);
+  min-height: 500px;
+  gap: 0;
+}
+
+/* ===== PANELS ===== */
+.panel {
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 12px;
+}
+
+#panel-left { border-right: 1px solid var(--border); }
+#panel-right { border-left: 1px solid var(--border); border-right: none; }
+
+.panel-title {
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--cyan-dim);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ===== KPI CARDS ===== */
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: var(--accent, var(--cyan));
+}
+
+.kpi-card:hover {
+  border-color: var(--border-glow);
+  background: var(--bg-card2);
+}
+
+.kpi-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--gray);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.kpi-value {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent, var(--cyan));
+  line-height: 1;
+  transition: all 0.5s;
+}
+
+.kpi-unit {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--gray);
+  margin-left: 2px;
+}
+
+.kpi-bar {
+  height: 3px;
+  background: var(--bg-deep);
+  border-radius: 2px;
+  margin-top: 5px;
+  overflow: hidden;
+}
+
+.kpi-bar-fill {
+  height: 100%;
+  background: var(--accent, var(--cyan));
+  border-radius: 2px;
+  transition: width 0.8s ease;
+  box-shadow: 0 0 4px var(--accent, var(--cyan));
+}
+
+/* ===== DIGITAL TWIN CENTRAL ===== */
+#dt-center {
+  background: var(--bg-mid);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#dt-header {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: rgba(5,13,26,0.8);
+}
+
+.dt-title {
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--cyan);
+  text-transform: uppercase;
+}
+
+.dt-meta {
+  display: flex;
+  gap: 16px;
+}
+
+.dt-meta-item {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--gray);
+  letter-spacing: 1px;
+}
+
+.dt-meta-item span {
+  color: var(--white);
+  font-weight: 600;
+}
+
+#dt-canvas-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  overflow: hidden;
+}
+
+#twin-canvas {
+  display: block;
+  max-width: 100%;
+}
+
+/* ===== SIMULATION CONTROLS ===== */
+#sim-controls {
+  padding: 8px 16px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+  background: rgba(5,13,26,0.9);
+  flex-shrink: 0;
+}
+
+.sim-btn {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 2px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+}
+
+.sim-btn.temp { color: var(--orange); border-color: var(--orange); }
+.sim-btn.corr { color: #c05a00; border-color: #c05a00; }
+.sim-btn.leak { color: var(--cyan); border-color: var(--cyan); }
+.sim-btn.fatigue { color: var(--amber); border-color: var(--amber); }
+.sim-btn.cavit { color: var(--blue-neon); border-color: var(--blue-neon); }
+.sim-btn.press { color: var(--red); border-color: var(--red); }
+.sim-btn.vibr { color: #ff88cc; border-color: #ff88cc; }
+.sim-btn.collapse { color: var(--red); border-color: var(--red); background: rgba(255,34,68,0.05); }
+.sim-btn.reset { color: var(--green); border-color: var(--green); }
+
+.sim-btn:hover { opacity: 0.8; transform: translateY(-1px); }
+.sim-btn.active { opacity: 1; }
+.sim-btn.temp.active { background: rgba(255,102,0,0.2); }
+.sim-btn.corr.active { background: rgba(192,90,0,0.2); }
+.sim-btn.leak.active { background: rgba(0,212,255,0.15); }
+.sim-btn.fatigue.active { background: rgba(255,170,0,0.2); }
+.sim-btn.cavit.active { background: rgba(77,159,255,0.2); }
+.sim-btn.press.active { background: rgba(255,34,68,0.2); }
+.sim-btn.vibr.active { background: rgba(255,136,204,0.15); }
+.sim-btn.collapse.active { background: rgba(255,34,68,0.3); }
+
+/* ===== AI PANEL ===== */
+.ai-engine-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.ai-engine-title {
+  font-family: var(--font-display);
+  font-size: 8px;
+  color: var(--cyan-dim);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.ai-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.ai-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--gray);
+  letter-spacing: 1px;
+}
+
+.ai-value {
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: var(--cyan);
+  font-weight: 600;
+}
+
+.ai-confidence {
+  height: 2px;
+  background: var(--bg-deep);
+  border-radius: 1px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.ai-conf-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--blue-neon));
+  border-radius: 1px;
+  transition: width 1s ease;
+}
+
+.anomaly-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.anomaly-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 10px;
+  color: var(--gray);
+  padding: 3px 6px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 2px;
+  border-left: 2px solid var(--amber);
+  transition: all 0.3s;
+}
+
+.anomaly-item.critical { border-color: var(--red); color: #ffaaaa; }
+.anomaly-item.normal { border-color: var(--green); opacity: 0.6; }
+
+.anomaly-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--amber);
+  flex-shrink: 0;
+}
+
+.anomaly-item.critical .anomaly-dot { background: var(--red); }
+.anomaly-item.normal .anomaly-dot { background: var(--green); }
+
+/* Prob falla */
+.prob-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.prob-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 6px 8px;
+  text-align: center;
+}
+
+.prob-days {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  color: var(--gray);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.prob-pct {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  transition: all 0.5s;
+}
+
+/* Chart containers */
+.chart-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.chart-title {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  color: var(--gray);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* ===== FOOTER / ALARM CONSOLE ===== */
+#footer {
+  height: 160px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+#footer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.footer-title {
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--cyan-dim);
+  text-transform: uppercase;
+}
+
+.alarm-counts {
+  display: flex;
+  gap: 12px;
+}
+
+.alarm-count {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.alarm-count.normal { color: var(--green); }
+.alarm-count.warning { color: var(--amber); }
+.alarm-count.critical { color: var(--orange); }
+.alarm-count.emergency { color: var(--red); }
+
+#alarm-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 8px;
+}
+
+.alarm-row {
+  display: grid;
+  grid-template-columns: 100px 80px 120px 1fr 200px;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 2px;
+  margin-bottom: 2px;
+  font-family: var(--font-body);
+  font-size: 10px;
+  animation: slideIn 0.3s ease;
+  transition: background 0.2s;
+}
+
+@keyframes slideIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
+
+.alarm-row:hover { background: rgba(255,255,255,0.03); }
+
+.alarm-row.normal { border-left: 2px solid var(--green); background: rgba(0,255,136,0.03); }
+.alarm-row.warning { border-left: 2px solid var(--amber); background: rgba(255,170,0,0.05); }
+.alarm-row.critical { border-left: 2px solid var(--orange); background: rgba(255,102,0,0.07); }
+.alarm-row.emergency { border-left: 2px solid var(--red); background: rgba(255,34,68,0.1); animation: slideIn 0.3s, pulseRow 2s infinite; }
+
+@keyframes pulseRow { 0%,100%{background:rgba(255,34,68,0.1)} 50%{background:rgba(255,34,68,0.18)} }
+
+.ar-time { color: var(--gray); }
+.ar-level { font-weight: 700; font-family: var(--font-ui); letter-spacing: 1px; text-transform: uppercase; }
+.ar-level.normal { color: var(--green); }
+.ar-level.warning { color: var(--amber); }
+.ar-level.critical { color: var(--orange); }
+.ar-level.emergency { color: var(--red); }
+.ar-sensor { color: var(--blue-neon); font-family: var(--font-ui); }
+.ar-message { color: var(--white); }
+.ar-rec { color: var(--cyan-dim); font-size: 9px; }
+
+/* Sensor indicators on canvas overlay */
+.sensor-pip {
+  position: absolute;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 2px solid;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 10;
+}
+
+.sensor-pip.temp { border-color: var(--orange); background: rgba(255,102,0,0.3); }
+.sensor-pip.vibr { border-color: #ff88cc; background: rgba(255,136,204,0.2); }
+.sensor-pip.press { border-color: var(--red); background: rgba(255,34,68,0.2); }
+.sensor-pip.corr { border-color: #c05a00; background: rgba(192,90,0,0.2); }
+.sensor-pip.flow { border-color: var(--cyan); background: rgba(0,212,255,0.15); }
+.sensor-pip.utsnd { border-color: var(--blue-neon); background: rgba(77,159,255,0.15); }
+.sensor-pip.deform { border-color: var(--amber); background: rgba(255,170,0,0.2); }
+
+.sensor-pip::after {
+  content: '';
+  position: absolute;
+  top: -4px; left: -4px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 1px solid;
+  border-color: inherit;
+  opacity: 0;
+  animation: sonar 2s infinite;
+}
+
+@keyframes sonar {
+  0% { transform: scale(0.5); opacity: 0.8; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* RUL gauge */
+.rul-gauge {
+  position: relative;
+  text-align: center;
+  padding: 8px;
+}
+
+.rul-number {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--green);
+  line-height: 1;
+  transition: all 0.5s;
+}
+
+.rul-label {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  color: var(--gray);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.rul-pct {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--gray);
+  margin-top: 4px;
+}
+
+.rul-bar {
+  height: 6px;
+  background: var(--bg-deep);
+  border-radius: 3px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.rul-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s ease, background 1s ease;
+}
+
+/* Glow animations */
+.glow-cyan { text-shadow: 0 0 10px var(--cyan); }
+.glow-green { text-shadow: 0 0 10px var(--green); }
+.glow-red { text-shadow: 0 0 10px var(--red); }
+
+/* Grid background */
+#dt-center::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#dt-canvas-wrap { z-index: 1; }
+#dt-header { z-index: 2; }
+#sim-controls { z-index: 2; }
+
+/* Scanline effect */
+#dt-center::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Sensor tooltip */
+#sensor-tooltip {
+  position: fixed;
+  background: var(--bg-card2);
+  border: 1px solid var(--border-glow);
+  border-radius: 3px;
+  padding: 8px 12px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--white);
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s;
+  min-width: 140px;
+}
+
+#sensor-tooltip.visible { opacity: 1; }
+
+.tooltip-title {
+  font-family: var(--font-display);
+  font-size: 9px;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 2px;
+  font-size: 10px;
+}
+
+.tooltip-key { color: var(--gray); }
+.tooltip-val { color: var(--white); font-weight: 600; }
+
+/* Loading overlay */
+#loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-deep);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  transition: opacity 0.8s;
+}
+
+.loading-logo {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 8px;
+  color: var(--cyan);
+  text-shadow: 0 0 20px var(--cyan);
+}
+
+.loading-sub {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 4px;
+  color: var(--gray);
+  text-transform: uppercase;
+}
+
+.loading-bar-wrap {
+  width: 300px;
+  height: 2px;
+  background: var(--border);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.loading-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--blue-neon));
+  border-radius: 1px;
+  animation: loadProgress 2s ease forwards;
+}
+
+@keyframes loadProgress { from{width:0} to{width:100%} }
+
+.loading-step {
+  font-family: var(--font-body);
+  font-size: 10px;
+  color: var(--cyan-dim);
+  letter-spacing: 2px;
+  animation: fadeSteps 2s infinite;
+}
+
+@keyframes fadeSteps { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+/* Segment labels on canvas */
+.seg-label {
+  position: absolute;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  color: var(--gray);
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+
+/* Health ring */
+.health-ring-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 8px auto;
+}
+
+.health-ring-wrap canvas { display: block; }
+
+.health-ring-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.health-ring-val {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1;
+  transition: all 0.5s;
+}
+
+.health-ring-lbl {
+  font-family: var(--font-ui);
+  font-size: 8px;
+  color: var(--gray);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.section-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 0;
+}
+
+/* Alert flash */
+@keyframes alertFlash {
+  0%,100% { background: rgba(255,34,68,0); }
+  50% { background: rgba(255,34,68,0.15); }
+}
+
+.alert-flash {
+  animation: alertFlash 0.5s ease 3;
+}
+</style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay">
+  <div class="loading-logo">IPIS</div>
+  <div class="loading-sub">Industrial Predictive Intelligence System</div>
+  <div class="loading-bar-wrap">
+    <div class="loading-bar-fill"></div>
+  </div>
+  <div class="loading-step" id="loading-step">Initializing Digital Twin Engine...</div>
+</div>
+
+<!-- Sensor Tooltip -->
+<div id="sensor-tooltip">
+  <div class="tooltip-title" id="tt-title">SENSOR</div>
+  <div id="tt-content"></div>
+</div>
+
+<!-- ===== HEADER ===== -->
+<div id="header">
+  <div class="h-logo">
+    <div class="h-logo-icon">
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="18" stroke="#00d4ff" stroke-width="1.5" opacity="0.4"/>
+        <circle cx="20" cy="20" r="13" stroke="#00d4ff" stroke-width="1" opacity="0.6"/>
+        <polygon points="20,6 34,28 6,28" stroke="#00d4ff" stroke-width="1.5" fill="none" opacity="0.8"/>
+        <circle cx="20" cy="20" r="3" fill="#00d4ff"/>
+        <line x1="20" y1="2" x2="20" y2="8" stroke="#00d4ff" stroke-width="1.5"/>
+        <line x1="38" y1="20" x2="32" y2="20" stroke="#00d4ff" stroke-width="1.5"/>
+        <line x1="2" y1="20" x2="8" y2="20" stroke="#00d4ff" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <div>
+      <div class="h-logo-text">IPIS v4.2</div>
+      <div class="h-logo-sub">PREDICTIVE ANALYTICS CORE</div>
+    </div>
+  </div>
+
+  <div class="h-center">
+    <div class="h-system-name">Industrial Predictive Intelligence System</div>
+    <div class="h-asset-id">ASSET: PIPE-C4-XHYD-2024 | LINE: PROCESS CRITICAL — UNIT 7</div>
+  </div>
+
+  <div class="h-right">
+    <div class="h-connectivity">
+      <div class="conn-node">
+        <div class="conn-dot"></div>
+        <div class="conn-label">EDGE</div>
+      </div>
+      <div class="conn-arrow">→</div>
+      <div class="conn-node">
+        <div class="conn-dot amber"></div>
+        <div class="conn-label">CLOUD</div>
+      </div>
+      <div class="conn-arrow">→</div>
+      <div class="conn-node">
+        <div class="conn-dot"></div>
+        <div class="conn-label">AI</div>
+      </div>
+    </div>
+    <div class="h-status-badge normal" id="global-status">
+      <div class="status-dot"></div>
+      <span id="status-text">OPERATIONAL</span>
+    </div>
+    <div class="h-clock" id="clock">--:--:--</div>
+  </div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<div id="main">
+
+  <!-- LEFT PANEL — KPIs -->
+  <div class="panel" id="panel-left">
+    <div class="panel-title">■ System KPIs</div>
+
+    <!-- Health Ring -->
+    <div class="health-ring-wrap">
+      <canvas id="healthRingCanvas" width="80" height="80"></canvas>
+      <div class="health-ring-center">
+        <div class="health-ring-val" id="health-val">87</div>
+        <div class="health-ring-lbl">Health</div>
+      </div>
+    </div>
+
+    <div class="kpi-card" style="--accent: var(--green)">
+      <div class="kpi-label">Reliability</div>
+      <div><span class="kpi-value" id="kpi-rel">97.4</span><span class="kpi-unit">%</span></div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" id="bar-rel" style="width:97.4%"></div></div>
+    </div>
+
+    <div class="kpi-card" style="--accent: var(--cyan)">
+      <div class="kpi-label">Availability</div>
+      <div><span class="kpi-value" id="kpi-avail">99.1</span><span class="kpi-unit">%</span></div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" id="bar-avail" style="width:99.1%"></div></div>
+    </div>
+
+    <div class="kpi-card" style="--accent: var(--blue-neon)">
+      <div class="kpi-label">Maintainability</div>
+      <div><span class="kpi-value" id="kpi-maint">94.8</span><span class="kpi-unit">%</span></div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" id="bar-maint" style="width:94.8%"></div></div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <div class="kpi-card" style="--accent: var(--amber)">
+      <div class="kpi-label">Criticality Index</div>
+      <div><span class="kpi-value" id="kpi-crit">2.4</span><span class="kpi-unit">/10</span></div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" id="bar-crit" style="width:24%"></div></div>
+    </div>
+
+    <div class="kpi-card" style="--accent: var(--orange)">
+      <div class="kpi-label">Damage Level</div>
+      <div><span class="kpi-value" id="kpi-dmg">12.3</span><span class="kpi-unit">%</span></div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" id="bar-dmg" style="width:12.3%"></div></div>
+    </div>
+
+    <div class="kpi-card" style="--accent: var(--blue-neon)">
+      <div class="kpi-label">Structural Integrity</div>
+      <div><span class="kpi-value" id="kpi-int">91.2</span><span class="kpi-unit">%</span></div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" id="bar-int" style="width:91.2%"></div></div>
+    </div>
+
+    <div class="kpi-card" style="--accent: var(--red)">
+      <div class="kpi-label">Operational Risk</div>
+      <div><span class="kpi-value" id="kpi-risk">1.8</span><span class="kpi-unit">%</span></div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" id="bar-risk" style="width:1.8%"></div></div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Probability of Failure -->
+    <div class="panel-title" style="margin-top:0">■ Failure Probability</div>
+    <div class="prob-row">
+      <div class="prob-card">
+        <div class="prob-days">30D</div>
+        <div class="prob-pct" id="prob30" style="color: var(--green)">3.2%</div>
+      </div>
+      <div class="prob-card">
+        <div class="prob-days">60D</div>
+        <div class="prob-pct" id="prob60" style="color: var(--amber)">7.8%</div>
+      </div>
+      <div class="prob-card">
+        <div class="prob-days">90D</div>
+        <div class="prob-pct" id="prob90" style="color: var(--orange)">14.1%</div>
+      </div>
+    </div>
+
+    <!-- RUL -->
+    <div class="kpi-card" style="--accent: var(--cyan)">
+      <div class="kpi-label">RUL — Remaining Useful Life</div>
+      <div class="rul-gauge">
+        <div class="rul-number" id="rul-days">847</div>
+        <div class="rul-label">Days Remaining</div>
+        <div class="rul-pct" id="rul-pct">Life consumed: 34.8%</div>
+      </div>
+      <div class="rul-bar">
+        <div class="rul-bar-fill" id="rul-fill" style="width:65.2%; background: linear-gradient(90deg, var(--green), var(--cyan));"></div>
+      </div>
+    </div>
+
+    <!-- Trend Chart -->
+    <div class="chart-wrap" style="height: 100px;">
+      <div class="chart-title">Health Index Trend</div>
+      <canvas id="healthTrendChart" height="70"></canvas>
+    </div>
+
+  </div><!-- /panel-left -->
+
+  <!-- CENTRAL — DIGITAL TWIN -->
+  <div id="dt-center">
+    <div id="dt-header">
+      <div class="dt-title">■ Critical Process Pipeline — Digital Twin Active</div>
+      <div class="dt-meta">
+        <div class="dt-meta-item">Material: <span>A106 Gr.B Carbon Steel</span></div>
+        <div class="dt-meta-item">OD: <span>24" Sch.80</span></div>
+        <div class="dt-meta-item">Length: <span>12.4m</span></div>
+        <div class="dt-meta-item">P: <span id="meta-pressure">32.4 bar</span></div>
+        <div class="dt-meta-item">T: <span id="meta-temp">148°C</span></div>
+        <div class="dt-meta-item">v: <span id="meta-flow">2.34 m/s</span></div>
+      </div>
+    </div>
+
+    <div id="dt-canvas-wrap">
+      <canvas id="twin-canvas"></canvas>
+    </div>
+
+    <!-- Simulation Buttons -->
+    <div id="sim-controls">
+      <div style="font-family:var(--font-display);font-size:8px;color:var(--gray);letter-spacing:2px;align-self:center;text-transform:uppercase;white-space:nowrap">SIMULATE:</div>
+      <button class="sim-btn temp" onclick="simulate('temp')">Overtemp</button>
+      <button class="sim-btn corr" onclick="simulate('corr')">Corrosion</button>
+      <button class="sim-btn leak" onclick="simulate('leak')">Leak</button>
+      <button class="sim-btn fatigue" onclick="simulate('fatigue')">Fatigue</button>
+      <button class="sim-btn cavit" onclick="simulate('cavit')">Cavitation</button>
+      <button class="sim-btn press" onclick="simulate('press')">Overpressure</button>
+      <button class="sim-btn vibr" onclick="simulate('vibr')">Vibration</button>
+      <button class="sim-btn collapse" onclick="simulate('collapse')">Collapse</button>
+      <button class="sim-btn reset" onclick="simulate('reset')">↺ Reset</button>
+    </div>
+  </div><!-- /dt-center -->
+
+  <!-- RIGHT PANEL — AI -->
+  <div class="panel" id="panel-right">
+    <div class="panel-title">■ AI Predictive Engine</div>
+
+    <div class="ai-engine-box">
+      <div class="ai-engine-title">Hybrid AI — Weibull + LSTM</div>
+      <div class="ai-status-row">
+        <span class="ai-label">Engine Status</span>
+        <span class="ai-value" id="ai-engine-status">ACTIVE</span>
+      </div>
+      <div class="ai-status-row">
+        <span class="ai-label">Inference Mode</span>
+        <span class="ai-value">REAL-TIME</span>
+      </div>
+      <div class="ai-status-row">
+        <span class="ai-label">Model Confidence</span>
+        <span class="ai-value" id="ai-conf">94.7%</span>
+      </div>
+      <div class="ai-confidence">
+        <div class="ai-conf-fill" id="ai-conf-fill" style="width:94.7%"></div>
+      </div>
+      <div class="ai-status-row" style="margin-top:6px">
+        <span class="ai-label">Weibull β</span>
+        <span class="ai-value" id="wb-beta">2.34</span>
+      </div>
+      <div class="ai-status-row">
+        <span class="ai-label">Weibull η</span>
+        <span class="ai-value" id="wb-eta">1847d</span>
+      </div>
+      <div class="ai-status-row">
+        <span class="ai-label">LSTM Horizon</span>
+        <span class="ai-value">30/60/90d</span>
+      </div>
+    </div>
+
+    <!-- Degradation Chart -->
+    <div class="chart-wrap" style="height: 110px;">
+      <div class="chart-title">Degradation Trend</div>
+      <canvas id="degradChart" height="80"></canvas>
+    </div>
+
+    <!-- Anomaly Detection -->
+    <div class="ai-engine-box">
+      <div class="ai-engine-title">Anomaly Detection</div>
+      <div class="ai-status-row">
+        <span class="ai-label">Anomaly Score</span>
+        <span class="ai-value" id="anomaly-score" style="color: var(--green)">0.12</span>
+      </div>
+      <div class="anomaly-list" id="anomaly-list">
+        <div class="anomaly-item normal">
+          <div class="anomaly-dot"></div>
+          <span>Thermal baseline nominal</span>
+        </div>
+        <div class="anomaly-item">
+          <div class="anomaly-dot"></div>
+          <span>Minor vibration drift +0.04mm/s</span>
+        </div>
+        <div class="anomaly-item normal">
+          <div class="anomaly-dot"></div>
+          <span>Pressure steady state</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk Chart -->
+    <div class="chart-wrap" style="height: 110px;">
+      <div class="chart-title">Risk vs Time</div>
+      <canvas id="riskChart" height="80"></canvas>
+    </div>
+
+    <!-- Weibull -->
+    <div class="chart-wrap" style="height: 110px;">
+      <div class="chart-title">Weibull Reliability Curve</div>
+      <canvas id="weibullChart" height="80"></canvas>
+    </div>
+
+    <!-- Sensor Status Grid -->
+    <div class="ai-engine-box">
+      <div class="ai-engine-title">IIoT Sensor Status</div>
+      <div id="sensor-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px"></div>
+    </div>
+
+    <!-- AI Recommendation -->
+    <div class="ai-engine-box" style="border-color:var(--cyan-dim)">
+      <div class="ai-engine-title" style="color:var(--cyan)">AI Recommendation</div>
+      <div id="ai-rec" style="font-family:var(--font-body);font-size:11px;color:var(--white);line-height:1.5">
+        System operating within normal parameters. Schedule routine inspection in 90 days. Monitor thermal gradient at section 3.
+      </div>
+    </div>
+
+  </div><!-- /panel-right -->
+
+</div><!-- /main -->
+
+<!-- ===== FOOTER — ALARM CONSOLE ===== -->
+<div id="footer">
+  <div id="footer-header">
+    <div class="footer-title">■ SCADA Event Console — Live Feed</div>
+    <div class="alarm-counts">
+      <div class="alarm-count normal">● NORMAL: <span id="cnt-normal">4</span></div>
+      <div class="alarm-count warning">● WARNING: <span id="cnt-warning">1</span></div>
+      <div class="alarm-count critical">● CRITICAL: <span id="cnt-critical">0</span></div>
+      <div class="alarm-count emergency">● EMERGENCY: <span id="cnt-emergency">0</span></div>
+    </div>
+  </div>
+  <div id="alarm-scroll">
+    <!-- populated by JS -->
+  </div>
+</div>
+
+<script>
+// ============================================================
+// IPIS — INDUSTRIAL PREDICTIVE INTELLIGENCE SYSTEM
+// Digital Twin Engine v4.2
+// ============================================================
+
+// ===== STATE =====
+const State = {
+  mode: 'normal',
+  temp: 148,
+  pressure: 32.4,
+  flow: 2.34,
+  corrosion: 12.3,
+  vibration: 0.42,
+  deformation: 0.08,
+  damage: 12.3,
+  health: 87,
+  reliability: 97.4,
+  availability: 99.1,
+  maintainability: 94.8,
+  criticality: 2.4,
+  integrity: 91.2,
+  risk: 1.8,
+  rul: 847,
+  prob30: 3.2,
+  prob60: 7.8,
+  prob90: 14.1,
+  aiConf: 94.7,
+  anomalyScore: 0.12,
+  wbBeta: 2.34,
+  wbEta: 1847,
+  lifeConsumed: 34.8,
+  tick: 0,
+  particles: [],
+  sensorGlow: {},
+  thermalMap: Array(20).fill(0).map((_,i)=>[0.2+Math.random()*0.15, i*0.05]),
+  alarmCounts: { normal:4, warning:1, critical:0, emergency:0 }
+};
+
+// ===== CANVAS SETUP =====
+const canvas = document.getElementById('twin-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, PIPE_Y, PIPE_H, PIPE_X0, PIPE_X1;
+
+function resizeTwin() {
+  const wrap = document.getElementById('dt-canvas-wrap');
+  W = wrap.clientWidth - 40;
+  H = wrap.clientHeight - 20;
+  if (H < 180) H = 180;
+  canvas.width = W;
+  canvas.height = H;
+  PIPE_Y = H * 0.35;
+  PIPE_H = Math.min(H * 0.32, 120);
+  PIPE_X0 = W * 0.06;
+  PIPE_X1 = W * 0.94;
+  initParticles();
+}
+
+// ===== PARTICLE SYSTEM =====
+function initParticles() {
+  State.particles = [];
+  const count = Math.floor((PIPE_X1 - PIPE_X0) / 18);
+  for (let i = 0; i < count; i++) {
+    State.particles.push(createParticle(i / count));
+  }
+}
+
+function createParticle(xFrac) {
+  const innerH = PIPE_H * 0.55;
+  return {
+    x: PIPE_X0 + xFrac * (PIPE_X1 - PIPE_X0),
+    y: PIPE_Y + PIPE_H/2 + (Math.random() - 0.5) * innerH,
+    speed: (0.5 + Math.random() * 1.5),
+    r: 1.5 + Math.random() * 2,
+    opacity: 0.3 + Math.random() * 0.5,
+    yDrift: (Math.random()-0.5)*0.3
+  };
+}
+
+// ===== DRAW DIGITAL TWIN =====
+function drawTwin() {
+  ctx.clearRect(0, 0, W, H);
+
+  const t = State.tick;
+  const mode = State.mode;
+  const vibAmp = mode === 'vibr' ? 4 : mode === 'press' ? 1.5 : 0.3;
+  const vibFreq = mode === 'vibr' ? 0.15 : 0.05;
+  const vib = Math.sin(t * vibFreq) * vibAmp;
+  const py = PIPE_Y + vib;
+
+  // ---- Draw segments (12 structural sections) ----
+  const segs = 12;
+  const segW = (PIPE_X1 - PIPE_X0) / segs;
+
+  // Draw thermal map / corrosion behind pipe body
+  for (let s = 0; s < segs; s++) {
+    const sx = PIPE_X0 + s * segW;
+    const heat = getSegHeat(s, t);
+    const corrLevel = getSegCorrosion(s);
+    const cx = sx + segW/2;
+    const spread = segW * 0.8;
+
+    // Thermal glow above pipe
+    if (heat > 0.3) {
+      const gr = ctx.createRadialGradient(cx, py, 0, cx, py, PIPE_H * 1.5);
+      const alpha = (heat - 0.3) * 0.6;
+      const c = heatColor(heat, 0.15 * alpha);
+      gr.addColorStop(0, c);
+      gr.addColorStop(1, 'transparent');
+      ctx.fillStyle = gr;
+      ctx.beginPath();
+      ctx.ellipse(cx, py + PIPE_H/2, spread, PIPE_H * 1.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // ---- PIPE SHADOW ----
+  const shadowG = ctx.createLinearGradient(0, py + PIPE_H + 5, 0, py + PIPE_H + 25);
+  shadowG.addColorStop(0, 'rgba(0,0,0,0.4)');
+  shadowG.addColorStop(1, 'transparent');
+  ctx.fillStyle = shadowG;
+  ctx.beginPath();
+  ctx.ellipse((PIPE_X0+PIPE_X1)/2, py + PIPE_H + 12, (PIPE_X1-PIPE_X0)*0.48, 12, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // ---- PIPE BODY (main metal) ----
+  // Bottom cap reflection
+  const capW = PIPE_H * 0.3;
+
+  // Left end cap
+  drawEndCap(ctx, PIPE_X0, py, PIPE_H, 'left');
+  // Right end cap
+  drawEndCap(ctx, PIPE_X1, py, PIPE_H, 'right');
+
+  // Draw each segment
+  for (let s = 0; s < segs; s++) {
+    const sx = PIPE_X0 + s * segW;
+    drawSegment(ctx, s, sx, py, segW, PIPE_H, t);
+  }
+
+  // ---- FLOW PARTICLES ----
+  updateParticles(t);
+  drawParticles(ctx, py, PIPE_H);
+
+  // ---- FLANGES ----
+  const flangePositions = [0.08, 0.25, 0.42, 0.58, 0.75, 0.92];
+  for (const fp of flangePositions) {
+    drawFlange(ctx, PIPE_X0 + fp*(PIPE_X1-PIPE_X0), py, PIPE_H);
+  }
+
+  // ---- WELDS ----
+  const weldPositions = [0.16, 0.33, 0.5, 0.67, 0.84];
+  for (const wp of weldPositions) {
+    drawWeld(ctx, PIPE_X0 + wp*(PIPE_X1-PIPE_X0), py, PIPE_H);
+  }
+
+  // ---- CORROSION PATCHES ----
+  if (mode === 'corr' || State.corrosion > 30) {
+    drawCorrosion(ctx, py, PIPE_H, t);
+  }
+
+  // ---- DEFORMATION ----
+  if (mode === 'fatigue' || mode === 'collapse') {
+    drawDeformation(ctx, py, PIPE_H, t);
+  }
+
+  // ---- LEAK ----
+  if (mode === 'leak') {
+    drawLeak(ctx, py, PIPE_H, t);
+  }
+
+  // ---- CAVITATION BUBBLES ----
+  if (mode === 'cavit') {
+    drawCavitation(ctx, py, PIPE_H, t);
+  }
+
+  // ---- SENSORS ----
+  drawSensors(ctx, py, PIPE_H, t);
+
+  // ---- PRESSURE PULSE RING ----
+  if (mode === 'press' || mode === 'collapse') {
+    const pulse = (t % 60) / 60;
+    const pulseCx = (PIPE_X0 + PIPE_X1) / 2;
+    ctx.strokeStyle = `rgba(255,34,68,${0.6 * (1 - pulse)})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(pulseCx, py + PIPE_H/2, (PIPE_X1-PIPE_X0)*0.3 * (0.5+pulse), PIPE_H * (0.6 + pulse*0.4), 0, 0, Math.PI*2);
+    ctx.stroke();
+  }
+
+  // ---- DIMENSION LINES ----
+  drawDimLines(ctx, py, PIPE_H);
+
+  // ---- SCAN LINE ----
+  const scanX = PIPE_X0 + ((t * 2) % (PIPE_X1 - PIPE_X0));
+  const scanGr = ctx.createLinearGradient(scanX-15, 0, scanX+15, 0);
+  scanGr.addColorStop(0, 'transparent');
+  scanGr.addColorStop(0.5, 'rgba(0,212,255,0.12)');
+  scanGr.addColorStop(1, 'transparent');
+  ctx.fillStyle = scanGr;
+  ctx.fillRect(scanX-15, py-5, 30, PIPE_H+10);
+
+  State.tick++;
+}
+
+function drawSegment(ctx, idx, sx, py, sw, sh, t) {
+  const mode = State.mode;
+  const heat = getSegHeat(idx, t);
+  const corr = getSegCorrosion(idx);
+
+  // Deformation for fatigue/collapse
+  let deformY = 0;
+  if (mode === 'fatigue') {
+    deformY = Math.sin(idx * 0.8 + t * 0.02) * 3;
+  } else if (mode === 'collapse') {
+    if (idx >= 4 && idx <= 7) {
+      deformY = Math.sin((idx-4) * 0.7) * 8;
+    }
+  }
+
+  // Main pipe body gradient
+  const gy = py + deformY;
+  const bodyGr = ctx.createLinearGradient(0, gy, 0, gy + sh);
+  const topHighlight = heatColorMetal(heat, 0.9);
+  const midColor = heatColorMetal(heat, 0.45);
+  const bottomColor = heatColorMetal(heat, 0.15);
+  bodyGr.addColorStop(0, `rgba(180,200,220,0.95)`);
+  bodyGr.addColorStop(0.08, topHighlight);
+  bodyGr.addColorStop(0.3, midColor);
+  bodyGr.addColorStop(0.7, midColor);
+  bodyGr.addColorStop(0.92, bottomColor);
+  bodyGr.addColorStop(1, 'rgba(20,40,60,0.9)');
+
+  ctx.fillStyle = bodyGr;
+  ctx.fillRect(sx, gy, sw, sh);
+
+  // Corrosion overlay
+  if (corr > 0) {
+    const corrAlpha = corr * 0.7;
+    ctx.fillStyle = `rgba(160,60,10,${corrAlpha * 0.5})`;
+    ctx.fillRect(sx, gy, sw, sh);
+    // Corrosion texture dots
+    if (corr > 0.3) {
+      for (let i = 0; i < 8; i++) {
+        const cx2 = sx + (Math.sin(idx*7+i*13)*0.5+0.5)*sw;
+        const cy2 = gy + sh*0.3 + (Math.cos(idx*5+i*11)*0.5+0.5)*sh*0.4;
+        const r = 2 + Math.random()*3;
+        ctx.beginPath();
+        ctx.arc(cx2, cy2, r, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(180,80,20,${corrAlpha*0.7})`;
+        ctx.fill();
+      }
+    }
+  }
+
+  // Segment border
+  ctx.strokeStyle = 'rgba(10,30,50,0.6)';
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(sx, gy, sw, sh);
+
+  // Top highlight stripe
+  const hlGr = ctx.createLinearGradient(0, gy, 0, gy + sh*0.12);
+  hlGr.addColorStop(0, 'rgba(255,255,255,0.5)');
+  hlGr.addColorStop(1, 'transparent');
+  ctx.fillStyle = hlGr;
+  ctx.fillRect(sx, gy, sw, sh * 0.12);
+}
+
+function drawEndCap(ctx, x, py, sh, side) {
+  const rx = sh * 0.18;
+  const cx = side === 'left' ? x : x;
+
+  const gr = ctx.createRadialGradient(cx, py + sh/2, sh*0.1, cx, py + sh/2, sh*0.6);
+  gr.addColorStop(0, 'rgba(120,160,200,0.9)');
+  gr.addColorStop(0.5, 'rgba(60,100,140,0.85)');
+  gr.addColorStop(1, 'rgba(20,40,70,0.9)');
+
+  ctx.fillStyle = gr;
+  ctx.beginPath();
+  ctx.ellipse(cx, py + sh/2, rx, sh/2, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,180,220,0.3)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Pipe opening circle
+  const innerR = sh * 0.32;
+  const innerGr = ctx.createRadialGradient(cx, py+sh/2, 0, cx, py+sh/2, innerR);
+  innerGr.addColorStop(0, 'rgba(0,20,40,0.95)');
+  innerGr.addColorStop(0.7, 'rgba(0,30,60,0.9)');
+  innerGr.addColorStop(1, 'rgba(0,60,90,0.8)');
+  ctx.fillStyle = innerGr;
+  ctx.beginPath();
+  ctx.ellipse(cx, py+sh/2, sh*0.12, innerR, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // Bolt holes
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * Math.PI * 2;
+    const bx = cx + Math.cos(angle) * sh * 0.38;
+    const by = (py+sh/2) + Math.sin(angle) * sh * 0.42;
+    ctx.beginPath();
+    ctx.arc(bx, by, 2.5, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(10,30,50,0.8)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(100,140,180,0.4)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+}
+
+function drawFlange(ctx, x, py, sh) {
+  const fw = sh * 0.15;
+  const fh = sh * 1.25;
+  const fy = py - (fh-sh)/2;
+
+  const gr = ctx.createLinearGradient(x-fw, 0, x+fw, 0);
+  gr.addColorStop(0, 'rgba(160,190,220,0.9)');
+  gr.addColorStop(0.3, 'rgba(100,140,180,0.95)');
+  gr.addColorStop(0.7, 'rgba(80,120,160,0.9)');
+  gr.addColorStop(1, 'rgba(40,70,100,0.85)');
+
+  ctx.fillStyle = gr;
+  ctx.fillRect(x-fw, fy, fw*2, fh);
+
+  // Bolt holes
+  for (let j = 0; j < 4; j++) {
+    const by = fy + fh * (0.15 + j * 0.23);
+    ctx.beginPath();
+    ctx.arc(x, by, 3, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(10,30,50,0.9)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(120,160,200,0.5)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+
+  // Flange border
+  ctx.strokeStyle = 'rgba(0,180,220,0.2)';
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(x-fw, fy, fw*2, fh);
+}
+
+function drawWeld(ctx, x, py, sh) {
+  const mode = State.mode;
+  const weldColor = mode === 'fatigue' ? 'rgba(255,170,0,0.6)' : 'rgba(100,140,180,0.4)';
+  ctx.strokeStyle = weldColor;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x, py);
+  ctx.lineTo(x, py + sh);
+  ctx.stroke();
+
+  // Weld bead
+  ctx.strokeStyle = mode === 'fatigue' ? 'rgba(255,220,100,0.5)' : 'rgba(150,180,210,0.3)';
+  ctx.lineWidth = 3;
+  for (let i = 0; i < sh; i += 5) {
+    ctx.beginPath();
+    ctx.moveTo(x - 1, py + i);
+    ctx.lineTo(x + 1, py + i + 3);
+    ctx.stroke();
+  }
+}
+
+function drawCorrosion(ctx, py, sh, t) {
+  const patches = [
+    {rx: PIPE_X0 + (PIPE_X1-PIPE_X0)*0.22, ry: py + sh*0.5, rw:40, rh:20},
+    {rx: PIPE_X0 + (PIPE_X1-PIPE_X0)*0.55, ry: py + sh*0.6, rw:55, rh:25},
+    {rx: PIPE_X0 + (PIPE_X1-PIPE_X0)*0.78, ry: py + sh*0.45, rw:30, rh:15},
+  ];
+  for (const p of patches) {
+    const corrGr = ctx.createRadialGradient(p.rx, p.ry, 0, p.rx, p.ry, p.rw);
+    corrGr.addColorStop(0, 'rgba(200,80,20,0.7)');
+    corrGr.addColorStop(0.4, 'rgba(160,60,10,0.5)');
+    corrGr.addColorStop(1, 'transparent');
+    ctx.fillStyle = corrGr;
+    ctx.beginPath();
+    ctx.ellipse(p.rx, p.ry, p.rw, p.rh, 0, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // Rust drips
+  for (let i = 0; i < 5; i++) {
+    const dx = PIPE_X0 + (PIPE_X1-PIPE_X0)*(0.15 + i*0.18);
+    const dy = py + sh * 0.8;
+    const dripLen = 8 + Math.sin(t*0.05+i) * 4;
+    const rustGr = ctx.createLinearGradient(dx, dy, dx, dy+dripLen);
+    rustGr.addColorStop(0, 'rgba(160,60,10,0.6)');
+    rustGr.addColorStop(1, 'transparent');
+    ctx.strokeStyle = rustGr;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(dx, dy);
+    ctx.lineTo(dx, dy + dripLen);
+    ctx.stroke();
+  }
+}
+
+function drawDeformation(ctx, py, sh, t) {
+  const mode = State.mode;
+  if (mode === 'collapse') {
+    // Buckle
+    const bx = PIPE_X0 + (PIPE_X1-PIPE_X0)*0.5;
+    ctx.strokeStyle = 'rgba(255,34,68,0.8)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(bx - 60, py + sh*0.2);
+    ctx.quadraticCurveTo(bx, py + sh*0.5 + 20, bx + 60, py + sh*0.2);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(255,100,50,0.5)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(bx - 40, py + sh*0.7);
+    ctx.quadraticCurveTo(bx, py + sh - 15, bx + 40, py + sh*0.7);
+    ctx.stroke();
+  } else {
+    // Micro deformation waves
+    for (let s = 0; s < 5; s++) {
+      const sx2 = PIPE_X0 + (PIPE_X1-PIPE_X0)*(0.1+s*0.18);
+      const waveAmp = 3 + Math.sin(t*0.03+s) * 2;
+      ctx.strokeStyle = 'rgba(255,170,0,0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (let xi = 0; xi < 50; xi++) {
+        const xx = sx2 + xi;
+        const yy = py + sh*0.5 + Math.sin(xi*0.3+t*0.05) * waveAmp;
+        if (xi===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy);
+      }
+      ctx.stroke();
+    }
+  }
+}
+
+function drawLeak(ctx, py, sh, t) {
+  const lx = PIPE_X0 + (PIPE_X1-PIPE_X0)*0.62;
+  const ly = py + sh * 0.85;
+
+  // Leak jet
+  for (let j = 0; j < 20; j++) {
+    const age = (t + j*3) % 60;
+    const frac = age / 60;
+    const jx = lx + (Math.random()-0.5)*4;
+    const jy = ly + frac * 40;
+    const jalpha = 1-frac;
+    ctx.beginPath();
+    ctx.arc(jx, jy, 2, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(0,180,255,${jalpha*0.7})`;
+    ctx.fill();
+  }
+
+  // Spray particles
+  for (let p = 0; p < 8; p++) {
+    const ang = Math.PI * 0.3 + (p/8) * Math.PI * 0.4;
+    const dist = ((t*1.5 + p*8) % 50);
+    const px2 = lx + Math.cos(ang+Math.PI/2)*dist;
+    const py2 = ly + Math.sin(ang+Math.PI/2)*dist;
+    ctx.beginPath();
+    ctx.arc(px2, py2, 1.5, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(100,220,255,${(1-dist/50)*0.6})`;
+    ctx.fill();
+  }
+
+  // Stain
+  const stainGr = ctx.createRadialGradient(lx, ly+10, 0, lx, ly+10, 25);
+  stainGr.addColorStop(0, 'rgba(0,120,200,0.3)');
+  stainGr.addColorStop(1, 'transparent');
+  ctx.fillStyle = stainGr;
+  ctx.beginPath();
+  ctx.ellipse(lx, ly+10, 25, 15, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // Mark on pipe
+  ctx.strokeStyle = 'rgba(0,200,255,0.8)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(lx, py + sh*0.85, 6, 0, Math.PI*2);
+  ctx.stroke();
+}
+
+function drawCavitation(ctx, py, sh, t) {
+  const innerY = py + sh * 0.3;
+  const innerH = sh * 0.4;
+
+  for (let b = 0; b < 30; b++) {
+    const bPhase = (t * 0.08 + b * 0.4) % (PIPE_X1 - PIPE_X0);
+    const bx = PIPE_X0 + bPhase;
+    const by = innerY + Math.random() * innerH;
+    const br = 2 + Math.random() * 4;
+    const pulse = Math.sin(t*0.2+b)*0.5+0.5;
+
+    ctx.beginPath();
+    ctx.arc(bx, by, br * (0.5+pulse*0.5), 0, Math.PI*2);
+    ctx.strokeStyle = `rgba(100,180,255,${0.4+pulse*0.4})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    if (Math.random() < 0.1) {
+      ctx.fillStyle = `rgba(200,240,255,0.6)`;
+      ctx.beginPath();
+      ctx.arc(bx, by, br*0.3, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+}
+
+function drawParticles(ctx, py, sh) {
+  const innerY = py + sh * 0.22;
+  const innerH = sh * 0.56;
+
+  // Clip to pipe interior
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(PIPE_X0+2, innerY, PIPE_X1-PIPE_X0-4, innerH);
+  ctx.clip();
+
+  for (const p of State.particles) {
+    const speed = State.flow / 2.34;
+    const size = p.r * (0.8 + speed * 0.4);
+    const alpha = p.opacity * Math.min(1, speed);
+
+    const mode = State.mode;
+    let color;
+    if (mode === 'temp') color = `rgba(255,150,50,${alpha})`;
+    else if (mode === 'leak') color = `rgba(0,180,255,${alpha})`;
+    else if (mode === 'cavit') color = `rgba(150,210,255,${alpha*0.7})`;
+    else color = `rgba(0,180,220,${alpha})`;
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, size, 0, Math.PI*2);
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    // Streak for speed
+    if (speed > 1.5) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = size*0.5;
+      ctx.beginPath();
+      ctx.moveTo(p.x - speed*4, p.y);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
+}
+
+function updateParticles(t) {
+  const speedMult = State.flow / 2.34;
+  const turbulence = State.mode === 'cavit' ? 2 : State.mode === 'vibr' ? 1.5 : 0.3;
+
+  for (const p of State.particles) {
+    p.x += p.speed * speedMult;
+    p.y += p.yDrift * turbulence;
+
+    // Wrap
+    if (p.x > PIPE_X1 - 2) {
+      p.x = PIPE_X0 + 2;
+      p.y = PIPE_Y + PIPE_H*0.22 + Math.random() * PIPE_H*0.56;
+    }
+    // Bounce vertically in inner pipe
+    const innerTop = PIPE_Y + PIPE_H*0.22;
+    const innerBot = PIPE_Y + PIPE_H*0.78;
+    if (p.y < innerTop || p.y > innerBot) {
+      p.yDrift *= -1;
+      p.y = Math.max(innerTop+1, Math.min(innerBot-1, p.y));
+    }
+  }
+}
+
+function drawSensors(ctx, py, sh, t) {
+  const sensors = [
+    { type:'T', label:'T-01', x:0.12, color:'#ff6600', value:`${State.temp.toFixed(0)}°C` },
+    { type:'V', label:'V-02', x:0.28, color:'#ff88cc', value:`${State.vibration.toFixed(2)}mm/s` },
+    { type:'P', label:'P-03', x:0.44, color:'#ff2244', value:`${State.pressure.toFixed(1)}bar` },
+    { type:'C', label:'C-04', x:0.60, color:'#c05a00', value:`${State.corrosion.toFixed(1)}%` },
+    { type:'F', label:'F-05', x:0.72, color:'#00d4ff', value:`${State.flow.toFixed(2)}m/s` },
+    { type:'U', label:'U-06', x:0.84, color:'#4d9fff', value:`${(State.integrity*0.97).toFixed(1)}%` },
+    { type:'D', label:'D-07', x:0.94, color:'#ffaa00', value:`${State.deformation.toFixed(2)}mm` },
+  ];
+
+  for (const s of sensors) {
+    const sx = PIPE_X0 + s.x * (PIPE_X1-PIPE_X0);
+    const syTop = py - 28;
+    const syBot = py + sh + 28;
+    const sideTop = s.x < 0.5 || Math.floor(s.x*10)%2===0;
+
+    const sy = sideTop ? syTop : syBot;
+    const stemEndY = sideTop ? py : py + sh;
+
+    // Stem line
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2,2]);
+    ctx.beginPath();
+    ctx.moveTo(sx, sy + (sideTop?10:-10));
+    ctx.lineTo(sx, stemEndY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Sensor body
+    const glow = State.sensorGlow[s.type] || 0;
+    if (glow > 0) {
+      ctx.shadowColor = s.color;
+      ctx.shadowBlur = 12 * glow;
+    }
+
+    ctx.beginPath();
+    ctx.arc(sx, sy, 8, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(8,20,40,0.9)`;
+    ctx.fill();
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Pulsing ring for active alerts
+    if (glow > 0.5) {
+      const pulseR = 8 + (t % 30) / 30 * 10;
+      const pulseAlpha = (1 - (t%30)/30) * glow;
+      ctx.beginPath();
+      ctx.arc(sx, sy, pulseR, 0, Math.PI*2);
+      ctx.strokeStyle = `${s.color}${Math.floor(pulseAlpha*255).toString(16).padStart(2,'0')}`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Sensor type letter
+    ctx.fillStyle = s.color;
+    ctx.font = `bold 7px "Exo 2"`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(s.type, sx, sy);
+
+    // Label
+    ctx.font = `8px "Rajdhani"`;
+    ctx.fillStyle = 'rgba(120,160,200,0.8)';
+    ctx.fillText(s.label, sx, sy + (sideTop ? -12 : 12));
+
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+  }
+}
+
+function drawDimLines(ctx, py, sh) {
+  // Overall length indicator
+  ctx.strokeStyle = 'rgba(0,180,220,0.2)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+
+  const dimY = py + sh + 50;
+  ctx.beginPath();
+  ctx.moveTo(PIPE_X0, dimY);
+  ctx.lineTo(PIPE_X1, dimY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.beginPath();
+  ctx.moveTo(PIPE_X0, dimY-5);
+  ctx.lineTo(PIPE_X0, dimY+5);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(PIPE_X1, dimY-5);
+  ctx.lineTo(PIPE_X1, dimY+5);
+  ctx.stroke();
+
+  ctx.font = '9px "Rajdhani"';
+  ctx.fillStyle = 'rgba(100,140,180,0.6)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('12.4 m — TOTAL LENGTH', (PIPE_X0+PIPE_X1)/2, dimY + 10);
+
+  // Diameter
+  const dLineX = PIPE_X1 + 15;
+  ctx.strokeStyle = 'rgba(0,180,220,0.2)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([2,2]);
+  ctx.beginPath();
+  ctx.moveTo(dLineX, py);
+  ctx.lineTo(dLineX, py+sh);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = 'rgba(100,140,180,0.6)';
+  ctx.font = '8px "Rajdhani"';
+  ctx.textAlign = 'left';
+  ctx.fillText('Ø 610mm', dLineX+4, py+sh/2);
+}
+
+// ===== HELPERS =====
+function getSegHeat(idx, t) {
+  const base = (State.temp - 100) / 200;
+  const noise = Math.sin(idx*1.7+t*0.02)*0.05;
+  if (State.mode === 'temp') {
+    return Math.min(1, base + 0.5 + noise + (idx>4&&idx<9?0.2:0));
+  }
+  return Math.max(0, Math.min(1, base + noise));
+}
+
+function getSegCorrosion(idx) {
+  if (State.mode === 'corr') {
+    return [0,0,0.3,0.4,0.6,0.7,0.5,0.3,0,0,0.2,0][idx] || 0;
+  }
+  return State.corrosion > 30 ? (State.corrosion/100)*0.5 : 0;
+}
+
+function heatColor(heat, alpha) {
+  const r = Math.min(255, Math.floor(heat * 510));
+  const g = Math.min(255, Math.floor((1-Math.abs(heat-0.5)*2)*255));
+  const b = Math.floor((1-heat)*200);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function heatColorMetal(heat, opacity) {
+  if (heat < 0.3) {
+    const t = heat/0.3;
+    return `rgba(${70+t*30},${110+t*30},${145+t*35},${opacity})`;
+  } else if (heat < 0.7) {
+    const t = (heat-0.3)/0.4;
+    return `rgba(${100+t*155},${140-t*40},${180-t*120},${opacity})`;
+  } else {
+    const t = (heat-0.7)/0.3;
+    return `rgba(${255},${Math.max(0,100-t*100)},${Math.max(0,60-t*60)},${opacity})`;
+  }
+}
+
+// ===== SIMULATION =====
+const simStates = {
+  temp: {
+    temp: 310, pressure: 38.2, flow: 2.89, vibration: 1.2, damage: 38,
+    health: 52, reliability: 71, criticality: 7.2, integrity: 68,
+    risk: 18.4, rul: 280, prob30: 22.1, prob60: 41.3, prob90: 58.7,
+    aiConf: 87.3, anomalyScore: 0.74,
+    status: 'critical', statusText: 'OVERTEMPERATURE',
+    alarmLevel: 'critical', alarmMsg: 'Critical overtemperature detected. Thermal limit exceeded +108%.',
+    rec: 'Immediately reduce process temperature. Inspect refractory lining. Check heat exchanger efficiency. Schedule emergency shutdown within 4 hours.',
+    sensorGlow: { T:1, V:0.6, P:0.8 }
+  },
+  corr: {
+    temp: 162, pressure: 30.1, flow: 2.1, vibration: 0.6, damage: 54,
+    health: 38, reliability: 58, criticality: 8.1, integrity: 47,
+    risk: 28.7, rul: 134, prob30: 31.4, prob60: 55.8, prob90: 72.3,
+    aiConf: 91.2, anomalyScore: 0.81,
+    status: 'critical', statusText: 'SEVERE CORROSION',
+    alarmLevel: 'emergency', alarmMsg: 'Advanced internal corrosion. Wall thickness below critical threshold at segments 4-7.',
+    rec: 'Schedule immediate pigging inspection. Apply cathodic protection. Evaluate chemical inhibition injection. Repair or replace sections 4-7 within 30 days.',
+    sensorGlow: { C:1, U:0.9, D:0.7 }
+  },
+  leak: {
+    temp: 155, pressure: 25.8, flow: 1.88, vibration: 0.9, damage: 44,
+    health: 45, reliability: 62, criticality: 8.8, integrity: 52,
+    risk: 32.1, rul: 90, prob30: 45.6, prob60: 68.2, prob90: 82.1,
+    aiConf: 96.1, anomalyScore: 0.88,
+    status: 'emergency', statusText: 'LEAK DETECTED',
+    alarmLevel: 'emergency', alarmMsg: 'CRITICAL: Active fluid leak at section 6.2. Process containment compromised.',
+    rec: 'IMMEDIATE SHUTDOWN REQUIRED. Isolate segment. Depressurize. Activate emergency response protocol. Notify operations team.',
+    sensorGlow: { P:1, F:1, T:0.6 }
+  },
+  fatigue: {
+    temp: 160, pressure: 34.6, flow: 2.44, vibration: 2.8, damage: 47,
+    health: 42, reliability: 64, criticality: 7.6, integrity: 55,
+    risk: 24.8, rul: 180, prob30: 28.3, prob60: 49.1, prob90: 66.4,
+    aiConf: 88.9, anomalyScore: 0.69,
+    status: 'critical', statusText: 'STRUCTURAL FATIGUE',
+    alarmLevel: 'critical', alarmMsg: 'Cyclic fatigue stress detected. Micro-crack propagation risk at weld zones 2, 4, 5.',
+    rec: 'Reduce operating pressure 20%. Schedule ultrasonic weld inspection. Install vibration dampeners. Evaluate stress relief treatment.',
+    sensorGlow: { D:1, V:1, U:0.8 }
+  },
+  cavit: {
+    temp: 145, pressure: 22.1, flow: 3.84, vibration: 3.6, damage: 29,
+    health: 63, reliability: 78, criticality: 5.4, integrity: 73,
+    risk: 12.3, rul: 420, prob30: 8.9, prob60: 18.4, prob90: 29.7,
+    aiConf: 85.4, anomalyScore: 0.56,
+    status: 'warning', statusText: 'CAVITATION',
+    alarmLevel: 'warning', alarmMsg: 'Cavitation erosion detected. Fluid velocity exceeding design limits causing vapor bubble collapse.',
+    rec: 'Reduce flow velocity. Check pump operation. Inspect for pitting erosion at bends. Install cavitation suppressor.',
+    sensorGlow: { F:1, V:0.9, P:0.7 }
+  },
+  press: {
+    temp: 172, pressure: 58.4, flow: 2.77, vibration: 1.8, damage: 42,
+    health: 48, reliability: 66, criticality: 8.4, integrity: 59,
+    risk: 26.4, rul: 210, prob30: 34.2, prob60: 56.8, prob90: 71.9,
+    aiConf: 93.7, anomalyScore: 0.79,
+    status: 'emergency', statusText: 'OVERPRESSURE',
+    alarmLevel: 'emergency', alarmMsg: 'System pressure 80% above rated working pressure. Immediate relief required.',
+    rec: 'ACTIVATE PRESSURE RELIEF VALVE. Isolate upstream supply. Emergency shutdown. Check PRV operation. Do NOT restart until root cause identified.',
+    sensorGlow: { P:1, D:0.8, T:0.6, V:0.7 }
+  },
+  vibr: {
+    temp: 151, pressure: 31.8, flow: 2.38, vibration: 8.4, damage: 33,
+    health: 58, reliability: 74, criticality: 6.2, integrity: 68,
+    risk: 15.6, rul: 360, prob30: 12.8, prob60: 26.4, prob90: 41.2,
+    aiConf: 90.1, anomalyScore: 0.61,
+    status: 'critical', statusText: 'CRITICAL VIBRATION',
+    alarmLevel: 'critical', alarmMsg: 'Vibration level 20× nominal. Resonance frequency match detected. Fatigue acceleration.',
+    rec: 'Identify vibration source. Rebalance rotating equipment. Install vibration isolation mounts. Check pipe support clamps.',
+    sensorGlow: { V:1, D:0.9 }
+  },
+  collapse: {
+    temp: 168, pressure: 48.2, flow: 1.44, vibration: 5.2, damage: 78,
+    health: 12, reliability: 22, criticality: 9.8, integrity: 18,
+    risk: 64.3, rul: 18, prob30: 72.4, prob60: 91.8, prob90: 97.3,
+    aiConf: 99.1, anomalyScore: 0.97,
+    status: 'emergency', statusText: 'PARTIAL COLLAPSE',
+    alarmLevel: 'emergency', alarmMsg: 'CATASTROPHIC FAILURE IMMINENT. Structural collapse at sections 4-7. Flow restriction 38%.',
+    rec: 'EMERGENCY SHUTDOWN NOW. Evacuate area. Notify emergency response. Do NOT attempt field repair. Replace pipeline segment immediately.',
+    sensorGlow: { T:1, P:1, V:1, D:1, C:0.9, U:1 }
+  },
+  normal: {
+    temp: 148, pressure: 32.4, flow: 2.34, vibration: 0.42, damage: 12.3,
+    health: 87, reliability: 97.4, criticality: 2.4, integrity: 91.2,
+    risk: 1.8, rul: 847, prob30: 3.2, prob60: 7.8, prob90: 14.1,
+    aiConf: 94.7, anomalyScore: 0.12,
+    status: 'normal', statusText: 'OPERATIONAL',
+    alarmLevel: 'normal', alarmMsg: 'All parameters within normal operating range.',
+    rec: 'System operating within normal parameters. Schedule routine inspection in 90 days. Monitor thermal gradient at section 3.',
+    sensorGlow: {}
+  }
+};
+
+function simulate(mode) {
+  // Clear active buttons
+  document.querySelectorAll('.sim-btn').forEach(b => b.classList.remove('active'));
+
+  if (mode === 'reset') {
+    applySimState('normal');
+    return;
+  }
+
+  const btn = document.querySelector(`.sim-btn.${mode}`);
+  if (btn) btn.classList.add('active');
+
+  applySimState(mode);
+
+  // Flash overlay
+  document.getElementById('dt-center').classList.add('alert-flash');
+  setTimeout(() => document.getElementById('dt-center').classList.remove('alert-flash'), 1500);
+}
+
+function applySimState(mode) {
+  const s = simStates[mode] || simStates.normal;
+  State.mode = mode === 'reset' ? 'normal' : mode;
+
+  // Animate values
+  const targets = {
+    temp: s.temp, pressure: s.pressure, flow: s.flow, vibration: s.vibration,
+    damage: s.damage, health: s.health, reliability: s.reliability || 97.4,
+    availability: s.availability || 99.1, maintainability: s.maintainability || 94.8,
+    criticality: s.criticality, integrity: s.integrity, risk: s.risk,
+    rul: s.rul, prob30: s.prob30, prob60: s.prob60, prob90: s.prob90,
+    aiConf: s.aiConf, anomalyScore: s.anomalyScore,
+    lifeConsumed: 100 - (s.rul / 1300 * 100),
+    deformation: mode === 'fatigue' ? 2.4 : mode === 'collapse' ? 8.7 : 0.08
+  };
+
+  Object.assign(State, targets);
+  State.sensorGlow = s.sensorGlow || {};
+
+  // Update global status
+  const gStatus = document.getElementById('global-status');
+  const sText = document.getElementById('status-text');
+  gStatus.className = `h-status-badge ${s.status || 'normal'}`;
+  sText.textContent = s.statusText || 'OPERATIONAL';
+
+  // Update KPIs
+  updateKPIs();
+
+  // Add alarm
+  addAlarm(s.alarmLevel || 'normal', s.alarmMsg, s.rec);
+
+  // Update AI rec
+  document.getElementById('ai-rec').textContent = s.rec;
+
+  // Update anomaly list
+  updateAnomalies(mode);
+
+  // Update sensor grid
+  updateSensorGrid();
+
+  // Update charts
+  setTimeout(updateCharts, 200);
+
+  // Update meta
+  document.getElementById('meta-temp').textContent = `${s.temp.toFixed(0)}°C`;
+  document.getElementById('meta-pressure').textContent = `${s.pressure.toFixed(1)} bar`;
+  document.getElementById('meta-flow').textContent = `${s.flow.toFixed(2)} m/s`;
+}
+
+function updateKPIs() {
+  const S = State;
+
+  setKPI('kpi-rel', 'bar-rel', S.reliability || 97.4, '%');
+  setKPI('kpi-avail', 'bar-avail', S.availability || 99.1, '%');
+  setKPI('kpi-maint', 'bar-maint', S.maintainability || 94.8, '%');
+  setKPI('kpi-crit', 'bar-crit', S.criticality, '', S.criticality/10*100, '/10');
+  setKPI('kpi-dmg', 'bar-dmg', S.damage, '%');
+  setKPI('kpi-int', 'bar-int', S.integrity, '%');
+  setKPI('kpi-risk', 'bar-risk', S.risk, '%');
+
+  // Health
+  document.getElementById('health-val').textContent = Math.round(S.health);
+  updateHealthRing(S.health);
+
+  // Probs
+  const p30El = document.getElementById('prob30');
+  const p60El = document.getElementById('prob60');
+  const p90El = document.getElementById('prob90');
+  p30El.textContent = `${S.prob30.toFixed(1)}%`;
+  p60El.textContent = `${S.prob60.toFixed(1)}%`;
+  p90El.textContent = `${S.prob90.toFixed(1)}%`;
+  p30El.style.color = S.prob30 < 10 ? 'var(--green)' : S.prob30 < 30 ? 'var(--amber)' : 'var(--red)';
+  p60El.style.color = S.prob60 < 15 ? 'var(--amber)' : S.prob60 < 50 ? 'var(--orange)' : 'var(--red)';
+  p90El.style.color = S.prob90 < 20 ? 'var(--amber)' : S.prob90 < 60 ? 'var(--orange)' : 'var(--red)';
+
+  // RUL
+  document.getElementById('rul-days').textContent = S.rul;
+  document.getElementById('rul-pct').textContent = `Life consumed: ${S.lifeConsumed.toFixed(1)}%`;
+  const rulFill = document.getElementById('rul-fill');
+  const rulPct = 100 - S.lifeConsumed;
+  rulFill.style.width = `${Math.max(0,rulPct)}%`;
+  const rulColor = rulPct > 60 ? 'linear-gradient(90deg, var(--green), var(--cyan))' :
+                   rulPct > 30 ? 'linear-gradient(90deg, var(--amber), var(--orange))' :
+                   'linear-gradient(90deg, var(--red), var(--orange))';
+  rulFill.style.background = rulColor;
+  document.getElementById('rul-days').style.color = rulPct > 60 ? 'var(--green)' : rulPct > 30 ? 'var(--amber)' : 'var(--red)';
+
+  // AI
+  document.getElementById('ai-conf').textContent = `${S.aiConf.toFixed(1)}%`;
+  document.getElementById('ai-conf-fill').style.width = `${S.aiConf}%`;
+  document.getElementById('anomaly-score').textContent = S.anomalyScore.toFixed(2);
+  document.getElementById('anomaly-score').style.color =
+    S.anomalyScore < 0.3 ? 'var(--green)' : S.anomalyScore < 0.6 ? 'var(--amber)' : 'var(--red)';
+}
+
+function setKPI(valId, barId, value, unit, barPct, unitLabel) {
+  const el = document.getElementById(valId);
+  const bar = document.getElementById(barId);
+  if (!el) return;
+  el.textContent = typeof value === 'number' ? value.toFixed(1) : value;
+  if (bar) {
+    const pct = barPct !== undefined ? barPct : Math.min(100, value);
+    bar.style.width = `${pct}%`;
+  }
+}
+
+function updateAnomalies(mode) {
+  const list = document.getElementById('anomaly-list');
+  const anomalies = {
+    temp: [
+      {level:'critical', msg:'Thermal runaway +108% above limit'},
+      {level:'critical', msg:'Heat exchanger bypass suspected'},
+      {level:'warning',  msg:'Wall stress from thermal expansion elevated'},
+    ],
+    corr: [
+      {level:'critical', msg:'Internal wall thinning 2.3mm below spec'},
+      {level:'critical', msg:'Corrosion rate 4.7x nominal'},
+      {level:'warning',  msg:'pH imbalance in process fluid'},
+    ],
+    leak: [
+      {level:'critical', msg:'Active process leak at position 6.2m'},
+      {level:'critical', msg:'Mass balance deficit 12.4 kg/hr'},
+      {level:'warning',  msg:'Downstream pressure drop anomaly'},
+    ],
+    fatigue: [
+      {level:'critical', msg:'Crack initiation at weld zone 4'},
+      {level:'warning',  msg:'Stress concentration SIF=2.8'},
+      {level:'warning',  msg:'Cyclic loading frequency match'},
+    ],
+    cavit: [
+      {level:'warning',  msg:'Cavitation erosion rate elevated'},
+      {level:'warning',  msg:'Velocity 64% above design'},
+      {level:'normal',   msg:'Pressure within range'},
+    ],
+    press: [
+      {level:'critical', msg:'Pressure 80% above MAWP'},
+      {level:'critical', msg:'PRV not activated — check valve'},
+      {level:'warning',  msg:'Thermal expansion contributing'},
+    ],
+    vibr: [
+      {level:'critical', msg:'Resonance frequency match detected'},
+      {level:'critical', msg:'20x nominal vibration amplitude'},
+      {level:'warning',  msg:'Fatigue acceleration factor 8.3x'},
+    ],
+    collapse: [
+      {level:'critical', msg:'CATASTROPHIC buckling at sections 4-7'},
+      {level:'critical', msg:'Flow restriction 38% — immediate action'},
+      {level:'critical', msg:'Wall integrity below 20%'},
+    ],
+    normal: [
+      {level:'normal',   msg:'Thermal baseline nominal'},
+      {level:'warning',  msg:'Minor vibration drift +0.04mm/s'},
+      {level:'normal',   msg:'Pressure steady state'},
+    ],
+  };
+  const items = anomalies[mode] || anomalies.normal;
+  list.innerHTML = items.map(a => `
+    <div class="anomaly-item ${a.level}">
+      <div class="anomaly-dot"></div>
+      <span>${a.msg}</span>
+    </div>
+  `).join('');
+}
+
+function updateSensorGrid() {
+  const grid = document.getElementById('sensor-grid');
+  const sensors = [
+    { id:'T', label:'TEMP',   value: State.temp.toFixed(0)      + '\u00b0C',   color:'#ff6600' },
+    { id:'V', label:'VIBR',   value: State.vibration.toFixed(2) + ' mm/s', color:'#ff88cc' },
+    { id:'P', label:'PRESS',  value: State.pressure.toFixed(1)  + ' bar',  color:'#ff2244' },
+    { id:'C', label:'CORR',   value: State.corrosion.toFixed(1) + '%',     color:'#c05a00' },
+    { id:'F', label:'FLOW',   value: State.flow.toFixed(2)      + ' m/s',  color:'#00d4ff' },
+    { id:'U', label:'UTSND',  value: State.integrity.toFixed(1) + '%',     color:'#4d9fff' },
+    { id:'D', label:'DEFORM', value: State.deformation.toFixed(2)+ ' mm',  color:'#ffaa00' },
+  ];
+  grid.innerHTML = sensors.map(s => {
+    const glow = State.sensorGlow[s.id] || 0;
+    const gs = glow > 0
+      ? `box-shadow:0 0 ${8*glow}px ${s.color};border-color:${s.color};`
+      : '';
+    const vc = glow > 0.5 ? s.color : 'var(--white)';
+    return `<div style="background:rgba(0,0,0,.3);border:1px solid rgba(30,77,123,.5);border-radius:2px;padding:4px 6px;${gs}transition:all .5s">
+      <div style="font-family:var(--font-display);font-size:7px;color:${s.color};letter-spacing:1px">${s.label}</div>
+      <div style="font-family:var(--font-display);font-size:11px;color:${vc};font-weight:600">${s.value}</div>
+    </div>`;
+  }).join('');
+}
+
+// ===== ALARM CONSOLE =====
+function addAlarm(level, msg, rec) {
+  const now = new Date();
+  const ts = now.toTimeString().slice(0,8);
+  const sensorMap = {
+    temp:'T-01 THERMAL', corr:'C-04 CORROSION', leak:'P-03/F-05',
+    fatigue:'D-07 DEFORM', cavit:'F-05 FLOW', press:'P-03 PRESSURE',
+    vibr:'V-02 VIBRATION', collapse:'ALL SENSORS', normal:'SYSTEM'
+  };
+  const sensor = sensorMap[State.mode] || 'SYSTEM';
+  State.alarmCounts[level] = (State.alarmCounts[level] || 0) + 1;
+  ['normal','warning','critical','emergency'].forEach(l => {
+    const el = document.getElementById('cnt-'+l);
+    if (el) el.textContent = State.alarmCounts[l];
+  });
+  const row = document.createElement('div');
+  row.className = 'alarm-row ' + level;
+  row.innerHTML =
+    '<span class="ar-time">' + ts + '</span>' +
+    '<span class="ar-level ' + level + '">' + level.toUpperCase() + '</span>' +
+    '<span class="ar-sensor">' + sensor + '</span>' +
+    '<span class="ar-message">' + msg + '</span>' +
+    '<span class="ar-rec">' + rec.slice(0,80) + (rec.length>80?'\u2026':'') + '</span>';
+  const scroll = document.getElementById('alarm-scroll');
+  scroll.insertBefore(row, scroll.firstChild);
+  while (scroll.children.length > 20) scroll.removeChild(scroll.lastChild);
+}
+
+function initAlarms() {
+  const evts = [
+    ['normal',  'SYSTEM',       'Digital Twin initialized. All sensors nominal.',           'Maintain scheduled monitoring protocol.'],
+    ['normal',  'F-05 FLOW',    'Flow rate 2.34 m/s within design limits.',                 'No action required.'],
+    ['warning', 'V-02 VIBR',    'Minor vibration drift +0.04mm/s above baseline.',          'Monitor trend over 48 hours.'],
+    ['normal',  'T-01 THERMAL', 'Thermal profile stable. All zones within \u00b15\u00b0C.', 'Routine inspection in 90 days.'],
+    ['normal',  'P-03 PRESSURE','Operating at 62.3% of MAWP. Normal condition.',            'No action required.'],
+  ];
+  evts.forEach(function(e) {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - Math.floor(Math.random()*60));
+    const ts = now.toTimeString().slice(0,8);
+    const row = document.createElement('div');
+    row.className = 'alarm-row ' + e[0];
+    row.innerHTML =
+      '<span class="ar-time">'+ts+'</span>' +
+      '<span class="ar-level '+e[0]+'">'+e[0].toUpperCase()+'</span>' +
+      '<span class="ar-sensor">'+e[1]+'</span>' +
+      '<span class="ar-message">'+e[2]+'</span>' +
+      '<span class="ar-rec">'+e[3]+'</span>';
+    document.getElementById('alarm-scroll').appendChild(row);
+  });
+}
+
+// ===== CHARTS =====
+var healthChart, degradChart, riskChart, weibullChart;
+
+function initCharts() {
+  Chart.defaults.color = '#7a9bb5';
+  Chart.defaults.borderColor = '#1a3a5c';
+  Chart.defaults.font.family = "'Exo 2', sans-serif";
+  Chart.defaults.font.size = 9;
+
+  var hCtx = document.getElementById('healthTrendChart');
+  if (hCtx) {
+    var hData = Array.from({length:30}, function(_,i){ return 90 - i*0.15 + Math.sin(i*0.5)*2; });
+    healthChart = new Chart(hCtx.getContext('2d'), {
+      type:'line',
+      data:{
+        labels: Array.from({length:30}, function(_,i){ return i%5===0 ? '-'+(29-i)+'d' : ''; }),
+        datasets:[{data:hData, borderColor:'#00d4ff', backgroundColor:'rgba(0,212,255,0.05)',
+          borderWidth:1.5, tension:0.4, pointRadius:0, fill:true}]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{grid:{color:'rgba(26,58,92,0.4)'}, ticks:{maxTicksLimit:6}},
+          y:{grid:{color:'rgba(26,58,92,0.4)'}, min:60, max:100}
+        }, animation:{duration:500}
+      }
+    });
+  }
+
+  var dCtx = document.getElementById('degradChart');
+  if (dCtx) {
+    var days = Array.from({length:90}, function(_,i){ return i; });
+    var hist = days.map(function(d){ return d < 30 ? 12 + d*0.15 + Math.sin(d*0.4)*1.5 : null; });
+    var pred = days.map(function(d){ return d >= 25 ? 12 + d*0.18 + d*d*0.0005 : null; });
+    degradChart = new Chart(dCtx.getContext('2d'), {
+      type:'line',
+      data:{
+        labels:days,
+        datasets:[
+          {data:hist, borderColor:'#00d4ff', borderWidth:1.5, tension:0.4, pointRadius:0, label:'Actual'},
+          {data:pred, borderColor:'#ffaa00', borderWidth:1.5, borderDash:[4,2], tension:0.4, pointRadius:0, label:'Predicted'}
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{grid:{color:'rgba(26,58,92,0.4)'}, ticks:{maxTicksLimit:5}},
+          y:{grid:{color:'rgba(26,58,92,0.4)'},
+             title:{display:true, text:'Damage %', color:'#7a9bb5'}}
+        }, animation:{duration:600}
+      }
+    });
+  }
+
+  var rCtx = document.getElementById('riskChart');
+  if (rCtx) {
+    var rDays = Array.from({length:90}, function(_,i){ return i; });
+    riskChart = new Chart(rCtx.getContext('2d'), {
+      type:'line',
+      data:{
+        labels:rDays,
+        datasets:[{
+          data:rDays.map(function(d){ return 1.8 + d*0.14 + d*d*0.0008; }),
+          borderColor:'#ff6600', backgroundColor:'rgba(255,102,0,0.08)',
+          borderWidth:1.5, tension:0.4, pointRadius:0, fill:true
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{grid:{color:'rgba(26,58,92,0.4)'}, ticks:{maxTicksLimit:5}},
+          y:{grid:{color:'rgba(26,58,92,0.4)'},
+             title:{display:true, text:'Risk %', color:'#7a9bb5'}}
+        }, animation:{duration:600}
+      }
+    });
+  }
+
+  var wCtx = document.getElementById('weibullChart');
+  if (wCtx) {
+    var wT = Array.from({length:100}, function(_,i){ return i*20; });
+    var beta=2.34, eta=1847;
+    weibullChart = new Chart(wCtx.getContext('2d'), {
+      type:'line',
+      data:{
+        labels:wT,
+        datasets:[{
+          data:wT.map(function(ti){ return {x:ti, y:Math.exp(-Math.pow(ti/eta,beta))*100}; }),
+          borderColor:'#4d9fff', backgroundColor:'rgba(77,159,255,0.05)',
+          borderWidth:1.5, tension:0, pointRadius:0, fill:true
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{type:'linear', grid:{color:'rgba(26,58,92,0.4)'},
+             title:{display:true, text:'Days', color:'#7a9bb5'}, ticks:{maxTicksLimit:5}},
+          y:{grid:{color:'rgba(26,58,92,0.4)'}, min:0, max:100,
+             title:{display:true, text:'R(t) %', color:'#7a9bb5'}}
+        }, animation:{duration:600}
+      }
+    });
+  }
+}
+
+function updateCharts() {
+  var S = State;
+  if (degradChart) {
+    var mult = S.damage / 12.3;
+    var days = Array.from({length:90}, function(_,i){ return i; });
+    degradChart.data.datasets[1].data =
+      days.map(function(d){ return d>=25 ? S.damage + d*(0.18*mult) + d*d*(0.0005*mult) : null; });
+    degradChart.data.datasets[1].borderColor =
+      S.damage > 50 ? '#ff2244' : S.damage > 30 ? '#ff6600' : '#ffaa00';
+    degradChart.update('none');
+  }
+  if (riskChart) {
+    var mult2 = S.risk / 1.8;
+    var days2 = Array.from({length:90}, function(_,i){ return i; });
+    riskChart.data.datasets[0].data =
+      days2.map(function(d){ return S.risk + d*(0.14*mult2) + d*d*(0.0008*mult2); });
+    riskChart.update('none');
+  }
+  if (weibullChart) {
+    var beta2 = S.wbBeta || 2.34, eta2 = S.wbEta || 1847;
+    var wT2 = Array.from({length:100}, function(_,i){ return i*20; });
+    weibullChart.data.datasets[0].data =
+      wT2.map(function(ti){ return {x:ti, y:Math.exp(-Math.pow(ti/eta2,beta2))*100}; });
+    weibullChart.update('none');
+  }
+}
+
+// ===== HEALTH RING =====
+var healthRingChart;
+function initHealthRing() {
+  var c = document.getElementById('healthRingCanvas');
+  if (!c) return;
+  healthRingChart = new Chart(c.getContext('2d'), {
+    type:'doughnut',
+    data:{datasets:[{
+      data:[87,13],
+      backgroundColor:['#00d4ff','rgba(26,58,92,0.4)'],
+      borderWidth:0, circumference:270, rotation:-135
+    }]},
+    options:{cutout:'72%', plugins:{legend:{display:false},tooltip:{enabled:false}},
+             animation:{duration:1000}}
+  });
+}
+
+function updateHealthRing(health) {
+  if (!healthRingChart) return;
+  var color = health > 70 ? '#00d4ff' : health > 40 ? '#ffaa00' : '#ff2244';
+  healthRingChart.data.datasets[0].data = [Math.max(0,health), Math.max(0,100-health)];
+  healthRingChart.data.datasets[0].backgroundColor[0] = color;
+  document.getElementById('health-val').style.color = color;
+  healthRingChart.update('active');
+}
+
+// ===== CLOCK =====
+function updateClock() {
+  var now = new Date();
+  var h = String(now.getHours()).padStart(2,'0');
+  var m = String(now.getMinutes()).padStart(2,'0');
+  var s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = h+':'+m+':'+s;
+}
+
+// ===== LIVE FLUCTUATION =====
+var fluctTick = 0;
+function fluctuateData() {
+  if (State.mode !== 'normal') return;
+  fluctTick++;
+  function noise(amp){ return (Math.random()-0.5)*2*amp; }
+  State.temp      = 148 + noise(3)    + Math.sin(fluctTick*0.05)*2;
+  State.pressure  = 32.4 + noise(0.8) + Math.sin(fluctTick*0.03)*0.5;
+  State.flow      = 2.34 + noise(0.15)+ Math.sin(fluctTick*0.04)*0.1;
+  State.vibration = 0.42 + noise(0.05)+ Math.abs(Math.sin(fluctTick*0.08))*0.1;
+  document.getElementById('meta-temp').textContent     = State.temp.toFixed(0)+'\u00b0C';
+  document.getElementById('meta-pressure').textContent = State.pressure.toFixed(1)+' bar';
+  document.getElementById('meta-flow').textContent     = State.flow.toFixed(2)+' m/s';
+  updateSensorGrid();
+}
+
+// ===== MAIN ANIMATION LOOP =====
+function loop() {
+  drawTwin();
+  requestAnimationFrame(loop);
+}
+
+// ===== INIT =====
+window.addEventListener('load', function() {
+  var steps = [
+    'Initializing Digital Twin Engine...',
+    'Connecting IIoT sensor network...',
+    'Loading AI predictive models...',
+    'Calibrating Weibull + LSTM...',
+    'Synchronizing SCADA interface...',
+    'System ready.'
+  ];
+  var stepEl = document.getElementById('loading-step');
+  var i = 0;
+  function nextStep() {
+    if (i < steps.length) {
+      stepEl.textContent = steps[i++];
+      setTimeout(nextStep, 280);
+    } else {
+      setTimeout(function() {
+        var overlay = document.getElementById('loading-overlay');
+        overlay.style.transition = 'opacity 0.8s';
+        overlay.style.opacity = '0';
+        setTimeout(function(){ overlay.style.display = 'none'; }, 800);
+      }, 200);
+    }
+  }
+  nextStep();
+
+  resizeTwin();
+  initHealthRing();
+  initCharts();
+  initAlarms();
+  updateKPIs();
+  updateSensorGrid();
+  updateAnomalies('normal');
+  loop();
+
+  setInterval(updateClock, 1000);
+  updateClock();
+  setInterval(fluctuateData, 2000);
+
+  setInterval(function() {
+    if (State.mode !== 'normal') return;
+    var msgs = [
+      ['normal',  'Scheduled data sync completed.',         'Continue monitoring.'],
+      ['normal',  'AI model re-inference cycle complete.',  'No anomalies detected.'],
+      ['warning', 'Flow rate micro-fluctuation logged.',    'Monitor over next cycle.'],
+    ];
+    if (Math.random() < 0.4) {
+      var m = msgs[Math.floor(Math.random()*msgs.length)];
+      addAlarm(m[0], m[1], m[2]);
+    }
+  }, 15000);
+});
+
+window.addEventListener('resize', resizeTwin);
+</script>
+</body>
+</html>

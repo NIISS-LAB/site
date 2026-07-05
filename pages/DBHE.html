@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Geothermal Digital Twin Platform — DBHE-HE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;900&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════
+   DESIGN SYSTEM — GEOTHERMAL INDUSTRIAL DARK
+   ═══════════════════════════════════════════════ */
+:root{
+  --bg0:#020507;
+  --bg1:#040a0f;
+  --bg2:#060d14;
+  --bg3:#08121c;
+  --bg4:#0b1826;
+  --panel:#050c14;
+  --border:rgba(0,210,255,0.09);
+  --border2:rgba(0,210,255,0.2);
+  --border3:rgba(0,210,255,0.38);
+  --cyan:#00d4ff;
+  --cyan2:#0099bb;
+  --green:#00e676;
+  --teal:#00bfa5;
+  --amber:#ffab00;
+  --orange:#ff6d00;
+  --red:#ff1744;
+  --magenta:#e040fb;
+  --text1:#d8eeff;
+  --text2:#5a9cb8;
+  --text3:#2e637a;
+  --ft:'Orbitron',monospace;
+  --fu:'Rajdhani',sans-serif;
+  --fb:'Exo 2',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow-x:hidden;}
+body{background:var(--bg0);color:var(--text1);font-family:var(--fb);font-size:13px;display:flex;flex-direction:column;min-height:100vh;}
+.hdr{height:54px;background:linear-gradient(90deg,#030c16 0%,#040f1c 60%,#020a12 100%);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;padding:0 14px;position:sticky;top:0;z-index:300;flex-shrink:0;}
+.hdr-logo{display:flex;align-items:center;gap:10px;}
+.logo-svg{width:38px;height:38px;flex-shrink:0;}
+.logo-name{font-family:var(--ft);font-size:12px;font-weight:700;color:var(--cyan);letter-spacing:2.5px;line-height:1.15;}
+.logo-sub{font-family:var(--fu);font-size:10px;color:var(--text3);letter-spacing:2.5px;text-transform:uppercase;}
+.hdr-pills{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.pill{display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-family:var(--fu);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;border:1px solid;}
+.p-ok{border-color:var(--green);color:var(--green);background:rgba(0,230,118,0.08);}
+.p-teal{border-color:var(--teal);color:var(--teal);background:rgba(0,191,165,0.07);}
+.p-warn{border-color:var(--amber);color:var(--amber);background:rgba(255,171,0,0.09);}
+.p-crit{border-color:var(--red);color:var(--red);background:rgba(255,23,68,0.09);}
+.p-blue{border-color:var(--cyan2);color:var(--cyan2);background:rgba(0,153,187,0.08);}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+.hdr-clk{font-family:var(--ft);font-size:12px;color:var(--text2);letter-spacing:1.5px;text-align:right;}
+.hdr-dt{font-size:10px;color:var(--text3);letter-spacing:1px;margin-top:2px;}
+.main{flex:1;display:grid;grid-template-columns:214px 1fr 258px;grid-template-rows:1fr auto;gap:7px;padding:7px;}
+@media(max-width:1180px){.main{grid-template-columns:192px 1fr 236px;}}
+@media(max-width:960px){.main{grid-template-columns:174px 1fr 212px;}}
+@media(max-width:800px){.main{grid-template-columns:1fr;}.lc{order:2;}.cc{order:1;}.rc{order:3;}}
+.pnl{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;}
+.ph{padding:7px 11px;border-bottom:1px solid var(--border);background:rgba(0,210,255,0.03);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.pt{font-family:var(--fu);font-size:11px;font-weight:700;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;}
+.badge{font-family:var(--fu);font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:.8px;}
+.b-ok{background:rgba(0,230,118,0.15);color:var(--green);}
+.b-teal{background:rgba(0,191,165,0.14);color:var(--teal);}
+.b-warn{background:rgba(255,171,0,0.15);color:var(--amber);}
+.b-crit{background:rgba(255,23,68,0.14);color:var(--red);}
+.b-blue{background:rgba(0,210,255,0.13);color:var(--cyan);}
+.b-mag{background:rgba(224,64,251,0.13);color:var(--magenta);}
+/* KPIs - high contrast, always visible */
+.lc{display:flex;flex-direction:column;gap:7px;}
+.kscroll{padding:7px;display:grid;gap:6px;flex:1;}
+.kpi{background:linear-gradient(135deg,#081828 0%,#0b2035 100%);border:1px solid rgba(0,200,255,0.18);border-left:3px solid rgba(0,200,255,0.3);border-radius:4px;padding:7px 10px;transition:border-color .3s,border-left-color .3s;}
+.kpi:hover{border-color:var(--border3);border-left-color:var(--cyan);}
+.kl{font-family:var(--fu);font-size:10px;font-weight:600;color:var(--text2);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:3px;}
+.krow{display:flex;align-items:baseline;gap:4px;}
+.kv{font-family:var(--ft);font-size:19px;font-weight:700;line-height:1;}
+.ku{font-family:var(--fu);font-size:10px;color:var(--text2);font-weight:500;}
+.kbar{height:3px;background:rgba(0,0,0,0.5);border-radius:2px;margin-top:5px;overflow:hidden;}
+.kbf{height:100%;border-radius:2px;transition:width .9s,background .5s;}
+/* High-contrast value colors with glow */
+.vc{color:#22eeff;text-shadow:0 0 10px rgba(0,220,255,0.55);}
+.vg{color:#00ff88;text-shadow:0 0 10px rgba(0,255,136,0.45);}
+.va{color:#ffcc00;text-shadow:0 0 10px rgba(255,200,0,0.45);}
+.vt{color:#00ffcc;text-shadow:0 0 8px rgba(0,255,204,0.35);}
+.vo{color:#ff8800;text-shadow:0 0 10px rgba(255,136,0,0.45);}
+.vr{color:#ff2244;text-shadow:0 0 10px rgba(255,34,68,0.55);}
+.vm{color:#ee44ff;text-shadow:0 0 10px rgba(238,68,255,0.45);}
+/* CENTER */
+.cc{display:flex;flex-direction:column;gap:7px;}
+.twin-pnl{flex:1;min-height:300px;}
+.tctrl{padding:6px 9px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:5px;flex-wrap:wrap;background:rgba(0,210,255,0.02);}
+.vb{padding:4px 9px;border-radius:3px;font-family:var(--fu);font-size:10px;font-weight:700;letter-spacing:.8px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2);text-transform:uppercase;transition:all .18s;}
+.vb.active,.vb:hover{background:rgba(0,210,255,0.1);color:var(--cyan);border-color:var(--cyan);}
+.twin-wrap{position:relative;flex:1;background:radial-gradient(ellipse at 50% 40%,#061420 0%,var(--bg0) 85%);}
+#dbheCanvas{display:block;width:100%;height:740px;}
+.tleg{padding:5px 9px 6px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.li{display:flex;align-items:center;gap:4px;font-family:var(--fu);font-size:10px;color:var(--text2);}
+.ld{width:22px;height:4px;border-radius:2px;display:inline-block;}
+.sim-pnl{flex-shrink:0;}
+.sim-grid{padding:7px 8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:5px;}
+.sb{padding:6px 7px;border-radius:3px;font-family:var(--fu);font-size:10px;font-weight:700;cursor:pointer;border:1px solid;background:transparent;text-align:center;letter-spacing:.4px;transition:all .18s;line-height:1.3;text-transform:uppercase;}
+.sb:hover{transform:translateY(-1px);}
+.sw{border-color:var(--amber);color:var(--amber);}.sw:hover,.sw.active{background:rgba(255,171,0,0.12);}
+.sc{border-color:var(--orange);color:var(--orange);}.sc:hover,.sc.active{background:rgba(255,109,0,0.12);}
+.sf{border-color:var(--red);color:var(--red);}.sf:hover,.sf.active{background:rgba(255,23,68,0.12);}
+.sg{border-color:var(--green);color:var(--green);}.sg:hover,.sg.active{background:rgba(0,230,118,0.1);}
+.sr{border-color:var(--cyan);color:var(--cyan);}.sr:hover{background:rgba(0,210,255,0.08);}
+.crow{display:grid;grid-template-columns:1fr 1fr;gap:7px;flex-shrink:0;}
+.cmh{height:90px;padding:5px 8px 6px;}
+/* RIGHT — always fully visible, no scroll */
+.rc{display:flex;flex-direction:column;gap:7px;}
+/* AI Engine panel — high contrast */
+.ai-ring{padding:10px 8px 6px;display:flex;flex-direction:column;align-items:center;background:linear-gradient(180deg,rgba(0,40,80,0.35) 0%,rgba(0,0,0,0) 100%);}
+.airows{padding:2px 11px 9px;}
+.arow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(0,200,255,0.14);font-family:var(--fu);font-size:13px;}
+.arow:last-child{border-bottom:none;}
+.arl{color:var(--text2);font-weight:500;font-size:12px;}
+.arv{font-weight:700;letter-spacing:.5px;font-size:13px;}
+/* RUL */
+.rul-big{font-family:var(--ft);font-size:40px;font-weight:900;color:#22eeff;line-height:1;text-align:center;padding:8px 0 2px;text-shadow:0 0 22px rgba(0,220,255,0.65);}
+.rul-sub{font-family:var(--fu);font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:8px;}
+/* Prediction bars */
+.prow{display:flex;align-items:center;gap:8px;padding:5px 11px;font-family:var(--fu);font-size:12px;}
+.pl{color:var(--text1);width:34px;flex-shrink:0;font-weight:700;font-size:12px;}
+.pb{flex:1;height:8px;background:rgba(0,0,0,0.55);border:1px solid rgba(0,200,255,0.15);border-radius:4px;overflow:hidden;}
+.pbf{height:100%;border-radius:3px;transition:width .8s,background .5s;}
+.pv{width:40px;text-align:right;font-weight:700;font-size:14px;}
+/* Anomalies */
+.al{padding:6px 11px;}
+.ai2{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(0,200,255,0.1);font-family:var(--fu);font-size:11px;}
+.ai2:last-child{border-bottom:none;}
+.an{color:var(--text2);font-size:11px;}
+.as2{font-weight:700;font-size:12px;}
+/* CFD */
+.cfd-rows{padding:6px 11px;}
+.cfd-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(0,200,255,0.09);font-family:var(--fu);font-size:11px;}
+.cfd-row:last-child{border-bottom:none;}
+.cfd-l{color:var(--text2);}
+.cfd-v{font-weight:700;font-family:var(--ft);font-size:12px;}
+/* Geo */
+.geo-rows{padding:6px 11px;}
+.geo-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(0,200,255,0.09);font-family:var(--fu);font-size:11px;}
+.geo-row:last-child{border-bottom:none;}
+.geo-l{color:var(--text2);}
+.geo-v{font-weight:700;font-size:12px;}
+.dch{height:92px;padding:5px 8px 6px;}
+/* Console */
+.cpnl{grid-column:1/-1;background:var(--panel);border:1px solid var(--border);border-radius:6px;max-height:150px;overflow-y:auto;display:flex;flex-direction:column;}
+.erow{display:grid;grid-template-columns:114px 76px 72px 1fr;gap:8px;padding:5px 11px;border-bottom:1px solid rgba(0,210,255,0.04);font-family:var(--fb);font-size:11px;align-items:center;animation:fup .35s ease;}
+@keyframes fup{from{opacity:0;transform:translateY(-3px);}to{opacity:1;}}
+.ets{color:var(--text3);font-family:var(--ft);font-size:9px;}
+.esv{font-weight:700;letter-spacing:.8px;font-size:9px;text-align:center;padding:2px 5px;border-radius:2px;}
+.en{background:rgba(0,230,118,.1);color:var(--green);}
+.ew{background:rgba(255,171,0,.1);color:var(--amber);}
+.ec{background:rgba(255,109,0,.1);color:var(--orange);}
+.ee{background:rgba(255,23,68,.12);color:var(--red);}
+.esrc{color:var(--cyan2);font-size:10px;font-weight:600;}
+.emsg{color:var(--text1);}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:var(--bg1);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-2px);}60%{transform:translateX(1px);}}
+.emergency{animation:shake .12s infinite;}
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-logo">
+    <svg class="logo-svg" viewBox="0 0 36 36" fill="none">
+      <defs><filter id="geo"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+      <circle cx="18" cy="18" r="16.5" stroke="#00d4ff" stroke-width=".6" opacity=".3"/>
+      <!-- Borehole cross-section icon -->
+      <circle cx="18" cy="18" r="11" stroke="#00d4ff" stroke-width=".7" opacity=".5"/>
+      <circle cx="18" cy="18" r="6" stroke="#00bfa5" stroke-width=".7" opacity=".7" filter="url(#geo)"/>
+      <circle cx="18" cy="18" r="2.5" fill="#00d4ff" opacity=".9"/>
+      <!-- Helical hint lines -->
+      <path d="M11 11 Q14 18 11 25" stroke="#00e676" stroke-width=".9" fill="none" opacity=".6"/>
+      <path d="M25 11 Q22 18 25 25" stroke="#00e676" stroke-width=".9" fill="none" opacity=".6"/>
+    </svg>
+    <div>
+      <div class="logo-name">GEOTHERM AI</div>
+      <div class="logo-sub">Deep Borehole Heat Exchanger — Digital Twin</div>
+    </div>
+  </div>
+  <div class="hdr-pills">
+    <span class="pill p-ok" id="gPill"><span class="dot"></span><span id="gTxt">OPERATIVO</span></span>
+    <span class="pill p-ok"><span class="dot"></span>AI ONLINE</span>
+    <span class="pill p-teal"><span class="dot"></span>CFD SYNC</span>
+    <span class="pill p-ok"><span class="dot"></span>IIoT ×18</span>
+    <span class="pill p-blue">EDGE→CLOUD→AI</span>
+  </div>
+  <div class="hdr-clk">
+    <div id="clk">--:--:--</div>
+    <div class="hdr-dt" id="cld">--/--/----</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT KPIs -->
+  <div class="lc">
+    <div class="pnl" style="flex:1;">
+      <div class="ph"><span class="pt">KPIs Energéticos</span><span class="badge b-blue">LIVE</span></div>
+      <div class="kscroll" id="kGrid"></div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="cc">
+    <!-- Twin -->
+    <div class="pnl twin-pnl">
+      <div class="tctrl">
+        <span style="font-family:var(--fu);font-size:9px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-right:2px;">MODO:</span>
+        <button class="vb active" onclick="setMode('thermal')"  id="btn-thermal">Térmico</button>
+        <button class="vb"        onclick="setMode('cfd')"      id="btn-cfd">CFD</button>
+        <button class="vb"        onclick="setMode('flow')"     id="btn-flow">Flujo</button>
+        <button class="vb"        onclick="setMode('fouling')"  id="btn-fouling">Fouling</button>
+        <button class="vb"        onclick="setMode('geo')"      id="btn-geo">Geotérmico</button>
+        <button class="vb"        onclick="setMode('ai')"       id="btn-ai">IA Flow</button>
+      </div>
+      <div class="twin-wrap">
+        <canvas id="dbheCanvas"></canvas>
+      </div>
+      <div class="tleg">
+        <span style="font-family:var(--fu);font-size:9px;color:var(--text3);">LEYENDA:</span>
+        <div id="legItems" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+      </div>
+    </div>
+
+    <!-- Sim -->
+    <div class="pnl sim-pnl">
+      <div class="ph">
+        <span class="pt">Simulación Operacional</span>
+        <span class="badge b-warn" id="simBadge">STANDBY</span>
+      </div>
+      <div class="sim-grid">
+        <button class="sb sw" onclick="runSim('fouling')">🟤 Fouling</button>
+        <button class="sb sw" onclick="runSim('lowflow')">💧 Caudal Bajo</button>
+        <button class="sb sc" onclick="runSim('blockage')">🚫 Obstrucción</button>
+        <button class="sb sc" onclick="runSim('corrosion')">🔴 Corrosión</button>
+        <button class="sb sf" onclick="runSim('leak')">⚠ Fuga</button>
+        <button class="sb sf" onclick="runSim('overtemp')">🌡 Sobretemperatura</button>
+        <button class="sb sg" onclick="runSim('geoburst')">🌋 Impulso Geo</button>
+        <button class="sb sw" onclick="runSim('sensorfail')">📡 Falla Sensor</button>
+        <button class="sb sc" onclick="runSim('efficiency')">📉 Pérd. Eficiencia</button>
+        <button class="sb sg" onclick="runSim('optimal')">✅ Operación Óptima</button>
+        <button class="sb sr" onclick="runSim('reset')">↺ Reset</button>
+      </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="crow">
+      <div class="pnl"><div class="ph"><span class="pt">Temp vs Tiempo</span></div><div class="cmh"><canvas id="cTemp"></canvas></div></div>
+      <div class="pnl"><div class="ph"><span class="pt">Potencia Térmica</span></div><div class="cmh"><canvas id="cPow"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="rc">
+
+    <!-- AI ring -->
+    <div class="pnl">
+      <div class="ph"><span class="pt">Motor IA</span><span class="badge b-mag">LSTM+XGBOOST</span></div>
+      <div class="ai-ring">
+        <svg viewBox="0 0 110 68" width="100%" style="max-width:165px;">
+          <path d="M14 58 A44 44 0 0 1 96 58" stroke="#061420" stroke-width="9" fill="none"/>
+          <path id="aiArc" d="M14 58 A44 44 0 0 1 96 58" stroke="#00d4ff" stroke-width="9" fill="none"
+            stroke-dasharray="138" stroke-dashoffset="28" stroke-linecap="round"/>
+          <text x="55" y="50" text-anchor="middle" font-family="Orbitron,monospace" font-size="20" font-weight="700" fill="#00d4ff" id="aiN">91</text>
+          <text x="55" y="63" text-anchor="middle" font-family="Rajdhani,sans-serif" font-size="9" fill="#5a9cb8">CONFIDENCE %</text>
+        </svg>
+      </div>
+      <div class="airows">
+        <div class="arow"><span class="arl">Modelos</span><span class="arv vc">LSTM·XGB·Weibull</span></div>
+        <div class="arow"><span class="arl">Estado</span><span class="arv vg" id="aiSt">PREDICIENDO</span></div>
+        <div class="arow"><span class="arl">Predicción</span><span class="arv va" id="aiPr">DEGRADACIÓN LENTA</span></div>
+        <div class="arow"><span class="arl">Riesgo</span><span class="arv va" id="aiRk">MODERADO</span></div>
+      </div>
+    </div>
+
+    <!-- RUL -->
+    <div class="pnl">
+      <div class="ph"><span class="pt">Vida Remanente</span><span class="badge b-blue">RUL</span></div>
+      <div class="rul-big" id="rulV">1840</div>
+      <div class="rul-sub">Días Estimados</div>
+      <div style="padding:4px 11px 2px;font-family:var(--fu);font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;">Probabilidad de Falla</div>
+      <div class="prow"><span class="pl">30d</span><div class="pb"><div class="pbf" id="pf30" style="width:8%;background:var(--green)"></div></div><span class="pv vg" id="pv30">8%</span></div>
+      <div class="prow"><span class="pl">60d</span><div class="pb"><div class="pbf" id="pf60" style="width:14%;background:var(--amber)"></div></div><span class="pv va" id="pv60">14%</span></div>
+      <div class="prow" style="padding-bottom:9px;"><span class="pl">90d</span><div class="pb"><div class="pbf" id="pf90" style="width:22%;background:var(--orange)"></div></div><span class="pv vo" id="pv90">22%</span></div>
+    </div>
+
+    <!-- Anomalies -->
+    <div class="pnl">
+      <div class="ph"><span class="pt">Anomalías IA</span><span class="badge b-warn" id="anomB">2 DET.</span></div>
+      <div class="al" id="anomList"></div>
+    </div>
+
+    <!-- CFD Numbers -->
+    <div class="pnl">
+      <div class="ph"><span class="pt">Módulo CFD</span><span class="badge b-teal">SYNC</span></div>
+      <div class="cfd-rows" id="cfdRows"></div>
+    </div>
+
+    <!-- Geothermal -->
+    <div class="pnl">
+      <div class="ph"><span class="pt">Módulo Geotérmico</span><span class="badge b-ok">ACTIVO</span></div>
+      <div class="geo-rows" id="geoRows"></div>
+    </div>
+
+    <!-- Degradation chart -->
+    <div class="pnl">
+      <div class="ph"><span class="pt">Curva Degradación</span></div>
+      <div class="dch"><canvas id="cDeg"></canvas></div>
+    </div>
+
+    <!-- Fouling chart -->
+    <div class="pnl">
+      <div class="ph"><span class="pt">Fouling Index</span></div>
+      <div class="dch"><canvas id="cFoul"></canvas></div>
+    </div>
+
+  </div>
+
+  <!-- CONSOLE -->
+  <div class="cpnl">
+    <div class="ph" style="position:sticky;top:0;background:var(--panel);z-index:10;flex-shrink:0;">
+      <span class="pt">Consola SCADA · IA · CFD · Geotérmico</span>
+      <span class="badge b-blue" id="evC">0 EVT</span>
+    </div>
+    <div id="evList"></div>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+const S={
+  mode:'thermal', sim:'none', tick:0,
+  // Energy KPIs
+  power:148.6, efficiency:82.4, cop:4.2, deltaT:28.4, flow:3.6, dP:1.8,
+  // Integrity
+  health:91, corrosion:6, fouling:12,
+  // Reliability
+  mtbf:8640, mttr:4.2, avail:99.1,
+  // Temp
+  tIn:18.2, tOut:46.6, tGeo:130,
+  // AI
+  aiConf:91, rul:1840, pf30:8, pf60:14, pf90:22,
+  // CFD
+  re:18400, nu:284, pr:6.8, pe:125000, f:0.0042, headLoss:1.8,
+  // Geo
+  tGround:130, geoGrad:3.1, depth:3500, heatFlux:92, geoEnergy:148.6,
+  // Live
+  evCount:0, particles:[], helix:[],
+};
+
+// ═══════════════════════════════════════════════
+// SIMULATION PROFILES
+// ═══════════════════════════════════════════════
+const PROFS={
+  fouling:   {power:98,efficiency:58,cop:2.8,deltaT:18,flow:3.4,dP:2.6,health:61,corrosion:8,fouling:72,rul:480,pf30:44,pf60:68,pf90:84,aiConf:93,sev:'CRITICAL',mode:'fouling',re:16200,nu:198,f:.0068,headLoss:2.6},
+  lowflow:   {power:82,efficiency:61,cop:3.1,deltaT:22,flow:1.4,dP:0.9,health:68,corrosion:7,fouling:20,rul:620,pf30:38,pf60:62,pf90:79,aiConf:89,sev:'WARNING',mode:'flow',re:8800,nu:162,f:.0055,headLoss:0.9},
+  blockage:  {power:61,efficiency:42,cop:2.1,deltaT:14,flow:0.8,dP:4.8,health:44,corrosion:9,fouling:58,rul:280,pf30:62,pf60:81,pf90:94,aiConf:95,sev:'CRITICAL',mode:'fouling',re:5200,nu:112,f:.0092,headLoss:4.8},
+  corrosion: {power:118,efficiency:71,cop:3.5,deltaT:24,flow:3.2,dP:2.1,health:52,corrosion:68,fouling:24,rul:320,pf30:58,pf60:78,pf90:92,aiConf:94,sev:'CRITICAL',mode:'fouling',re:17400,nu:248,f:.0052,headLoss:2.1},
+  leak:      {power:42,efficiency:28,cop:1.4,deltaT:8,flow:1.1,dP:0.4,health:22,corrosion:14,fouling:18,rul:88,pf30:82,pf60:94,pf90:99,aiConf:97,sev:'EMERGENCY',mode:'cfd',re:7200,nu:98,f:.0078,headLoss:0.4},
+  overtemp:  {power:188,efficiency:74,cop:3.8,deltaT:42,flow:3.6,dP:2.2,health:58,corrosion:12,fouling:28,rul:410,pf30:52,pf60:74,pf90:88,aiConf:92,sev:'WARNING',mode:'thermal',re:18800,nu:302,f:.0044,headLoss:2.2},
+  geoburst:  {power:224,efficiency:91,cop:5.4,deltaT:54,flow:4.2,dP:2.8,health:88,corrosion:5,fouling:8,rul:2200,pf30:4,pf60:8,pf90:14,aiConf:96,sev:'WARNING',mode:'geo',re:22400,nu:358,f:.0038,headLoss:2.8,tGeo:148},
+  sensorfail:{power:148,efficiency:82,cop:4.2,deltaT:28,flow:3.6,dP:1.8,health:78,corrosion:6,fouling:12,rul:1200,pf30:18,pf60:32,pf90:48,aiConf:62,sev:'WARNING',mode:'ai'},
+  efficiency:{power:88,efficiency:48,cop:2.4,deltaT:16,flow:3.6,dP:1.8,health:48,corrosion:10,fouling:44,rul:380,pf30:64,pf60:82,pf90:94,aiConf:91,sev:'CRITICAL',mode:'fouling'},
+  optimal:   {power:178,efficiency:94,cop:5.8,deltaT:34,flow:4.4,dP:1.4,health:98,corrosion:3,fouling:4,rul:2800,pf30:3,pf60:6,pf90:10,aiConf:98,sev:'NORMAL',mode:'thermal'},
+  reset:     {power:148.6,efficiency:82.4,cop:4.2,deltaT:28.4,flow:3.6,dP:1.8,health:91,corrosion:6,fouling:12,rul:1840,pf30:8,pf60:14,pf90:22,aiConf:91,sev:'NORMAL',mode:'thermal',re:18400,nu:284,f:.0042,headLoss:1.8,tGeo:130},
+};
+
+const SIM_MSGS={
+  fouling:   'Fouling severo detectado — coeficiente U reducido 42% — limpieza urgente requerida',
+  lowflow:   'Caudal insuficiente — flujo másico por debajo de diseño 61% — verificar bomba',
+  blockage:  'Obstrucción parcial detectada — pérdida de carga ΔP crítica — inspección inmediata',
+  corrosion: 'Corrosión acelerada — pérdida de espesor detectada en zona anular — análisis inhibidor',
+  leak:      '🔴 FUGA DETECTADA — caída de presión anormal — PARAR EQUIPO — EVACUACIÓN PREVENTIVA',
+  overtemp:  'Sobretemperatura zona salida — T>límite operacional — ajustar caudal de enfriamiento',
+  geoburst:  'Impulso geotérmico positivo — gradiente aumentó 28% — oportunidad de mayor extracción',
+  sensorfail:'Falla sensor T-03 — lectura inválida — activando redundancia — calibración requerida',
+  efficiency:'Degradación de eficiencia detectada — pérdida térmica acumulada — mantenimiento programado',
+  optimal:   'Operación óptima alcanzada — todos los parámetros en rango premium — COP máximo',
+  reset:     'Sistema reiniciado — parámetros nominales restaurados — todos los sensores activos',
+};
+
+// ═══════════════════════════════════════════════
+// KPI DEFINITIONS
+// ═══════════════════════════════════════════════
+const KPIS=[
+  {id:'power',    lbl:'Potencia Térmica',  unit:'kW',  max:250,  cf:v=>v>120?'vg':v>70?'va':'vr'},
+  {id:'efficiency',lbl:'Eficiencia',       unit:'%',   max:100,  cf:v=>v>75?'vg':v>50?'va':'vr'},
+  {id:'cop',      lbl:'COP Equiv.',        unit:'',    max:7,    cf:v=>v>3.5?'vg':v>2?'va':'vr'},
+  {id:'deltaT',   lbl:'ΔT Entrada/Salida', unit:'°C',  max:60,   cf:v=>v>20?'vg':v>10?'va':'vr'},
+  {id:'tIn',      lbl:'T° Entrada',        unit:'°C',  max:80,   cf:v=>v<30?'vc':v<50?'va':'vr'},
+  {id:'tOut',     lbl:'T° Salida',         unit:'°C',  max:120,  cf:v=>v>40?'vg':v>25?'va':'vr'},
+  {id:'tGeo',     lbl:'T° Geotérmica',     unit:'°C',  max:150,  cf:v=>v>60?'vm':'vc'},
+  {id:'flow',     lbl:'Caudal',            unit:'L/s', max:6,    cf:v=>v>2.5?'vg':v>1.2?'va':'vr'},
+  {id:'dP',       lbl:'ΔP Presión',        unit:'bar', max:6,    cf:v=>v<2?'vg':v<4?'va':'vr'},
+  {id:'health',   lbl:'Health Index',      unit:'%',   max:100,  cf:v=>v>75?'vg':v>45?'va':'vr'},
+  {id:'corrosion',lbl:'Corrosión',         unit:'%',   max:100,  cf:v=>v<15?'vg':v<40?'va':'vr'},
+  {id:'fouling',  lbl:'Fouling Index',     unit:'%',   max:100,  cf:v=>v<20?'vg':v<55?'va':'vr'},
+  {id:'avail',    lbl:'Disponibilidad',    unit:'%',   max:100,  cf:v=>v>95?'vg':v>80?'va':'vr'},
+];
+
+function renderKPIs(){
+  const g=document.getElementById('kGrid');
+  g.innerHTML=KPIS.map(k=>{
+    const v=S[k.id],c=k.cf(v),pct=Math.min(100,(v/k.max)*100);
+    const bc=c==='vg'?'var(--green)':c==='vc'?'var(--cyan)':c==='va'?'var(--amber)':c==='vt'?'var(--teal)':c==='vo'?'var(--orange)':c==='vm'?'var(--magenta)':'var(--red)';
+    const vstr=typeof v==='number'?k.id==='cop'?v.toFixed(1):k.id==='dP'||k.id==='flow'?v.toFixed(1):Math.round(v):v;
+    return `<div class="kpi"><div class="kl">${k.lbl}</div>
+      <div class="krow"><span class="kv ${c}">${vstr}</span><span class="ku">${k.unit}</span></div>
+      <div class="kbar"><div class="kbf" style="width:${pct}%;background:${bc}"></div></div></div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+// CFD + GEO PANELS
+// ═══════════════════════════════════════════════
+function renderCFD(){
+  const rows=[
+    ['Reynolds','Re',S.re.toLocaleString(),'vc'],
+    ['Nusselt','Nu',S.nu,'vg'],
+    ['Prandtl','Pr',S.pr.toFixed(1),'va'],
+    ['Pérdida Carga','ΔP',S.headLoss.toFixed(2)+' bar','va'],
+    ['Factor Fricción','f',S.f.toFixed(4),'vc'],
+    ['Intensidad Turb.','I','12.4%','vt'],
+  ];
+  document.getElementById('cfdRows').innerHTML=rows.map(([l,s,v,c])=>
+    `<div class="cfd-row"><span class="cfd-l">${l} (${s})</span><span class="cfd-v ${c}">${v}</span></div>`
+  ).join('');
+}
+
+function renderGeo(){
+  const rows=[
+    ['T° Terreno',S.tGeo.toFixed(1)+' °C','vm'],
+    ['Gradiente Geotérmico',S.geoGrad.toFixed(2)+' °C/100m','va'],
+    ['Profundidad Efectiva',S.depth.toLocaleString()+' m','vc'],
+    ['Flujo Calor Terrestre','92 mW/m²','vg'],
+    ['Potencia Recuperable',S.geoEnergy.toFixed(1)+' kW','vg'],
+    ['Exergía',((S.efficiency/100)*S.power*0.28).toFixed(1)+' kW','vt'],
+  ];
+  document.getElementById('geoRows').innerHTML=rows.map(([l,v,c])=>
+    `<div class="geo-row"><span class="geo-l">${l}</span><span class="geo-v ${c}">${v}</span></div>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════
+// ANOMALIES
+// ═══════════════════════════════════════════════
+const BASE_ANOM=[
+  {n:'Fouling zona anular',s:0.64,c:'va'},
+  {n:'Micro-corrosión carcasa',s:0.41,c:'vc'},
+];
+function getAnoms(){
+  if(S.sim==='none') return BASE_ANOM;
+  const p=PROFS[S.sim];
+  const pool=[
+    {n:'Obstrucción aleta helicoidal',s:.92,c:'vr'},
+    {n:'Fuga zona inferior',s:.88,c:'vr'},
+    {n:'Fouling severo zona media',s:.82,c:'vo'},
+    {n:'Degradación transferencia',s:.76,c:'vo'},
+    {n:'Cavitación zona entrada',s:.69,c:'va'},
+    {n:'Sensor T-03 inválido',s:.58,c:'va'},
+  ];
+  const n=p.sev==='EMERGENCY'?6:p.sev==='CRITICAL'?4:2;
+  return pool.slice(0,n);
+}
+function renderAnoms(){
+  const a=getAnoms();
+  document.getElementById('anomB').textContent=a.length+' DET.';
+  document.getElementById('anomList').innerHTML=a.map(x=>
+    `<div class="ai2"><span class="an">${x.n}</span><span class="as2 ${x.c}">${(x.s*100).toFixed(0)}%</span></div>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════
+// AI PANEL
+// ═══════════════════════════════════════════════
+function updateAI(){
+  const p=S.sim!=='none'?PROFS[S.sim]:null;
+  const sev=p?p.sev:'NORMAL';
+  const SM={NORMAL:'PREDICIENDO',WARNING:'ALERTA ACTIVA',CRITICAL:'ANÁLISIS CRÍTICO',EMERGENCY:'MODO EMERGENCIA'};
+  const PM={NORMAL:'DEGRADACIÓN LENTA',WARNING:'FALLA PROBABLE',CRITICAL:'FALLA INMINENTE',EMERGENCY:'FALLA CRÍTICA'};
+  const RM={NORMAL:'MODERADO',WARNING:'ALTO',CRITICAL:'MUY ALTO',EMERGENCY:'EXTREMO'};
+  const SC={NORMAL:'vg',WARNING:'va',CRITICAL:'vo',EMERGENCY:'vr'};
+  document.getElementById('aiSt').textContent=SM[sev];document.getElementById('aiSt').className='arv '+SC[sev];
+  document.getElementById('aiPr').textContent=PM[sev];document.getElementById('aiPr').className='arv '+(sev==='NORMAL'?'va':'vr');
+  document.getElementById('aiRk').textContent=RM[sev];document.getElementById('aiRk').className='arv '+SC[sev];
+  const arc=document.getElementById('aiArc');
+  const off=138-(S.aiConf/100)*138;
+  arc.setAttribute('stroke-dashoffset',off);
+  arc.setAttribute('stroke',S.aiConf>80?'#00d4ff':S.aiConf>60?'#ffab00':'#ff1744');
+  document.getElementById('aiN').textContent=S.aiConf;
+  document.getElementById('aiN').setAttribute('fill',S.aiConf>80?'#00d4ff':S.aiConf>60?'#ffab00':'#ff1744');
+  const rc=S.rul>900?'var(--cyan)':S.rul>300?'var(--amber)':'var(--red)';
+  document.getElementById('rulV').textContent=S.rul;
+  document.getElementById('rulV').style.color=rc;
+  [{id:'pf30',vid:'pv30',v:S.pf30},{id:'pf60',vid:'pv60',v:S.pf60},{id:'pf90',vid:'pv90',v:S.pf90}].forEach(b=>{
+    const c=b.v<30?'var(--green)':b.v<60?'var(--amber)':'var(--red)';
+    const cc=b.v<30?'vg':b.v<60?'va':'vr';
+    document.getElementById(b.id).style.width=b.v+'%';document.getElementById(b.id).style.background=c;
+    document.getElementById(b.vid).textContent=b.v+'%';document.getElementById(b.vid).className='pv '+cc;
+  });
+}
+
+// ═══════════════════════════════════════════════
+// GLOBAL STATUS
+// ═══════════════════════════════════════════════
+function updateGlobal(){
+  const p=S.sim!=='none'?PROFS[S.sim]:null;
+  const sev=p?p.sev:'NORMAL';
+  const pill=document.getElementById('gPill');
+  document.getElementById('gTxt').textContent={NORMAL:'OPERATIVO',WARNING:'ADVERTENCIA',CRITICAL:'CRÍTICO',EMERGENCY:'EMERGENCIA'}[sev];
+  pill.className='pill '+(sev==='NORMAL'?'p-ok':sev==='WARNING'?'p-warn':'p-crit');
+}
+
+// ═══════════════════════════════════════════════
+// CONSOLE
+// ═══════════════════════════════════════════════
+function addEv(sev,src,msg){
+  const ts=new Date().toTimeString().slice(0,8);
+  const sc={NORMAL:'en',WARNING:'ew',CRITICAL:'ec',EMERGENCY:'ee'}[sev]||'en';
+  const row=document.createElement('div');
+  row.className='erow';
+  row.innerHTML=`<span class="ets">${ts}</span><span class="esv ${sc}">${sev}</span><span class="esrc">${src}</span><span class="emsg">${msg}</span>`;
+  const list=document.getElementById('evList');
+  list.insertBefore(row,list.firstChild);
+  if(list.children.length>55) list.removeChild(list.lastChild);
+  S.evCount++;document.getElementById('evC').textContent=S.evCount+' EVT';
+}
+
+// ═══════════════════════════════════════════════
+// SIMULATION
+// ═══════════════════════════════════════════════
+function runSim(name){
+  document.querySelectorAll('.sb.active').forEach(b=>b.classList.remove('active'));
+  S.sim=name;
+  const p=PROFS[name];
+  Object.keys(p).forEach(k=>{ if(typeof S[k]==='number') S[k]=p[k]; });
+  if(name==='reset') S.sim='none';
+  const sb=document.getElementById('simBadge');
+  sb.textContent=name==='reset'?'STANDBY':p.sev+' ACTIVO';
+  sb.className='badge '+(p.sev==='NORMAL'?'b-blue':p.sev==='WARNING'?'b-warn':'b-crit');
+  if(p.mode) setMode(p.mode,false);
+  addEv(p.sev,'SIM·ENGINE',SIM_MSGS[name]);
+  const cw=document.querySelector('.twin-wrap');
+  if(p.sev==='EMERGENCY') cw.classList.add('emergency'); else cw.classList.remove('emergency');
+  renderKPIs();updateAI();updateGlobal();renderAnoms();renderCFD();renderGeo();updateCharts();
+}
+
+// ═══════════════════════════════════════════════
+// MODE SWITCHING
+// ═══════════════════════════════════════════════
+const LEGS={
+  thermal: [['#0040ff','Frío'],['#00ff88','Templado'],['#ffff00','Caliente'],['#ff6000','Muy caliente'],['#ff0000','Extremo']],
+  cfd:     [['#0060ff','Lam.'],['#00ccaa','Trans.'],['#ffcc00','Turb.'],['#ff4400','Alta Turb.']],
+  flow:    [['#0044aa','Lento'],['#0099ff','Normal'],['#00ffcc','Rápido'],['#ffdd00','Turbulento']],
+  fouling: [['#2a5a2a','Limpio'],['#887722','Leve'],['#bb5500','Moderado'],['#882200','Severo']],
+  geo:     [['#0033aa','Superficial'],['#007755','Medio'],['#cc8800','Profundo'],['#ff2200','Geotérmico']],
+  ai:      [['#00d4ff','Flujo IA'],['#00e676','OK'],['#ffab00','Alerta'],['#ff1744','Crítico']],
+};
+function setMode(m,upd=true){
+  S.mode=m;
+  if(upd){ document.querySelectorAll('.vb').forEach(b=>b.classList.remove('active'));
+    const b=document.getElementById('btn-'+m);if(b)b.classList.add('active'); }
+  document.getElementById('legItems').innerHTML=(LEGS[m]||[]).map(([c,l])=>
+    `<span class="li"><span class="ld" style="background:${c}"></span>${l}</span>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+// CANVAS — DBHE-HE DIGITAL TWIN
+// ═══════════════════════════════════════════════
+const cvs=document.getElementById('dbheCanvas');
+const ctx=cvs.getContext('2d');
+
+function rCvs(){
+  cvs.width=cvs.parentElement.clientWidth;
+  cvs.height=740;
+}
+
+// Color helpers
+function hc(n){
+  n=Math.max(0,Math.min(1,n));
+  const st=[[0,'#0040ff'],[.2,'#00aaff'],[.42,'#00ff88'],[.58,'#ffee00'],[.76,'#ff6600'],[1,'#ff0000']];
+  for(let i=1;i<st.length;i++){
+    if(n<=st[i][0]){ const lo=st[i-1],hi=st[i]; return lh(lo[1],hi[1],(n-lo[0])/(hi[0]-lo[0])); }
+  }
+  return '#ff0000';
+}
+function lh(a,b,t){
+  const p=x=>parseInt(x.slice(1,3),16);
+  const q=x=>parseInt(x.slice(3,5),16);
+  const r2=x=>parseInt(x.slice(5,7),16);
+  return '#'+(((p(a)+(p(b)-p(a))*t)|0).toString(16).padStart(2,'0'))
+           +(((q(a)+(q(b)-q(a))*t)|0).toString(16).padStart(2,'0'))
+           +(((r2(a)+(r2(b)-r2(a))*t)|0).toString(16).padStart(2,'0'));
+}
+function lk(h,f){ const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return `rgb(${Math.min(255,r+f*255|0)},${Math.min(255,g+f*255|0)},${Math.min(255,b+f*255|0)})`; }
+function dk(h,f){ const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return `rgb(${Math.max(0,r*(1-f)|0)},${Math.max(0,g*(1-f)|0)},${Math.max(0,b*(1-f)|0)})`; }
+
+// ── PARTICLES
+function initPart(){
+  S.particles=Array.from({length:70},()=>({
+    x:Math.random()*cvs.width,y:Math.random()*cvs.height,
+    vx:(Math.random()-.5)*1.2,vy:(Math.random()-.5)*.7,
+    r:Math.random()*1.6+.7,a:Math.random()*.7+.3,
+    c:Math.random()<.6?'#00d4ff':Math.random()<.5?'#00e676':'#ffab00'
+  }));
+}
+
+function getSF(){
+  if(S.sim==='none') return 0;
+  return {NORMAL:0,WARNING:.35,CRITICAL:.65,EMERGENCY:1}[PROFS[S.sim].sev]||0;
+}
+
+// ══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════
+   DBHE-HE VISUAL ENGINE v3 — HIGH CONTRAST, 3-PANEL
+   ═══════════════════════════════════════════════════════════ */
+
+// ── MAIN ORCHESTRATOR ──
+function draw(){
+  rCvs();
+  const W=cvs.width, H=cvs.height;
+  const t=S.tick*0.022;
+  ctx.clearRect(0,0,W,H);
+
+  // dark bg radial glow
+  const bgG=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.7);
+  bgG.addColorStop(0,'#061220');bgG.addColorStop(1,'#020508');
+  ctx.fillStyle=bgG;ctx.fillRect(0,0,W,H);
+
+  // subtle grid
+  ctx.strokeStyle='rgba(0,200,255,0.03)';ctx.lineWidth=.5;
+  for(let x=0;x<W;x+=24){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=24){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  const sf=getSF();
+
+  /* ── 2-ROW LAYOUT ──
+     Row 1 (top 58%): col A = Modelo 3D | col B = Diagrama de Flujo
+     Row 2 (bot 42%): Sección Transversal — full width, centred
+  */
+  const R1H = Math.floor(H*0.68);   // row 1 height (+30%)
+  const R2Y = R1H+6;                // row 2 starts (with gap)
+  const R2H = H-R2Y-2;             // row 2 height
+  const midX= Math.floor(W*0.47);  // split between model and flow in row 1
+
+  // Row 1 vertical separator
+  ctx.strokeStyle='rgba(0,180,255,0.15)';ctx.lineWidth=1;ctx.setLineDash([5,4]);
+  ctx.beginPath();ctx.moveTo(midX,4);ctx.lineTo(midX,R1H-4);ctx.stroke();
+  // Row separator
+  ctx.strokeStyle='rgba(0,180,255,0.12)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(4,R1H+3);ctx.lineTo(W-4,R1H+3);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Titles
+  const lbls=[
+    [midX/2, 4, 'MODELO 3D — DBHE-HE'],
+    [midX+(W-midX)/2, 4, 'DIAGRAMA DE FLUJO INTERNO'],
+    [W/2, R2Y+4, 'SECCIÓN TRANSVERSAL'],
+  ];
+  lbls.forEach(([tx,baseY,lbl])=>{
+    ctx.font='bold 8.5px Rajdhani,sans-serif';
+    ctx.fillStyle='rgba(0,220,255,0.45)';ctx.textAlign='center';
+    ctx.fillText(lbl,tx,baseY+9);
+  });
+
+  const TH=14; // title height offset
+
+  // Row 1: Modelo 3D (left) + Diagrama de flujo (right)
+  drawModel3D (t,sf, 2,      TH,    midX-4,   R1H-TH-2);
+  drawFlowDiag(t,sf, midX+3, TH,    W-midX-5, R1H-TH-2);
+
+  // Row 2: Sección transversal — full width, centred
+  drawXSection(t,sf, 2,      R2Y+TH, W-4,     R2H-TH-2);
+
+  if(S.mode==='ai') drawAIParticles(t,0,0,W,H);
+  S.tick++;
+  requestAnimationFrame(draw);
+}
+
+// ══════════════════════════════════════════════════════
+//  PANEL A — 3D MODEL  (vertical, faithful to image)
+//  Top zone  : smooth cylinder + top flange + nozzle
+//  Middle zone: wavy/serpentine external fins
+//  Lower flange + Bottom zone: curved turbine blades
+// ══════════════════════════════════════════════════════
+function drawModel3D(t,sf,ox,oy,W,H){
+  const cx=ox+W/2;
+
+  // Reserves — nozzles above, dim label below
+  const topReserve=48;
+  const botReserve=16;
+  const zH   = Math.max(60, H - topReserve - botReserve);
+  const zTop = Math.round(zH*0.38);
+  const zMid = Math.round(zH*0.37);
+  const zBot = zH-zTop-zMid;
+  const y0=oy+topReserve, y1=y0+zTop, y2=y1+zMid, y3=y2+zBot;
+
+  // R: safe radius — only depends on panel width
+  const R    = Math.max(20, Math.min(W*0.30, 60));
+  const wt   = Math.max(5, R*0.13);
+  const Rfin = R + Math.max(8, W*0.07);
+  const Rturb= R + Math.max(10, W*0.09);
+
+  // ── TOP CYLINDER ──
+  drawCylinder(cx,y0,zTop,R,wt,t,sf,0.0);
+
+  // ── MID-TOP FLANGE ──
+  drawBFlange(cx,y1,R,wt,sf,14);
+
+  // ── WAVY FIN SECTION ──
+  drawWavySect(cx,y1,zMid,R,Rfin,wt,t,sf);
+
+  // ── MID-BOT FLANGE ──
+  drawBFlange(cx,y2,R,wt,sf,12);
+
+  // ── TURBINE BLADE SECTION ──
+  drawTurbineSect(cx,y2,zBot,R,Rturb,wt,t,sf);
+
+  // ── TOP FLANGE (very top, thicker) ──
+  drawBFlange(cx,y0,R,wt,sf,16);
+
+  // ── TOP CAP ──
+  drawTopCap(cx,y0,R,wt,t,sf);
+
+  // ── INTERNAL FLOW ──
+  drawInternalFlow(cx,y0,y3,R,wt,t,sf);
+
+  // ── SENSORS ──
+  drawModelSensors(cx,y0,y1,y2,y3,R,t,sf);
+
+  // ── DIM LINE ──
+  ctx.save();
+  ctx.font='7.5px Rajdhani,sans-serif';
+  ctx.fillStyle='rgba(0,200,255,0.5)';ctx.textAlign='center';
+  ctx.fillText('L = 3500 m  |  Ø 219mm  |  SS 316L',cx,y3+14);
+  ctx.restore();
+
+  // ── EMERGENCY FLASH ──
+  if(sf>0.7){
+    const fa=(Math.sin(t*5)+1)*0.5*0.1*sf;
+    ctx.save();ctx.globalAlpha=fa;
+    ctx.fillStyle='#ff1010';ctx.fillRect(ox,oy,W,H);
+    ctx.restore();
+  }
+}
+
+// ── CYLINDER zone (top smooth section) ──
+function drawCylinder(cx,y0,h,R,wt,t,sf,depthFrac){
+  ctx.save();
+  const col=bodyCol(t,sf,depthFrac,'shell');
+  // left & right wall stripes (3D depth)
+  [[cx-R-wt,wt,'shadow'],[cx+R,wt,'highlight']].forEach(([x,w,side])=>{
+    const g=ctx.createLinearGradient(x,0,x+w,0);
+    if(side==='shadow'){g.addColorStop(0,dk(col,.7));g.addColorStop(1,dk(col,.2));}
+    else{g.addColorStop(0,lk(col,.2));g.addColorStop(.5,lk(col,.5));g.addColorStop(1,dk(col,.3));}
+    ctx.fillStyle=g;ctx.fillRect(x,y0,w,h);
+  });
+  // main face
+  const gF=ctx.createLinearGradient(cx-R,0,cx+R,0);
+  gF.addColorStop(0,  dk(col,.65));
+  gF.addColorStop(.12,dk(col,.3));
+  gF.addColorStop(.30,lk(col,.45));
+  gF.addColorStop(.50,lk(col,.60));
+  gF.addColorStop(.70,lk(col,.38));
+  gF.addColorStop(.88,dk(col,.2));
+  gF.addColorStop(1,  dk(col,.65));
+  ctx.fillStyle=gF;ctx.fillRect(cx-R,y0,R*2,h);
+
+  // brushed horizontal lines
+  ctx.globalAlpha=0.055;ctx.strokeStyle='#ffffff';ctx.lineWidth=.8;
+  for(let y=y0;y<y0+h;y+=3.5){
+    ctx.beginPath();ctx.moveTo(cx-R,y);ctx.lineTo(cx+R,y);ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+
+  // outline
+  ctx.strokeStyle=`rgba(0,210,255,${0.4-sf*0.1})`;ctx.lineWidth=1.1;
+  ctx.beginPath();ctx.moveTo(cx-R-wt,y0);ctx.lineTo(cx-R-wt,y0+h);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx+R+wt,y0);ctx.lineTo(cx+R+wt,y0+h);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx-R,y0);ctx.lineTo(cx-R,y0+h);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx+R,y0);ctx.lineTo(cx+R,y0+h);ctx.stroke();
+
+  // NPT side nozzle
+  const ny=y0+h*0.22;
+  const nc=sf>0.5?'rgba(255,140,0,0.9)':'rgba(0,210,255,0.75)';
+  ctx.fillStyle=dk(col,.3);ctx.strokeStyle=nc;ctx.lineWidth=1.2;
+  ctx.fillRect(cx+R+wt,ny-5,13,10);ctx.strokeRect(cx+R+wt,ny-5,13,10);
+  ctx.fillStyle=nc;ctx.font='bold 7px Rajdhani,sans-serif';ctx.textAlign='left';
+  ctx.fillText('NPT',cx+R+wt+15,ny+3);
+  ctx.restore();
+}
+
+// ── BOLTED FLANGE — bolts as dashed vertical lines (hidden edges, lateral view) ──
+function drawBFlange(cx,y,R,wt,sf,thick){
+  ctx.save();
+  const fw=R+wt+13;
+  const col=sf>0.5?lh('#1a2e44','#3a1408',sf*0.5):'#1c3650';
+
+  // Flange body with metallic gradient
+  const g=ctx.createLinearGradient(cx-fw,0,cx+fw,0);
+  g.addColorStop(0,   dk(col,.62));
+  g.addColorStop(.12, dk(col,.28));
+  g.addColorStop(.32, lk(col,.48));
+  g.addColorStop(.50, lk(col,.60));
+  g.addColorStop(.68, lk(col,.38));
+  g.addColorStop(.88, dk(col,.22));
+  g.addColorStop(1,   dk(col,.62));
+  ctx.fillStyle=g;
+  ctx.fillRect(cx-fw,y,fw*2,thick);
+
+  // Top highlight edge
+  ctx.strokeStyle='rgba(200,235,255,0.28)';ctx.lineWidth=1;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(cx-fw,y);ctx.lineTo(cx+fw,y);ctx.stroke();
+  // Bottom shadow edge
+  ctx.strokeStyle='rgba(0,0,0,0.45)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(cx-fw,y+thick);ctx.lineTo(cx+fw,y+thick);ctx.stroke();
+  // Side outlines
+  ctx.strokeStyle=`rgba(0,200,255,${sf>0.5?0.32:0.48})`;ctx.lineWidth=1;
+  ctx.strokeRect(cx-fw,y,fw*2,thick);
+
+  // Bolt holes as VERTICAL DASHED LINES (hidden edge in lateral/side view)
+  // In lateral view, cylindrical bolt holes perpendicular to the view plane
+  // are represented as pairs of dashed vertical lines
+  const nb=Math.floor(fw*2/16);
+  const step=(fw*2-14)/nb;
+  const dashCol=sf>0.5?'rgba(255,120,40,0.55)':'rgba(0,200,255,0.50)';
+  const boltR=3.2;
+
+  for(let i=0;i<=nb;i++){
+    const bx=cx-fw+7+i*step;
+    // Left hidden edge of bolt hole
+    ctx.strokeStyle=dashCol;ctx.lineWidth=0.8;ctx.setLineDash([2.5,2]);
+    ctx.beginPath();ctx.moveTo(bx-boltR,y+1);ctx.lineTo(bx-boltR,y+thick-1);ctx.stroke();
+    // Right hidden edge of bolt hole
+    ctx.beginPath();ctx.moveTo(bx+boltR,y+1);ctx.lineTo(bx+boltR,y+thick-1);ctx.stroke();
+    // Center axis (dash-dot, thinner)
+    ctx.strokeStyle=dashCol.replace('0.50','0.28').replace('0.55','0.25');
+    ctx.lineWidth=0.5;ctx.setLineDash([4,2,1,2]);
+    ctx.beginPath();ctx.moveTo(bx,y);ctx.lineTo(bx,y+thick);ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+// ── WAVY FIN SECTION — S-curve fins matching image 1 middle zone ──
+function drawWavySect(cx,y0,h,R,Rfin,wt,t,sf){
+  ctx.save();
+  const col=bodyCol(t,sf,0.5,'shell');
+  // draw cylinder body first (behind fins)
+  [[cx-R-wt,wt,'shadow'],[cx+R,wt,'hl']].forEach(([x,w,s])=>{
+    const g=ctx.createLinearGradient(x,0,x+w,0);
+    if(s==='shadow'){g.addColorStop(0,dk(col,.7));g.addColorStop(1,dk(col,.25));}
+    else{g.addColorStop(0,lk(col,.15));g.addColorStop(.5,lk(col,.45));g.addColorStop(1,dk(col,.3));}
+    ctx.fillStyle=g;ctx.fillRect(x,y0,w,h);
+  });
+  const gF2=ctx.createLinearGradient(cx-R,0,cx+R,0);
+  gF2.addColorStop(0,dk(col,.65));gF2.addColorStop(.3,lk(col,.35));
+  gF2.addColorStop(.5,lk(col,.5));gF2.addColorStop(.7,lk(col,.28));gF2.addColorStop(1,dk(col,.65));
+  ctx.fillStyle=gF2;ctx.fillRect(cx-R,y0,R*2,h);
+  ctx.strokeStyle='rgba(0,200,255,0.2)';ctx.lineWidth=.7;
+  ctx.beginPath();ctx.moveTo(cx-R-wt,y0);ctx.lineTo(cx-R-wt,y0+h);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx+R+wt,y0);ctx.lineTo(cx+R+wt,y0+h);ctx.stroke();
+
+  // === WAVY FINS ===
+  // 14 fins visible in perspective: 7 facing front, distributed across width
+  const FINS=7;
+  for(let fi=0;fi<FINS;fi++){
+    const t01=(fi/(FINS-1));           // 0..1 across width
+    const projX=cx-R*0.88+t01*R*1.76; // distribute across cylinder face
+    // perspective scale: center fins slightly larger
+    const pscale=0.75+Math.pow(1-Math.abs(t01-0.5)*2,1.5)*0.35;
+    const finW=Math.max(3,(Rfin-R)*0.55*pscale);
+    // amplitude of wave (S-shape)
+    const amp=(Rfin-R)*0.55*pscale;
+    // depth tint: edge fins darker
+    const dFrac=Math.abs(t01-0.5)*0.7;
+    const finCol=sf>0.5
+      ? lh(bodyCol(t,sf,dFrac,'fin'),`#ff4400`,Math.min(1,sf))
+      : bodyCol(t,sf,dFrac,'fin');
+
+    // Build wavy path (3.5 half-cycles = nice S shape)
+    const STEPS=70;
+    const lPts=[],rPts=[];
+    for(let s=0;s<=STEPS;s++){
+      const fy=y0+s/STEPS*h;
+      const phase=(s/STEPS)*Math.PI*3.8; // controls waves
+      const wx=Math.sin(phase)*amp;
+      lPts.push([projX+wx-finW*0.5,fy]);
+      rPts.push([projX+wx+finW*0.5,fy]);
+    }
+    // gradient across fin width
+    const fg=ctx.createLinearGradient(projX-finW,0,projX+finW,0);
+    fg.addColorStop(0,dk(finCol,.55));fg.addColorStop(.25,lk(finCol,.35));
+    fg.addColorStop(.5,lk(finCol,.5));fg.addColorStop(.75,finCol);
+    fg.addColorStop(1,dk(finCol,.5));
+    ctx.fillStyle=fg;
+    ctx.beginPath();
+    lPts.forEach((p,i)=>i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]));
+    [...rPts].reverse().forEach(p=>ctx.lineTo(p[0],p[1]));
+    ctx.closePath();ctx.fill();
+    // edge highlight
+    const esc=sf>0.5?`rgba(255,180,60,${0.35*pscale})`:`rgba(180,230,255,${0.3*pscale})`;
+    ctx.strokeStyle=esc;ctx.lineWidth=0.7;
+    ctx.beginPath();lPts.forEach((p,i)=>i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]));ctx.stroke();
+    ctx.beginPath();rPts.forEach((p,i)=>i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]));ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ── TURBINE BLADE SECTION — curved impeller blades matching image 1 bottom ──
+function drawTurbineSect(cx,y0,h,R,Rtip,wt,t,sf){
+  ctx.save();
+  const col=bodyCol(t,sf,0.82,'shell');
+  // cylinder body behind blades
+  [[cx-R-wt,wt,'s'],[cx+R,wt,'h']].forEach(([x,w,s])=>{
+    const g=ctx.createLinearGradient(x,0,x+w,0);
+    s==='s'?(g.addColorStop(0,dk(col,.7)),g.addColorStop(1,dk(col,.25)))
+            :(g.addColorStop(0,lk(col,.15)),g.addColorStop(.5,lk(col,.45)),g.addColorStop(1,dk(col,.3)));
+    ctx.fillStyle=g;ctx.fillRect(x,y0,w,h);
+  });
+  const gB=ctx.createLinearGradient(cx-R,0,cx+R,0);
+  gB.addColorStop(0,dk(col,.65));gB.addColorStop(.35,lk(col,.35));
+  gB.addColorStop(.5,lk(col,.5));gB.addColorStop(.65,lk(col,.25));gB.addColorStop(1,dk(col,.65));
+  ctx.fillStyle=gB;ctx.fillRect(cx-R,y0,R*2,h);
+  ctx.strokeStyle='rgba(0,200,255,0.2)';ctx.lineWidth=.7;
+  ctx.beginPath();ctx.moveTo(cx-R-wt,y0);ctx.lineTo(cx-R-wt,y0+h);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx+R+wt,y0);ctx.lineTo(cx+R+wt,y0+h);ctx.stroke();
+
+  // === CURVED TURBINE BLADES ===
+  const BLADES=6;
+  for(let bi=0;bi<BLADES;bi++){
+    const t01=bi/(BLADES-1);
+    const projX=cx-R*0.85+t01*R*1.70;
+    const pscale=0.6+Math.pow(1-Math.abs(t01-0.5)*2,1.4)*0.45;
+    const bLen=h*(0.72+pscale*0.22);
+    const bW=Math.max(4,(Rtip-R)*0.6*pscale);
+    const sweep=(t01-0.5)*(Rtip-R)*0.9; // lateral sweep at tip
+    const startY=y0+h*0.04;
+
+    const bCol=sf>0.5
+      ? lh(bodyCol(t,sf,Math.abs(t01-0.5)*0.6,'fin'),'#ff3300',Math.min(1,sf*0.8))
+      : bodyCol(t,sf,Math.abs(t01-0.5)*0.6,'fin');
+
+    // Blade: sweeps from straight root to curved tip
+    const lPts=[],rPts=[];
+    const BSTEPS=40;
+    for(let s=0;s<=BSTEPS;s++){
+      const frac=s/BSTEPS;
+      const by=startY+frac*bLen;
+      const curve=Math.pow(frac,1.8)*sweep; // progressive curve
+      const bw2=bW*(0.35+frac*0.65);        // widens toward tip
+      lPts.push([projX+curve-bw2*0.5,by]);
+      rPts.push([projX+curve+bw2*0.5,by]);
+    }
+    const bg=ctx.createLinearGradient(projX-bW,0,projX+bW,0);
+    bg.addColorStop(0,dk(bCol,.55));bg.addColorStop(.3,lk(bCol,.4));
+    bg.addColorStop(.6,bCol);bg.addColorStop(1,dk(bCol,.5));
+    ctx.fillStyle=bg;
+    ctx.beginPath();
+    lPts.forEach((p,i)=>i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]));
+    // rounded tip
+    ctx.quadraticCurveTo(projX+sweep,startY+bLen+7,rPts[BSTEPS][0],rPts[BSTEPS][1]);
+    [...rPts].reverse().forEach(p=>ctx.lineTo(p[0],p[1]));
+    ctx.closePath();ctx.fill();
+    ctx.strokeStyle=sf>0.5?`rgba(255,150,30,${0.4*pscale})`:`rgba(160,225,255,${0.35*pscale})`;
+    ctx.lineWidth=0.8;ctx.stroke();
+  }
+
+  // rounded bottom cap
+  const capY=y0+h;
+  const capCol=bodyCol(t,sf,0.95,'shell');
+  const capG=ctx.createLinearGradient(cx-Rtip,capY,cx+Rtip,capY+22);
+  capG.addColorStop(0,lk(capCol,.3));capG.addColorStop(.5,capCol);capG.addColorStop(1,dk(capCol,.6));
+  ctx.fillStyle=capG;
+  ctx.beginPath();
+  ctx.moveTo(cx-R-wt,capY);ctx.lineTo(cx+R+wt,capY);
+  ctx.quadraticCurveTo(cx+Rtip*.7,capY+18,cx,capY+22);
+  ctx.quadraticCurveTo(cx-Rtip*.7,capY+18,cx-R-wt,capY);
+  ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(0,200,255,0.3)';ctx.lineWidth=.9;ctx.stroke();
+  ctx.restore();
+}
+
+// ── TOP CAP — clean solid machined plate, no nozzles ──
+function drawTopCap(cx,y0,R,wt,t,sf){
+  ctx.save();
+  const fw=R+wt+13, capH=18;
+  const col=sf>0.5?lh('#1a2e44','#3a0a08',sf*0.5):'#1c3650';
+
+  // ── CAP PLATE — brushed metallic surface ──
+  const g=ctx.createLinearGradient(cx-fw,y0-capH,cx+fw,y0);
+  g.addColorStop(0,   dk(col,.58));
+  g.addColorStop(.10, dk(col,.28));
+  g.addColorStop(.30, lk(col,.55));
+  g.addColorStop(.50, lk(col,.72));
+  g.addColorStop(.70, lk(col,.48));
+  g.addColorStop(.90, dk(col,.22));
+  g.addColorStop(1,   dk(col,.58));
+  ctx.fillStyle=g;
+  ctx.fillRect(cx-fw,y0-capH,fw*2,capH);
+
+  // Brushed surface lines (horizontal machining marks)
+  ctx.globalAlpha=0.06;ctx.strokeStyle='#fff';ctx.lineWidth=0.7;
+  for(let y=y0-capH+2;y<y0-2;y+=3){
+    ctx.beginPath();ctx.moveTo(cx-fw+2,y);ctx.lineTo(cx+fw-2,y);ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+
+  // Plate outlines
+  ctx.strokeStyle='rgba(0,200,255,0.5)';ctx.lineWidth=1.2;ctx.setLineDash([]);
+  ctx.strokeRect(cx-fw,y0-capH,fw*2,capH);
+  // top edge bright highlight
+  ctx.strokeStyle='rgba(200,240,255,0.32)';ctx.lineWidth=1.4;
+  ctx.beginPath();ctx.moveTo(cx-fw,y0-capH);ctx.lineTo(cx+fw,y0-capH);ctx.stroke();
+  // bottom edge shadow
+  ctx.strokeStyle='rgba(0,0,0,0.5)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(cx-fw,y0);ctx.lineTo(cx+fw,y0);ctx.stroke();
+
+  // Bolt holes — vertical dashed lines (hidden edges in lateral view)
+  const nBolts=10, bStep=(fw*2-20)/(nBolts-1);
+  const boltR=3.2;
+  const bDash=sf>0.5?'rgba(255,120,40,0.55)':'rgba(0,200,255,0.50)';
+  for(let i=0;i<nBolts;i++){
+    const bx=cx-fw+10+i*bStep;
+    ctx.strokeStyle=bDash;ctx.lineWidth=0.8;ctx.setLineDash([2.5,2]);
+    ctx.beginPath();ctx.moveTo(bx-boltR,y0-capH+2);ctx.lineTo(bx-boltR,y0-2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(bx+boltR,y0-capH+2);ctx.lineTo(bx+boltR,y0-2);ctx.stroke();
+    // centre axis dash-dot
+    ctx.strokeStyle=bDash.replace('0.50','0.25').replace('0.55','0.22');
+    ctx.lineWidth=0.5;ctx.setLineDash([4,2,1,2]);
+    ctx.beginPath();ctx.moveTo(bx,y0-capH);ctx.lineTo(bx,y0);ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+// ── INTERNAL FLOW ──
+function drawInternalFlow(cx,y0,yEnd,R,wt,t,sf){
+  const h=yEnd-y0;
+  const iR=R*0.36, aR=R*0.75;
+  ctx.save();ctx.globalAlpha=0.6;
+
+  // inner ASCENDING fluid — vapor saliendo (red/orange, upward)
+  const dCol=bodyCol(t,sf,0.72,'inner');
+  const ig=ctx.createLinearGradient(cx-iR,y0,cx+iR,y0);
+  ig.addColorStop(0,dk(dCol,.4));ig.addColorStop(.4,lk(dCol,.3));
+  ig.addColorStop(.6,dCol);ig.addColorStop(1,dk(dCol,.4));
+  ctx.fillStyle=ig;ctx.fillRect(cx-iR,y0,iR*2,h);
+
+  // UPWARD arrows (vapor sube por tubo central) — animación hacia arriba
+  ctx.globalAlpha=0.75;ctx.strokeStyle='rgba(255,70,20,.8)';ctx.lineWidth=1.3;
+  const dp=(t*26)%h;
+  for(let i=0;i<5;i++){
+    const ay=y0+h-((i/5*h+dp)%h);  // restamos para que suban
+    ctx.beginPath();ctx.moveTo(cx-iR*.4,ay+5);ctx.lineTo(cx,ay-5);ctx.lineTo(cx+iR*.4,ay+5);ctx.stroke();
+  }
+
+  // ascending annular — liquid entering (cyan/blue, descending)
+  ctx.globalAlpha=0.38;
+  const aC=bodyCol(t,sf,0.28,'annulus');
+  const ag=ctx.createLinearGradient(cx-aR,0,cx+aR,0);
+  ag.addColorStop(0,'rgba(0,0,0,0)');ag.addColorStop(.18,aC+'55');
+  ag.addColorStop(.42,aC+'88');ag.addColorStop(.5,'rgba(0,0,0,0)');
+  ag.addColorStop(.58,aC+'88');ag.addColorStop(.82,aC+'55');ag.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=ag;ctx.fillRect(cx-aR,y0,aR*2,h);
+
+  // helical swirl paths
+  ctx.globalAlpha=0.45;ctx.strokeStyle='rgba(0,190,255,.7)';ctx.lineWidth=1.1;
+  for(let s=0;s<2;s++){
+    ctx.beginPath();
+    for(let i=0;i<=80;i++){
+      const fy=y0+i/80*h;
+      const ang=(i/80)*Math.PI*7+s*Math.PI+t*0.9;
+      const rx=(aR+iR)/2*0.75;
+      const px=cx+Math.cos(ang)*rx*0.5;
+      i===0?ctx.moveTo(px,fy):ctx.lineTo(px,fy);
+    }
+    ctx.stroke();
+  }
+  // DOWNWARD arrows in annular (liquid baja)
+  ctx.globalAlpha=0.7;ctx.strokeStyle='rgba(30,160,255,.75)';ctx.lineWidth=1.2;
+  const down2=(t*19)%h;
+  for(let i=0;i<4;i++){
+    const ay=y0+4+((i/4*h+down2)%(h-10));
+    const ax=cx+(i%2===0?-1:1)*aR*0.62;
+    // arrow pointing DOWN
+    ctx.beginPath();ctx.moveTo(ax-4,ay-6);ctx.lineTo(ax,ay+6);ctx.lineTo(ax+4,ay-6);ctx.stroke();
+  }
+  ctx.globalAlpha=1;ctx.restore();
+}
+
+// ── SENSORS on model ──
+function drawModelSensors(cx,y0,y1,y2,y3,R,t,sf){
+  const SENS=[
+    {y:y0+(y1-y0)*0.18,s:1, lbl:'T-01',c:'#ff6600'},
+    {y:y0+(y1-y0)*0.55,s:-1,lbl:'P-01',c:'#00ccff'},
+    {y:y1+(y2-y1)*0.3, s:1, lbl:'V-01',c:'#00e676'},
+    {y:y1+(y2-y1)*0.72,s:-1,lbl:'C-01',c:'#ff3300'},
+    {y:y2+(y3-y2)*0.45,s:1, lbl:'T-02',c:'#ffcc00'},
+  ];
+  SENS.forEach((s,i)=>{
+    const px=cx+s.s*(R+16);
+    const pu=Math.abs(Math.sin(t*1.5+i*1.1));
+    const ac=sf>0.65?'#ff1744':sf>0.28?'#ffab00':s.c;
+    ctx.save();
+    ctx.fillStyle=dk(ac,.45);ctx.strokeStyle=ac;ctx.lineWidth=1.2;
+    ctx.fillRect(px-6,s.y-4,12,8);ctx.strokeRect(px-6,s.y-4,12,8);
+    ctx.beginPath();ctx.arc(px,s.y,9+pu*5,0,Math.PI*2);
+    ctx.strokeStyle=ac;ctx.globalAlpha=0.18+pu*0.35;ctx.lineWidth=1;ctx.stroke();
+    ctx.globalAlpha=1;
+    ctx.strokeStyle='rgba(0,180,220,.15)';ctx.lineWidth=.6;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(px+(s.s>0?-6:6),s.y);ctx.lineTo(cx+s.s*R,s.y);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font='bold 7.5px Rajdhani,sans-serif';
+    ctx.fillStyle=ac;ctx.textAlign=s.s>0?'left':'right';
+    ctx.fillText(s.lbl,px+(s.s>0?10:-10),s.y+3);
+    ctx.restore();
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  PANEL B — FLOW DIAGRAM  (faithful to image 2)
+// ══════════════════════════════════════════════════════
+function drawFlowDiag(t,sf,ox,oy,W,H){
+  const cx=ox+W/2;
+  // Margins
+  const topY=oy+18, botY=oy+H-6, h=botY-topY;
+  // OR: safe — primary constraint is width, secondary is height
+  const OR=Math.max(20, Math.min(W*0.40, h*0.28, 76));
+  const IR=Math.max(8, OR*0.36);
+  const wt=Math.max(4, OR*0.12);
+
+  ctx.save();
+
+  // ── outer casing lines ──
+  ctx.strokeStyle='rgba(0,200,255,0.4)';ctx.lineWidth=1.3;
+  ctx.setLineDash([]);
+  // left wall
+  ctx.beginPath();ctx.moveTo(cx-OR-wt,topY);ctx.lineTo(cx-OR-wt,topY+h*0.71);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx+OR+wt,topY);ctx.lineTo(cx+OR+wt,topY+h*0.71);ctx.stroke();
+  // inner tube walls
+  ctx.strokeStyle='rgba(0,200,255,0.25)';ctx.lineWidth=0.9;
+  ctx.beginPath();ctx.moveTo(cx-IR,topY);ctx.lineTo(cx-IR,topY+h*0.70);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx+IR,topY);ctx.lineTo(cx+IR,topY+h*0.70);ctx.stroke();
+
+  // ── top flange ──
+  const flangeH=8;
+  ctx.fillStyle='rgba(0,200,255,0.12)';ctx.strokeStyle='rgba(0,200,255,0.45)';ctx.lineWidth=1;
+  ctx.fillRect(cx-OR-wt-4,topY,OR*2+wt*2+8,flangeH);
+  ctx.strokeRect(cx-OR-wt-4,topY,OR*2+wt*2+8,flangeH);
+  // bolts on top flange
+  ctx.fillStyle='rgba(0,200,255,0.5)';
+  for(let b=0;b<7;b++){
+    const bx=cx-OR-wt-2+(b/6)*(OR*2+wt*2+4);
+    ctx.beginPath();ctx.arc(bx,topY+flangeH/2,2,0,Math.PI*2);ctx.fill();
+  }
+
+  // ── mid flange (at zone junction) ──
+  const mfy=topY+h*0.70;
+  ctx.fillStyle='rgba(0,200,255,0.1)';ctx.strokeStyle='rgba(0,200,255,0.4)';
+  ctx.fillRect(cx-OR-wt-4,mfy,OR*2+wt*2+8,7);
+  ctx.strokeRect(cx-OR-wt-4,mfy,OR*2+wt*2+8,7);
+
+  // ── phase-change chamber (bottom zone with glow) ──
+  const chamY=topY+h*0.72, chamH=h*0.26;
+  // chamber walls
+  ctx.strokeStyle='rgba(255,140,40,0.55)';ctx.lineWidth=1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx-OR-wt,chamY);ctx.lineTo(cx-OR-wt,chamY+chamH*0.80);
+  ctx.quadraticCurveTo(cx-OR*0.5,chamY+chamH*1.02,cx,chamY+chamH*1.02);
+  ctx.quadraticCurveTo(cx+OR*0.5,chamY+chamH*1.02,cx+OR+wt,chamY+chamH*0.80);
+  ctx.lineTo(cx+OR+wt,chamY);ctx.stroke();
+  // turbine fins (bottom flange)
+  const btFlangeY=chamY+chamH*0.82;
+  ctx.strokeStyle='rgba(255,140,40,0.4)';ctx.lineWidth=1;
+  for(let f=-3;f<=3;f++){
+    const fx=cx+f*(OR/3.5);
+    ctx.beginPath();ctx.moveTo(fx,btFlangeY);
+    ctx.quadraticCurveTo(fx+(f>0?8:-8),chamY+chamH*0.95,cx+f*(OR*0.55),chamY+chamH);
+    ctx.stroke();
+  }
+  // chamber glow fill
+  const chamGrd=ctx.createRadialGradient(cx,chamY+chamH*0.55,0,cx,chamY+chamH*0.55,OR*1.1);
+  const ci=0.07+sf*0.14+(Math.sin(t*1.8)+1)*0.025;
+  chamGrd.addColorStop(0,`rgba(255,110,15,${ci*3})`);
+  chamGrd.addColorStop(.4,`rgba(255,60,0,${ci*2})`);
+  chamGrd.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=chamGrd;ctx.beginPath();ctx.ellipse(cx,chamY+chamH*0.5,OR*1.0,chamH*0.55,0,0,Math.PI*2);ctx.fill();
+
+  // ── ASCENDING flow — vapor saliendo (red/orange, center tube, UP) ──
+  const dp=(t*24)%(h*0.68);
+  ctx.strokeStyle='rgba(220,55,25,0.95)';ctx.lineWidth=2;
+  ctx.fillStyle='rgba(220,55,25,0.14)';
+  ctx.fillRect(cx-IR+wt*.5,topY+flangeH,IR*2-wt,h*0.68);
+  // arrows animate UPWARD — subtract dp
+  for(let i=0;i<5;i++){
+    const ay=topY+flangeH+(h*0.62)-((i/5*(h*0.62)+dp)%(h*0.62));
+    ctx.beginPath();ctx.moveTo(cx-IR*.5,ay+5);ctx.lineTo(cx,ay-5);ctx.lineTo(cx+IR*.5,ay+5);ctx.stroke();
+  }
+  ctx.fillStyle='rgba(255,80,30,0.90)';ctx.font='bold 8px Rajdhani,sans-serif';ctx.textAlign='center';
+  ctx.fillText('\u2191 VAP.',cx,topY+14);
+
+  // ── DESCENDING flow — liquid entering (cyan/blue, annular, DOWN) ──
+  const down3=(t*17)%(h*0.68);
+  ctx.fillStyle='rgba(0,150,255,0.07)';
+  ctx.fillRect(cx-OR,topY+flangeH,OR-IR,h*0.68);
+  ctx.fillRect(cx+IR,topY+flangeH,OR-IR,h*0.68);
+  // helical swirl lines
+  ctx.strokeStyle='rgba(30,170,255,0.7)';ctx.lineWidth=1.4;
+  for(let side=0;side<2;side++){
+    const baseX=side===0?cx-OR*0.6:cx+OR*0.6;
+    ctx.beginPath();
+    for(let i=0;i<=60;i++){
+      const fy=topY+flangeH+(i/60)*(h*0.67);
+      const sw=Math.sin((i/60)*Math.PI*5.5+t*1.6+(side*Math.PI))*(OR*0.3);
+      i===0?ctx.moveTo(baseX+sw,fy):ctx.lineTo(baseX+sw,fy);
+    }
+    ctx.stroke();
+  }
+  // arrows pointing DOWN (liquid descends)
+  ctx.strokeStyle='rgba(30,170,255,0.9)';ctx.lineWidth=1.6;
+  for(let i=0;i<4;i++){
+    const ay=topY+flangeH+6+((i/4*(h*0.62)+down3)%(h*0.62));
+    const ax=cx+(i%2===0?-1:1)*OR*0.62;
+    ctx.beginPath();ctx.moveTo(ax-4,ay-6);ctx.lineTo(ax,ay+6);ctx.lineTo(ax+4,ay-6);ctx.stroke();
+  }
+  ctx.fillStyle='rgba(30,170,255,0.90)';ctx.fillText('\u2193 L\u00cdQ.',cx-OR*.55,topY+14);
+
+
+  // ── INJECTORS / VORTEX NOZZLES (6 pairs like image 2) ──
+  const nInj=6;
+  for(let j=0;j<nInj;j++){
+    const iy=topY+flangeH+12+(j/(nInj-1))*h*0.58;
+    const pu=Math.sin(t*1.8+j*0.7)*sf*0.5;
+    ctx.strokeStyle=`rgba(0,220,255,${0.55+pu*0.2})`;ctx.lineWidth=1.2;
+    // left nozzle circle
+    ctx.beginPath();ctx.arc(cx-IR,iy,3.5,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(cx+IR,iy,3.5,0,Math.PI*2);ctx.stroke();
+    // tangential injection lines
+    ctx.strokeStyle='rgba(0,200,255,0.2)';ctx.lineWidth=0.7;ctx.setLineDash([2,3]);
+    ctx.beginPath();ctx.moveTo(cx-IR,iy);ctx.lineTo(cx-OR*0.75,iy);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx+IR,iy);ctx.lineTo(cx+OR*0.75,iy);ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // ── LABELS ──
+  ctx.font='7px Rajdhani,sans-serif';ctx.fillStyle='rgba(0,200,255,0.5)';ctx.textAlign='right';
+  ctx.fillText('inyectores',cx-OR-wt-6,topY+h*0.3);
+  ctx.fillText('vórtice',cx-OR-wt-6,topY+h*0.37);
+
+  // ── temp gradient bar ──
+  const barX=cx+OR+wt+5,barY=topY+flangeH,barH=h*0.68,barW=6;
+  const bg=ctx.createLinearGradient(0,barY,0,barY+barH);
+  bg.addColorStop(0,'#0040ff');bg.addColorStop(.35,'#00ee88');
+  bg.addColorStop(.65,'#ffee00');bg.addColorStop(1,'#ff4400');
+  ctx.fillStyle=bg;ctx.fillRect(barX,barY,barW,barH);
+  ctx.strokeStyle='rgba(0,200,255,0.25)';ctx.lineWidth=.5;ctx.strokeRect(barX,barY,barW,barH);
+  ctx.fillStyle='rgba(0,200,255,0.6)';ctx.font='6.5px Rajdhani,sans-serif';ctx.textAlign='left';
+  ctx.fillText(Math.round(S.tIn)+'°C',barX+barW+2,barY+7);
+  ctx.fillText(Math.round(S.tGeo)+'°C',barX+barW+2,barY+barH-2);
+
+  // ── operational state overlay label ──
+  if(S.sim!=='none'&&S.sim!=='reset'){
+    const lbl={fouling:'FOULING',lowflow:'CAUDAL BAJO',blockage:'OBSTRUCCIÓN',corrosion:'CORROSIÓN',
+               leak:'FUGA',overtemp:'SOBRE-T°',geoburst:'GEO+',sensorfail:'SENSOR',
+               efficiency:'EFIC.BAJA',optimal:'ÓPTIMO'}[S.sim]||'';
+    const lc=PROFS[S.sim]?{NORMAL:'#00e676',WARNING:'#ffab00',CRITICAL:'#ff6d00',EMERGENCY:'#ff1744'}[PROFS[S.sim].sev]||'#00e676':'#00e676';
+    ctx.save();
+    ctx.fillStyle=lc+'33';ctx.strokeStyle=lc;ctx.lineWidth=1.5;
+    ctx.fillRect(cx-OR-wt-4,topY-2,OR*2+wt*2+8,20);ctx.strokeRect(cx-OR-wt-4,topY-2,OR*2+wt*2+8,20);
+    ctx.fillStyle=lc;ctx.font='bold 9px Rajdhani,sans-serif';ctx.textAlign='center';
+    ctx.fillText('SIM: '+lbl,cx,topY+12);
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════════════════
+//  PANEL C — CROSS-SECTION  (high contrast, detailed)
+// ══════════════════════════════════════════════════════
+function drawXSection(t,sf,ox,oy,W,H){
+  const cx=ox+W/2;
+  // Safe radius: min of width-based and height-based constraints
+  const dimTop=22, dimBot=22;
+  const usableH=Math.max(60, H-dimTop-dimBot);
+  const OR=Math.max(20, Math.min(W*0.41, usableH*0.44));
+  const OWT=Math.max(6, OR*0.13);
+  const IR=Math.max(8, OR*0.38);
+  const IWT=Math.max(3, OR*0.07);
+  // cy: true centre of usable area
+  const cy=oy+dimTop+usableH/2;
+
+  ctx.save();
+
+  // ── outer drop shadow ──
+  ctx.shadowColor='rgba(0,0,0,0.85)';ctx.shadowBlur=24;ctx.shadowOffsetX=4;ctx.shadowOffsetY=6;
+  ctx.beginPath();ctx.arc(cx,cy,OR+OWT+2,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.01)';ctx.fill();
+  ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
+
+  // ── OUTER CASING (thick, visible stainless ring) ──
+  const ring1=ctx.createRadialGradient(cx-OR*.28,cy-OR*.28,OR*.1,cx,cy,OR+OWT);
+  ring1.addColorStop(0,'#3a6e8e');ring1.addColorStop(.2,'#2a5268');
+  ring1.addColorStop(.5,'#1a3448');ring1.addColorStop(.8,'#0e2030');ring1.addColorStop(1,'#081420');
+  ctx.fillStyle=ring1;ctx.beginPath();ctx.arc(cx,cy,OR+OWT,0,Math.PI*2);ctx.fill();
+  // bright outer ring edge
+  ctx.strokeStyle='rgba(0,220,255,0.7)';ctx.lineWidth=2;ctx.stroke();
+  // inner edge of casing
+  ctx.strokeStyle='rgba(0,180,220,0.35)';ctx.lineWidth=0.8;
+  ctx.beginPath();ctx.arc(cx,cy,OR,0,Math.PI*2);ctx.stroke();
+  // brushed metal lines
+  for(let r=OR*.65;r<OR+OWT*.9;r+=4.5){
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=1;ctx.stroke();
+  }
+
+  // ── ANNULAR FLUID (between casing inner and inner tube wall) ──
+  const aCol=bodyCol(t,sf,0.55,'annulus');
+  const ann=ctx.createRadialGradient(cx,cy,IR+IWT,cx,cy,OR);
+  ann.addColorStop(0,dk(aCol,.12));ann.addColorStop(.45,aCol);ann.addColorStop(1,lk(aCol,.18));
+  ctx.fillStyle=ann;
+  ctx.beginPath();ctx.arc(cx,cy,OR,0,Math.PI*2);
+  ctx.arc(cx,cy,IR+IWT,0,Math.PI*2,true);
+  ctx.fill('evenodd');
+
+  // ── WAVY FINS in annulus (14 fins, high contrast) ──
+  const NF=14;
+  for(let f=0;f<NF;f++){
+    const ang=(f/NF)*Math.PI*2+t*0.28;
+    const wave=Math.sin(ang*2.8+t*0.5)*OR*0.09;
+    const r0=IR+IWT, r1=OR*0.86+wave;
+    const fIntensity=0.55+sf*0.25;
+    const fc=sf>0.5?`rgba(255,${100+f*6},0,${fIntensity})`
+                   :`rgba(0,${180+f*4},${220+f*2},${fIntensity})`;
+    ctx.strokeStyle=fc;ctx.lineWidth=2.8;
+    // wavy path
+    ctx.beginPath();
+    for(let s=0;s<=10;s++){
+      const r=r0+(r1-r0)*s/10;
+      const wa=ang+Math.sin(s*0.85+t*0.4)*0.14;
+      s===0?ctx.moveTo(cx+r*Math.cos(wa),cy+r*Math.sin(wa))
+           :ctx.lineTo(cx+r*Math.cos(wa),cy+r*Math.sin(wa));
+    }
+    ctx.stroke();
+    // fin glow tip
+    ctx.save();ctx.globalAlpha=0.3+sf*0.2;
+    ctx.beginPath();ctx.arc(cx+r1*Math.cos(ang),cy+r1*Math.sin(ang),3,0,Math.PI*2);
+    ctx.fillStyle=fc;ctx.fill();ctx.restore();
+  }
+
+  // ── VORTEX SPIRAL (animated, high visibility) ──
+  ctx.save();ctx.globalAlpha=0.35;
+  for(let v=0;v<2;v++){
+    ctx.strokeStyle=v===0?'rgba(0,230,255,0.9)':'rgba(0,255,160,0.7)';
+    ctx.lineWidth=1.4;ctx.beginPath();
+    for(let i=0;i<=120;i++){
+      const frac=i/120;
+      const r=(IR+IWT)+(OR-(IR+IWT))*frac;
+      const a=frac*Math.PI*6*(v===0?1:-1)+t*1.4;
+      i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a))
+           :ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // ── INNER TUBE WALL ──
+  const itw=ctx.createRadialGradient(cx-IR*.2,cy-IR*.2,0,cx,cy,IR+IWT);
+  itw.addColorStop(0,'#254a66');itw.addColorStop(.5,'#162e44');itw.addColorStop(1,'#0a1e2e');
+  ctx.fillStyle=itw;ctx.beginPath();ctx.arc(cx,cy,IR+IWT,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(0,200,255,0.45)';ctx.lineWidth=1.3;ctx.stroke();
+
+  // ── INNER FLUID (hot descending, high contrast) ──
+  const iCol=bodyCol(t,sf,0.75,'inner');
+  const ifl=ctx.createRadialGradient(cx-IR*.2,cy-IR*.2,0,cx,cy,IR);
+  ifl.addColorStop(0,lk(iCol,.6));ifl.addColorStop(.3,lk(iCol,.25));
+  ifl.addColorStop(.7,iCol);ifl.addColorStop(1,dk(iCol,.3));
+  ctx.fillStyle=ifl;ctx.beginPath();ctx.arc(cx,cy,IR,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(0,200,255,0.3)';ctx.lineWidth=.8;ctx.stroke();
+
+  // inner flow arrow — vapor UP (red, ascends through center tube)
+  ctx.save();ctx.strokeStyle='rgba(255,75,20,0.9)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(cx,cy+IR*.55);ctx.lineTo(cx,cy-IR*.55);
+  ctx.moveTo(cx-4,cy-IR*.3);ctx.lineTo(cx,cy-IR*.55);ctx.lineTo(cx+4,cy-IR*.3);ctx.stroke();
+  ctx.restore();
+
+  // annular arrows — liquid DOWN (blue, descends through annulus)
+  ctx.save();ctx.strokeStyle='rgba(30,165,255,0.8)';ctx.lineWidth=1.2;
+  const rm=(OR*0.82+IR+IWT)/2;
+  for(let i=0;i<4;i++){
+    const a=(i/4)*Math.PI*2+t*0.9;
+    const px=cx+rm*Math.cos(a),py=cy+rm*Math.sin(a);
+    const ta=a-Math.PI/2;  // reversed: clockwise = downward flow
+    ctx.beginPath();ctx.moveTo(px,py);
+    ctx.lineTo(px+Math.cos(ta)*8,py+Math.sin(ta)*8);ctx.stroke();
+  }
+  ctx.restore();
+
+
+  // ── DIMENSION ANNOTATIONS ──
+  ctx.save();ctx.strokeStyle='rgba(0,210,255,0.3)';ctx.lineWidth=0.7;
+  ctx.fillStyle='rgba(80,195,230,0.75)';ctx.font='7.5px Rajdhani,sans-serif';
+  // outer Ø
+  const dY=cy-OR-OWT-16;
+  ctx.beginPath();ctx.moveTo(cx-(OR+OWT),dY);ctx.lineTo(cx+(OR+OWT),dY);ctx.stroke();
+  [-1,1].forEach(s=>{ctx.beginPath();ctx.moveTo(cx+s*(OR+OWT),dY-4);ctx.lineTo(cx+s*(OR+OWT),dY+4);ctx.stroke();});
+  ctx.textAlign='center';ctx.fillText('Ø 219 mm',cx,dY-3);
+  // inner tube Ø
+  const dY2=cy+IR+IWT+14;
+  ctx.beginPath();ctx.moveTo(cx-(IR+IWT),dY2);ctx.lineTo(cx+(IR+IWT),dY2);ctx.stroke();
+  ctx.fillText('Ø 90 mm',cx,dY2+9);
+  // zone labels
+  const mr=(OR*0.82+IR+IWT)/2;
+  ctx.fillStyle='rgba(0,220,255,0.65)';ctx.fillText('ANULAR ↓',cx+mr*0.68,cy-4);
+  ctx.fillStyle='rgba(255,90,40,0.75)'; ctx.fillText('TUBO ↑',cx,cy+4);
+  ctx.restore();
+
+  // ── SENSOR DOTS ──
+  const SS=[
+    {a:0.4, r:OR+OWT*.45,c:'#ff6600',l:'T'},
+    {a:2.0, r:mr,         c:'#00ccff',l:'P'},
+    {a:3.7, r:OR*0.62,    c:'#00e676',l:'F'},
+    {a:5.1, r:IR*0.55,    c:'#aa55ff',l:'V'},
+  ];
+  SS.forEach((s,i)=>{
+    const px=cx+s.r*Math.cos(s.a),py=cy+s.r*Math.sin(s.a);
+    const pu=Math.abs(Math.sin(t*1.6+i));
+    const ac=sf>0.6?'#ff1744':sf>0.25?'#ffab00':s.c;
+    ctx.save();
+    ctx.beginPath();ctx.arc(px,py,4,0,Math.PI*2);ctx.fillStyle=dk(ac,.4);ctx.fill();
+    ctx.strokeStyle=ac;ctx.lineWidth=1.3;ctx.stroke();
+    ctx.beginPath();ctx.arc(px,py,6+pu*4,0,Math.PI*2);
+    ctx.strokeStyle=ac;ctx.globalAlpha=0.2+pu*0.32;ctx.lineWidth=1;ctx.stroke();
+    ctx.globalAlpha=1;
+    ctx.font='bold 7px Rajdhani,sans-serif';ctx.fillStyle=ac;ctx.textAlign='center';
+    ctx.fillText(s.l,px,py-7);ctx.restore();
+  });
+
+  // ── Material label ──
+  ctx.save();ctx.font='bold 7.5px Rajdhani,sans-serif';
+  ctx.fillStyle='rgba(0,200,255,0.42)';ctx.textAlign='center';
+  ctx.fillText('SS 316L  |  Ø 219/90 mm',cx,cy+OR+OWT+20);ctx.restore();
+
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════════════════
+//  COLOR ENGINE — mode-aware palette
+// ══════════════════════════════════════════════════════
+function bodyCol(t,sf,depth,zone){
+  const m=S.mode;
+  if(m==='thermal'){
+    const base=zone==='inner'?(S.tOut-18)/115:(S.tGeo-45)/100;
+    return hc(Math.min(1,Math.max(0,base+depth*0.32+sf*0.1)));
+  }
+  if(m==='cfd'){
+    const turb=Math.abs(Math.sin(depth*3.5+t*0.7))*0.35;
+    return hc(Math.min(1,(S.re/26000)*0.45+turb*(1+sf)));
+  }
+  if(m==='flow'){
+    return lh('#003a99','#00ccff',Math.min(1,(S.flow/6)*0.5+depth*0.28+(Math.sin(t*1.6+depth*2.8)+1)*0.1));
+  }
+  if(m==='fouling'){
+    const fo=S.fouling/100;
+    if(zone==='fin') return lh('#1e2e0e','#cc4400',Math.min(1,fo*(depth+0.25)));
+    return hc(Math.min(1,fo*0.65*depth));
+  }
+  if(m==='geo'){
+    return hc(Math.min(1,(S.tGeo-42)/105*0.42+depth*0.48));
+  }
+  if(m==='ai'){
+    return hc((Math.sin(depth*Math.PI*4+t)+1)*0.28);
+  }
+  // default metallic
+  if(zone==='inner')  return '#1e3d58';
+  if(zone==='fin')    return '#1c3a54';
+  if(zone==='annulus')return '#122436';
+  return '#16304a';
+}
+
+function getDBHEColor(fx,t,sf,zone){ return bodyCol(t,sf,fx,zone); }
+
+// ── AI Particles ──
+function drawAIParticles(t,ox,oy,W,H){
+  if(!S.particles.length) initPart();
+  S.particles.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<ox) p.x=ox+W; if(p.x>ox+W) p.x=ox;
+    if(p.y<oy) p.y=oy+H; if(p.y>oy+H) p.y=oy;
+    ctx.save();
+    ctx.globalAlpha=p.a*(0.38+Math.abs(Math.sin(t+p.x*0.013))*0.62);
+    ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  });
+}
+
+// legacy alias
+function drawParticles(ctx,W,H,t){ drawAIParticles(t,0,0,W,H); }
+
+// ═══════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════
+let cT,cP,cD,cF;
+const mkChart=(id,label,color)=>new Chart(document.getElementById(id).getContext('2d'),{
+  type:'line',
+  data:{labels:Array(22).fill(''),datasets:[{label,data:Array(22).fill(0),borderColor:color,borderWidth:1.5,
+    backgroundColor:color+'15',fill:true,tension:.4,pointRadius:0}]},
+  options:{responsive:true,maintainAspectRatio:false,animation:{duration:250},
+    plugins:{legend:{display:false}},
+    scales:{x:{display:false},y:{grid:{color:'rgba(0,200,255,0.05)'},ticks:{color:'#2e637a',font:{family:'Rajdhani',size:8}}}}}
+});
+
+function initCharts(){
+  Chart.defaults.color='#2e637a';Chart.defaults.borderColor='rgba(0,200,255,0.05)';
+  cT=mkChart('cTemp','T°C','#ff6600');
+  cP=mkChart('cPow','kW','#00d4ff');
+  cD=new Chart(document.getElementById('cDeg').getContext('2d'),{
+    type:'line',
+    data:{labels:['0','6m','12m','18m','24m','30m','36m'],
+      datasets:[
+        {label:'Real',data:[0,4,9,16,24,34,46],borderColor:'#ffab00',borderWidth:1.5,fill:false,tension:.4,pointRadius:2,pointBackgroundColor:'#ffab00'},
+        {label:'IA Pred',data:[null,null,null,16,27,40,55],borderColor:'#00d4ff',borderWidth:1.2,borderDash:[4,3],fill:false,tension:.4,pointRadius:0},
+        {label:'Límite',data:[80,80,80,80,80,80,80],borderColor:'#ff1744',borderWidth:.8,borderDash:[2,4],fill:false,pointRadius:0},
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:250},plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(0,200,255,0.05)'},ticks:{color:'#2e637a',font:{family:'Rajdhani',size:8}}},
+              y:{grid:{color:'rgba(0,200,255,0.05)'},ticks:{color:'#2e637a',font:{family:'Rajdhani',size:8}},min:0,max:100}}}
+  });
+  cF=new Chart(document.getElementById('cFoul').getContext('2d'),{
+    type:'bar',
+    data:{labels:['Zona 1','Zona 2','Zona 3','Zona 4','Zona 5'],
+      datasets:[{label:'Fouling',data:[8,14,12,18,22],backgroundColor:['#004488','#0066aa','#0088bb','#ffaa00','#ff6600'],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:250},plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{color:'#2e637a',font:{family:'Rajdhani',size:8}}},
+              y:{grid:{color:'rgba(0,200,255,0.05)'},ticks:{color:'#2e637a',font:{family:'Rajdhani',size:8}},min:0,max:100}}}
+  });
+}
+
+const hT=Array(22).fill(32),hP=Array(22).fill(148);
+function updateCharts(){
+  hT.push(S.tIn+(Math.random()-.5)*1.2);hT.shift();
+  hP.push(S.power+(Math.random()-.5)*3);hP.shift();
+  const tc=S.tIn>60?'#ff0000':S.tIn>40?'#ff6600':'#ffcc00';
+  const pc=S.power>150?'#00e676':S.power>80?'#00d4ff':'#ffab00';
+  cT.data.datasets[0].data=[...hT];cT.data.datasets[0].borderColor=tc;cT.update('none');
+  cP.data.datasets[0].data=[...hP];cP.data.datasets[0].borderColor=pc;cP.update('none');
+  if(S.sim!=='none'&&PROFS[S.sim].sev!=='NORMAL'){
+    const sc={WARNING:1.4,CRITICAL:1.9,EMERGENCY:2.6}[PROFS[S.sim].sev]||1;
+    cD.data.datasets[1].data=[null,null,null,16*sc>95?95:16*sc,Math.min(99,27*sc),Math.min(100,40*sc),100];
+  }else{cD.data.datasets[1].data=[null,null,null,16,27,40,55];}
+  cD.update('none');
+  const foulD=[S.fouling*.3,S.fouling*.5,S.fouling*.45,S.fouling*.7,S.fouling];
+  cF.data.datasets[0].data=foulD;
+  cF.data.datasets[0].backgroundColor=foulD.map(v=>v<25?'#004488':v<55?'#ffaa00':'#ff4400');
+  cF.update('none');
+}
+
+// ═══════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════
+function tick(){
+  const n=new Date();
+  document.getElementById('clk').textContent=n.toTimeString().slice(0,8);
+  document.getElementById('cld').textContent=n.toLocaleDateString('es-EC');
+}
+
+// ═══════════════════════════════════════════════
+// LIVE DATA
+// ═══════════════════════════════════════════════
+function clamp(v,mn,mx){return Math.max(mn,Math.min(mx,v));}
+function liveLoop(){
+  if(S.sim==='none'){
+    S.tIn    =clamp(S.tIn    +(Math.random()-.5)*.8,17,21);
+    S.tOut   =clamp(S.tOut   +(Math.random()-.5)*.6,44,50);
+    S.power  =clamp(S.power  +(Math.random()-.5)*2,145,155);
+    S.flow   =clamp(S.flow   +(Math.random()-.5)*.05,3.4,3.8);
+    S.tGeo   =clamp(S.tGeo   +(Math.random()-.5)*.4,128,132);
+    S.efficiency=clamp(S.efficiency+(Math.random()-.5)*.4,80,85);
+  }
+  renderKPIs();updateAI();renderCFD();renderGeo();
+  if(Math.random()<.16){
+    const msgs=[
+      ['NORMAL','SENS·T1','Temperatura nominal entrada: '+S.tIn.toFixed(1)+'°C'],
+      ['NORMAL','AI·ENGINE','Inferencia completada — Health Index: '+S.health+'%'],
+      ['NORMAL','CFD·MODULE','Reynolds: '+S.re.toLocaleString()+' — régimen turbulento confirmado'],
+      ['NORMAL','IIoT·GW','18/18 sensores activos — heartbeat OK'],
+      ['NORMAL','GEO·MODULE','Gradiente geotérmico estable: '+S.geoGrad.toFixed(2)+'°C/100m'],
+      ['WARNING','SENS·F1','Fouling zona 5 en vigilancia: '+S.fouling+'%'],
+      ['NORMAL','ENERGY·AI','Potencia recuperada: '+S.power.toFixed(1)+' kW — COP: '+S.cop.toFixed(1)],
+    ];
+    const m=msgs[Math.floor(Math.random()*msgs.length)];addEv(m[0],m[1],m[2]);
+  }
+  updateCharts();
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+function init(){
+  renderKPIs();renderAnoms();updateAI();updateGlobal();renderCFD();renderGeo();setMode('thermal');
+  initCharts();initPart();
+  rCvs();draw();
+  setInterval(liveLoop,2200);setInterval(tick,1000);tick();
+  addEv('NORMAL','SYSTEM',   'GeothermAI v3.8 iniciado — DBHE-HE Digital Twin cargado · L=3500m');
+  addEv('NORMAL','IIoT·GW',  '18 sensores IIoT activos: T×4 P×2 F×2 V×2 C×2 K×2 Geo×4');
+  addEv('NORMAL','AI·ENGINE','LSTM+XGBoost+Weibull compilados — Confianza: 91% — COP nominal: 4.2');
+  addEv('NORMAL','CFD·SIM',  'Reynolds=18400 turbulento · Nu=284 · Péclet=125000 · f=0.0042');
+  addEv('WARNING','FOULING·AI','Fouling zona 5 monitoreo activo — índice: 22% — próxima limpieza: 45 días');
+  addEv('NORMAL','GEO·MODULE','T° geotérmica: 130°C · Gradiente: 3.1°C/100m · Profundidad: 3500m');
+}
+
+window.addEventListener('resize',rCvs);
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
